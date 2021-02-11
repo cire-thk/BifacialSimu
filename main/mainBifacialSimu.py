@@ -1,14 +1,11 @@
-#!/usr/bin/env python3
+ #!/usr/bin/env python3
 # -*- coding: utf-8 -*-
 """
 Created on Mon Oct  7 12:57:54 2019
-Modified on Tue March 31 2020
 
-@authors:       Eva-Maria Grommes
-                Felix Schemann
-                
+@author:        Eva-Maria Grommes
 Master thesis:  Impact of dust and red soil on the annual yield of Bifacial PV-modules in Ghana
-Bachelor thesis: Impact of a variable albedo on the energy yield of bifacial photovoltaics
+
 """
 
 # Import
@@ -21,13 +18,14 @@ import numpy as np
 import os #to import directories
 import warnings
 import math
-#import pvlib #for electrical output simulation
-from datetime import datetime #get current date and time
+import pvlib #for electrical output simulation
+from datetime import datetime
 from pvfactors.viewfactors.aoimethods import faoi_fn_from_pvlib_sandia #to calculate AOI reflection losses
 from pvfactors.engine import PVEngine
-from pvfactors.irradiance import IsotropicOrdered
+from pvfactors.irradiance import HybridPerezOrdered
 from pvfactors.geometry import OrderedPVArray
 from pvfactors.viewfactors import VFCalculator
+from pvlib.location import Location
 
 # Settings for calculating ViewFactor
 get_ipython().run_line_magic('matplotlib', 'inline')
@@ -48,9 +46,28 @@ except ImportError:
 #########################################################
 
 # Path to import irradiance data / Quality for plot export
+
+
 LOCAL_DIR = os.getcwd()
-DATA_DIR = os.path.join(LOCAL_DIR, 'D:\Krempel\FH\Bachelor\Python\Simulation')
-filepath = os.path.join(DATA_DIR, 'Ghana_Reference.csv')
+DATA_DIR = os.path.join(LOCAL_DIR, 'C:/Users/Sebastian Nows/OneDrive - th-koeln.de/Masterprojekt/50_Python Simulation/NREL/SRRL Weather Data')
+#DATA_DIR = os.path.join(LOCAL_DIR, 'C:/Users/Sebastian Nows/OneDrive - th-koeln.de/Masterprojekt/50_Python Simulation')
+
+#DATA_DIR = os.path.join(LOCAL_DIR, 'C:/Users/fredk/th-koeln.de/Masterprojekt Bifacial Simulation - Dokumente/50_Python Simulation')
+#DATA_DIR = os.path.join(LOCAL_DIR, 'C:/Users/fredk/th-koeln.de/Masterprojekt Bifacial Simulation - Dokumente/50_Python Simulation/NREL/SRRL Weather Data')
+
+#DATA_DIR = os.path.join(LOCAL_DIR, 'C:/Users/Felix/th-koeln.de/Masterprojekt Bifacial Simulation - Documents/50_Python Simulation/NREL/SRRL Weather Data')
+
+
+#filepath = os.path.join(DATA_DIR, 'Ghana_Reference.csv')
+filepath = os.path.join(DATA_DIR, 'SRRL Weatherdata 3.csv')
+
+# Create directories
+     
+measurementsPath = DATA_DIR + "/" + "Berechnungen"
+                
+if not os.path.exists(measurementsPath):
+    os.mkdir(measurementsPath)
+
 dpi = 150 #Quality for plot export
 
 #########################################################
@@ -59,41 +76,56 @@ dpi = 150 #Quality for plot export
 simulationParameter = {
     'n_pvrows': 3, #number of PV rows
     'number_of_segments': 5, #number of segments for each PVrow
-    'pvrow_height': 2.95, #height of the PV rows, measured at their centre [m]
-    'pvrow_width': 1.686, #width of the PV panel in row, considered 2D plane [m]
-    'surface_azimuth': 135, #azimuth of the PV surface [deg] 90°= East, 135° = South-East, 180°=South
+    'pvrow_height': 1.50, #mounting height of the PV rows, measured at their center [m]
+    'pvrow_width': 2.0, #width of the PV panel in row, (but width doesn't mean width, actually it means length) considered 2D plane [m]
+    'surface_azimuth': 180, #azimuth of the PV surface [deg] 90°= East, 135° = South-East, 180°=South
     'surface_tilt': 35, #tilt of the PV surface [deg]
-    #'albedo': 0.259597496, # Measured Albedo average value
-    'a0': 0.22, # Measured Albedo under direct illumination with a solar zenith angle of approx. 60°
-    'adiff': 0.19896735, # Measured Albedo under 100% diffuse illumination
-    'C': 0.4, #Solar angle dependency factor
+    'albedo': 0.26, # Measured Albedo average value
     #'index_observed_pvrow': 1, #index of the PV row, whose incident irradiance will be returned
     'rho_front_pvrow' : 0.03, #front surface reflectivity of PV rows
     'rho_back_pvrow' : 0.05, #back surface reflectivity of PV rows
-    #'horizon_band_angle' : 6.5, #elevation angle of the sky dome's diffuse horizon band [deg]   
-    'L_Position': -0.8005275, #Longitude of measurement position [deg]
-    'L_Area': -0.1969, #Longitude of timezone area [deg]
-    'Latitude_Position': 6.047049, #Latitude of measurement position [deg]
+    'horizon_band_angle' : 6.5, #elevation angle of the sky dome's diffuse horizon band [deg]   
+    
+
+    'UTC_Time_Zone': 'US/Mountain', # https://en.wikipedia.org/wiki/List_of_tz_database_time_zones
+    'City':'Golden',
+    'Longitude_Position': -105, #Longitude of measurement position [deg]
+    'Longitude_Area': -105, #Longitude of timezone area [deg]
+    'Latitude_Position': 39.7, #Latitude of measurement position [deg]
+
+    
+# =============================================================================
+#     'UTC_Time_Zone': 'US/Arizona', # https://en.wikipedia.org/wiki/List_of_tz_database_time_zones
+#     'City':'Golden',
+#     'Longitude_Position': -111, #Longitude of measurement position [deg]
+#     'Longitude_Area': -111, #Longitude of timezone area [deg]
+#     'Latitude_Position': 32.2, #Latitude of measurement position [deg]
+# =============================================================================
+    
     'axis_azimuth': 0.0, #Axis Azimuth angle [deg]
-    'gcr': 0.55, #ground coverage ratio (module area / land use)
+    'gcr': 0.35, #ground coverage ratio (module area / land use)
 }
 
-irradiance_model = IsotropicOrdered(rho_front=simulationParameter['rho_front_pvrow'], rho_back=simulationParameter['rho_back_pvrow']) #choose an irradiance model
+position = Location(simulationParameter["Latitude_Position"], simulationParameter['Longitude_Position'], simulationParameter['UTC_Time_Zone'], 700, simulationParameter['City'])
+print(position)
+   
+    
+irradiance_model = HybridPerezOrdered(rho_front=simulationParameter['rho_front_pvrow'], rho_back=simulationParameter['rho_back_pvrow']) #choose an irradiance model
 
 # Dictionary for Module Parameters
 
-#LG NeON 2 BiFacial LG340N1T-V5
-print("\n LG Bifacial Module:") 
+#NREL Row 2
+print("\n NREL Row 2:") 
 moduleParameter = {
-    'I_sc_f': 10.38, #Short-circuit current measured for front side illumination of the module at STC [A]
-    'I_sc_r': 10.98, #Short-circuit current measured for rear side illumination of the module at STC [A]
-    'V_oc_f': 40.8, #Open-circuit voltage measured for front side illumination of module at STC [V]
-    'V_oc_r': 40.8, #Open-circuit voltage measured for rear side illumination of module at STC [V]
-    'V_mpp_f': 34.4, #Front Maximum Power Point Voltage [V]
-    'V_mpp_r': 34.4, #Rear Maximum Power Point Voltage [V]
-    'I_mpp_f': 9.89, #Front Maximum Power Point Current [A]
-    'I_mpp_r': 10.47, #Rear Maximum Power Point Current [A]
-    'P_mpp': 340, # Power at maximum power Point [W]
+    'I_sc_f': 9.5, #Short-circuit current measured for front side illumination of the module at STC [A]
+    'I_sc_r': 6.56, #Short-circuit current measured for rear side illumination of the module at STC [A]
+    'V_oc_f': 48, #Open-circuit voltage measured for front side illumination of module at STC [V]
+    'V_oc_r': 47.3, #Open-circuit voltage measured for rear side illumination of module at STC [V]
+    'V_mpp_f': 39.2, #Front Maximum Power Point Voltage [V]
+    'V_mpp_r': 39.5, #Rear Maximum Power Point Voltage [V]
+    'I_mpp_f': 9.00, #Front Maximum Power Point Current [A]
+    'I_mpp_r': 6.2, #Rear Maximum Power Point Current [A]
+    'P_mpp': 354, # Power at maximum power Point [W]
     'T_koeff': -0.0036, #Temperature Coeffizient [1/°C]
     'T_amb':20, #Ambient Temperature for measuring the Temperature Coeffizient [°C]
     
@@ -116,7 +148,7 @@ simulationParameter.update(discretization)
 # Define timezone and table specifications
 def export_data(fp):
     #tz = tz_localize('Africa/Accra')
-    df = pd.read_csv(fp, header = 16)
+    df = pd.read_csv(fp, header = 0)
     
     # Define, which columns to drop, if none, comment out
     #columnsToDrop = [df.columns[1]] 
@@ -125,8 +157,7 @@ def export_data(fp):
     #    df = df.drop(column, axis = 1)
         
     # Rename columns for calculation
-    df = df.rename(columns = {'Date': 'timestamps'})
-    df = df.rename(columns = {'Global horizontal irradiance (W/m2)': 'ghi'})
+    df = df.rename(columns = {'date2': 'timestamps'})
     df = df.rename(columns = {'Diffuse horizontal irradiance (W/m2)': 'dhi'})
     df = df.rename(columns = {'Direct (beam) normal Irradiance (W/m2)': 'dni'})
     df = df.rename(columns = {'Dry bulb temperature (deg. C)': 'temperature'})
@@ -134,138 +165,21 @@ def export_data(fp):
     df = df.rename(columns = {'Air pressure (Pa)': 'airpressure'})
  
     df = df.set_index('timestamps') # Define index for dataframe
-    df['datetime'] = pd.date_range(start='1/1/2015', end= '31/12/2015 23:00', freq='H')
+    df['datetime'] = pd.date_range(start='2019/10/01 00:00', end= '2020/05/01 00:00', freq='H')
     #df.index=pd.to_datetime(df.index) #Configure x-axis label
-    df = df.set_index('datetime')
+    df= df.set_index('datetime')
     
     return df
 
-df = export_data(filepath)
-#print(df)
+df = export_data(filepath) #print(df)
 
 #########################################################
 
-
-# Measured Albedo average value
-                                                      
-#albedo = simulationParameter['albedo']
-
-
-#########################################################
-#Calculation of sun parameters
-
-
-def calcB(n):
-    return math.radians((n - 1) * (360/365))
-
-def calcDeclination(B): #Declination on North-South axis
-    return 0.006918 - 0.399912 * math.cos(B) + 0.070257 * math.sin(B) - 0.006758 * math.cos(2 * B) + 0.000907 * math.sin(2 * B) - 0.002697 * math.cos(3 * B) + 0.00148 * math.sin(3 * B)
-
-def calcE(B): #Equation of time
-    return 229.2 * (0.000075 + 0.001868 * math.cos(B) - 0.032077 * math.sin(B) - 0.014615 * math.cos(2 * B) - 0.04089 * math.sin(2 * B))
-
-def calcLT(L_Area, L_Position, E, LET): #local time and longitude
-    return (4 * (L_Area - L_Position) + E) / 60 + LET #LET=legal time (GEZ)
-
-def calcHourAngle(LT): #Hour angle
-    return math.radians((LT - 12) * 15)
-
-def calcCrownAngle(Declination, Latitude, HourAngle): #Zenit- or Crown Angle
-    return math.acos(math.sin(Declination) * math.sin(Latitude) + math.cos(Declination) * math.cos(Latitude) * math.cos(HourAngle))
-
-def calcAzimuthAngle(HourAngle, CrownAngle, Latitude, Declination): #Azimuth Angle
-    
-    f = 1
-    if HourAngle < 0:
-        f = -1
-    
-    return f * abs(math.acos((math.cos(CrownAngle) * math.sin(Latitude) - math.sin(Declination)) / (math.sin(CrownAngle) * math.cos(Latitude))))
-
-def calcInclinationAngle(CrownAngle, AzimuthAngle, HourAngle, Latitude, Declination): #Inclination (Neigung) Angle
-
-    AzimuthAngle = calcAzimuthAngle(HourAngle, CrownAngle, Latitude, Declination)
-    f = 1
-    if AzimuthAngle < 0:
-        f = -1
-    
-    ElevationAngle = math.radians(90) - CrownAngle
-    
-    if ElevationAngle > 0:
-        return f * math.atan(math.tan(CrownAngle) * abs(math.cos(math.radians(90) - AzimuthAngle)))
-    else:
-        return f * math.radians(90)
-
-def calcElevationAngle(CrownAngle): #Elevation Angle (Höhenwinkel)
-    return math.radians(90) - CrownAngle
-
-#########################################################
-# Calculate sun parameters for every timestamp
-
-# Clear lists/columns
-solar_zenith = []
-solar_azimuth = []
-surface_tilt = []
-surface_azimuth = []
-albedo = []
-
-ghi = df['ghi']  
-dhi = df['dhi']
-a0 = simulationParameter['a0']
-C = simulationParameter['C']
-adiff = simulationParameter['adiff']
-
-# Begin loop: Calculate for every hour 
-for index, row in df.iterrows():
-    
-    dayOfYear = df.index.get_loc(index) / 24  
-    B= calcB(dayOfYear)
-    Declination = calcDeclination(B)
-    E = calcE(B)
-    LT = calcLT(simulationParameter['L_Area'], simulationParameter['L_Position'], E, df.index.get_loc(index))
-    HourAngle = calcHourAngle(LT)
-    df.loc[index, 'solar_zenith'] = calcCrownAngle(Declination, simulationParameter['Latitude_Position'], HourAngle)
-    df.loc[index, 'solar_azimuth'] = calcAzimuthAngle(HourAngle, df.loc[index, 'solar_zenith'], simulationParameter['Latitude_Position'], Declination)
-    df.loc[index, 'surface_tilt'] = simulationParameter['surface_tilt']
-    df.loc[index, 'surface_azimuth'] = simulationParameter['surface_azimuth']
-         
-    """
-    Declination = pvlib.solarposition.declination_spencer71(dayOfYear)
-    #Declination = pvlib.solarposition.declination_cooper69(dayOfYear)
-    HourAngle = pvlib.solarposition.hour_angle(pd.date_range(start='1/1/2015', end= '31/12/2015 23:00', freq='H'), simulationParameter['L_Position'], dayOfYear)    
-    solar_zenith = pvlib.solarposition.solar_zenith_analytical(simulationParameter['Latitude_Position'], HourAngle, Declination)       
-    solar_azimuth = pvlib.solarposition.solar_azimuth_analytical(simulationParameter['Latitude_Position'], HourAngle, Declination, solar_zenith)
-    surface_tilt = simulationParameter['surface_tilt']
-    surface_azimuth = simulationParameter['surface_azimuth']
-    """
-    
-#df['solar_azimuth'] = solar_azimuth
-
-#df['surface_tilt'] = surface_tilt
-
-#df['surface_azimuth'] = surface_azimuth 
-
-# Calculate albedo for every hour
-for index, row in df.iterrows(): 
-    
-    if row['ghi'] == 0: #Avoid division by 0
-        df.loc[index,'albedo'] = 0
-    else:
-        df.loc[index,'albedo'] = (1 - row['dhi'] / row['ghi']) * a0 * ((1 + C)  / (1 + 2 * C * math.cos(row['solar_zenith']))) + (row['dhi']  / row['ghi'] * adiff)
-      
-    if df.loc[index,'albedo'] < 0: #change values below 0 for yield calculation
-       #df.loc[index,'albedo'] = 0
-       #df.loc[index,'albedo'] = 0.241020557 #Calculated max albedo 6&7 o'clock
-       df.loc[index,'albedo'] = 0.185259524 #Calculated mean albedo 6&7 o'clock
-       #df.loc[index,'albedo'] = 0.002447757 #Calculated min albedo 6&7 o'clock
-      
 #Pick a specific day for closer data consideration
-dayUnderConsideration = 243
+dayUnderConsideration = 1
 
 df_inputs = df.iloc[dayUnderConsideration * 24:(dayUnderConsideration + 1) * 24, :] #rows to look at in .csv
 
-#Calculate the input for a weekly consideration
-df_inputs2 = df.iloc[dayUnderConsideration * 24:(dayUnderConsideration + 7) * 24, :] #rows to look at in .csv
-        
 # Plot the data for displaying direct and diffuse irradiance
 #print("\n Direct and Diffuse irradiance:") 
 
@@ -273,38 +187,39 @@ f, (ax1) = plt.subplots(1, figsize=(12, 3))
 df_inputs[['dni', 'dhi']].plot(ax=ax1)
 ax1.locator_params(tight=True, nbins=6)
 ax1.set_ylabel('W/m2')
-f.savefig("Direct_Diffuse_irradiance_" + datetime.now().strftime("%Y-%m-%d-%H-%M") + ".png", dpi = dpi)
+f.savefig("Direct_Diffuse_irradiance:" + datetime.now().strftime("%Y-%m-%d-%H-%M") + ".png", dpi = dpi)
 plt.show(sns)
 
-f, (ax1) = plt.subplots(1, figsize=(12, 3))
-df_inputs[['ghi', 'dhi']].plot(ax=ax1)
-ax1.locator_params(tight=True, nbins=6)
-ax1.set_ylabel('W/m2')
-f.savefig("Global_Diffuse_irradiance_" + datetime.now().strftime("%Y-%m-%d-%H-%M") + ".png", dpi = dpi)
-plt.show(sns)
+# Measured Albedo average value
+albedo = simulationParameter['albedo']
+
+
+#########################################################
+#Calculation of sun parameters
+
+    # Begin loop: Calculate for every hour 
+for index, row in df.iterrows():
+    surface_tilt = simulationParameter['surface_tilt']
+    surface_azimuth = simulationParameter['surface_azimuth']
+df['surface_tilt'] = surface_tilt
+df['surface_azimuth'] = surface_azimuth
+
+times = pd.date_range(start=datetime(2019,10,1), end=datetime(2020,5,1), freq='60Min', ambiguous=True)
+
+#ephem_pos = pvlib.solarposition.get_solarposition(times.tz_localize(position.tz, ambiguous='NaT',nonexistent='NaT'), position.latitude, position.longitude)
+ephem_pos = pvlib.solarposition.get_solarposition(pd.date_range(start='2019/10/01 00:00', end= '2020/05/01 00:00', freq='H'), position.latitude, position.longitude)
+
+ephem_pos.to_csv(measurementsPath + '/Sonnenstand.csv')
+#ephemout = ephem_pos.tz_convert(None)
+ephemout = ephem_pos
+
+df.to_excel(measurementsPath + '/Wetterdaten.xlsx')
+ephemout.to_excel(measurementsPath + '/Sonnenstand.xlsx')
+dfSun = df.join(ephemout)
+dfSun.index.name = "datetime"
+dfSun.to_excel(measurementsPath + '/Sonnenstand_gesamt.xlsx')
+
 ####################################################
-
-df.to_csv('Dataframe.csv')
-
-#Plot the albedo values for the whole year
-f, (ax1) = plt.subplots(1, figsize=(12, 3))
-df.plot(y='albedo')
-plt.show()
-f.savefig("Albedo_" + datetime.now().strftime("%Y-%m-%d-%H-%M") + ".png", dpi = dpi)
-
-#Plot albedo for a specific day
-f, (ax1) = plt.subplots(1, figsize=(12, 3))
-df_inputs[['albedo']].plot(ax=ax1)
-ax1.locator_params(tight=True, nbins=6)
-plt.show()
-f.savefig("Albedo_diurnal_development" + datetime.now().strftime("%Y-%m-%d-%H-%M") + ".png", dpi = dpi)
-
-#Plot albedo for the following week
-f, (ax1) = plt.subplots(1, figsize=(12, 3))
-df_inputs2[['albedo']].plot(ax=ax1)
-ax1.locator_params(tight=True, nbins=6)
-plt.show()
-f.savefig("Albedo_weekly_development" + datetime.now().strftime("%Y-%m-%d-%H-%M") + ".png", dpi = dpi)
 
 # Run full bifacial simulation
 
@@ -313,10 +228,10 @@ pvarray = OrderedPVArray.init_from_dict(simulationParameter)
 
 engine = PVEngine(pvarray)
 
-engine.fit(df.index, df.dni, df.dhi,
-           df.solar_zenith, df.solar_azimuth,
-           df.surface_tilt, df.surface_azimuth,
-           df.albedo)
+engine.fit(dfSun.index, dfSun.dni, dfSun.dhi,
+           dfSun.azimuth, dfSun.zenith,
+           dfSun.surface_tilt, dfSun.surface_azimuth,
+           albedo)
 
 # Devide PV array into segments
 number_of_segments = {} # create empty list
@@ -330,7 +245,7 @@ for i in range(0, simulationParameter['n_pvrows']):
 f, ax = plt.subplots(figsize = (12,4))
 pvarray.plot_at_idx(12,ax,with_surface_index = True)
 ax.set_xlim(-3,20)
-f.savefig("Segment_Division_" + datetime.now().strftime("%Y-%m-%d-%H-%M") + ".png", dpi = dpi)
+f.savefig("Segment_Division" + datetime.now().strftime("%Y-%m-%d-%H-%M") + ".png", dpi = dpi)
 plt.show(sns)
 
 ####################################################
@@ -386,15 +301,19 @@ def fn_report(pvarray):
 
 # Run full mode simulation
 reportAOI = engine.run_full_mode(fn_build_report=fn_report)
+
 # Turn report into dataframe
 df_report_AOI = pd.DataFrame(reportAOI, index=df.index)
 
 plot_irradiance(df_report_AOI)
+
 ####################################################
 # Define Function calculating the total incident irradiance for the front and back side and the different segments of the backside
 
 # qinc = total incident irradiance on a surface, and it does not account for reflection losses [W/m2]
 # qabs = total absorbed irradiance by a surface [W/m2]
+
+#ts=timeseries 
 
 def Segments_report(pvarray):
     result = dict()
@@ -403,10 +322,10 @@ def Segments_report(pvarray):
         
         row = pvarray.ts_pvrows[i]
         
-        result["row_" + str(i) + "_qabs_front"] = row.front.get_param_weighted('qabs') #total qabs for every row front
-        result["row_" + str(i) + "_qabs_back"] = row.back.get_param_weighted('qabs') #total qabs for every row back
-        result["row_" + str(i) + "_qinc_front"] = row.front.get_param_weighted('qinc') #total qinc for every row front
-        result["row_" + str(i) + "_qinc_back"] = row.back.get_param_weighted('qinc') #total qinc for every row back
+        result["row_" + str(i) + "_qabs_front"] = row.front.get_param_weighted('qabs') #avg qabs for every row front
+        result["row_" + str(i) + "_qabs_back"] = row.back.get_param_weighted('qabs') #avg qabs for every row back
+        result["row_" + str(i) + "_qinc_front"] = row.front.get_param_weighted('qinc') #avg qinc for every row front
+        result["row_" + str(i) + "_qinc_back"] = row.back.get_param_weighted('qinc') #avg qinc for every row back
         
         for ts_surface in row.front.all_ts_surfaces:
             key = "qabs_segment_" + str(ts_surface.index)  # updated
@@ -465,7 +384,7 @@ ax[0].set_ylabel('W/m2')
 ax[1].set_ylabel('W/m2')
 ax[2].set_ylabel('W/m2')
 
-f.savefig("row0-3_qinc_" + datetime.now().strftime("%Y-%m-%d-%H-%M") + ".png", dpi = dpi)
+f.savefig("row0-3_qinc" + datetime.now().strftime("%Y-%m-%d-%H-%M") + ".png", dpi = dpi)
 plt.show(sns)
 
 #print(df_report_AOI['aoi_losses_back_%'])
@@ -629,7 +548,7 @@ p_bi_df.to_excel("P_bi_LG" + datetime.now().strftime("%Y-%m-%d-%H-%M") + ".xlsx"
     
 
 sum_power = (sum_energy/simulationParameter['n_pvrows'])
-print("Yearly bifacial module output power: " + str(sum_power) + " W/m^2")
+print("Yearly bifacial module output power: " + str(sum_power) + " Wh/m^2")
 print("Yearly bifacial module output energy: " + str(sum_power/1000) + " kWh/m^2") # Because the input data is per hour, the Energy is equivalent to the performance 
 print ("\n")
 
@@ -683,7 +602,7 @@ for i in range(0, simulationParameter['n_pvrows']):
             #print("Power: 0.0")
 
 sum_power_mono = (sum_energy_mono/simulationParameter['n_pvrows'])
-print("Yearly module monofacial output power: " + str(sum_power_mono) + " W/m^2")
+print("Yearly module monofacial output power: " + str(sum_power_mono) + " Wh/m^2")
 print("Yearly module monofacial output energy: " + str(sum_power_mono/1000) + " kWh/m^2") # Because the input data is per hour, the Energy is equivalent to the performance 
 print ("\n")
 
@@ -693,5 +612,3 @@ print ("\n")
 
 Bifacial_gain= (sum_power-sum_power_mono)/sum_power_mono
 print("Bifacial Gain: " + str(Bifacial_gain*100) + " %")
-
-
