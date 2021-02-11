@@ -17,4 +17,6 @@ Oder, dass Freddy seine Mails liest
 Lol
 
 
-kein bock mehr auf diese kacke hier
+WOW gitHub ist einfach toll
+
+Peace
