@@ -14,3 +14,4 @@ Bastis Änderung 2
 Felix Änderung 2
 >>>>>>> Wir fordern mehr Rechte für Freddy
 Oder, dass Freddy seine Mails liest
+Lol
