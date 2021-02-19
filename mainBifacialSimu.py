@@ -46,27 +46,22 @@ except ImportError:
 #########################################################
 
 # Path to import irradiance data / Quality for plot export
+now = datetime.now()
+date_time = now.strftime("%Y %m %d_%H_%M") # get current date and time
 
 
-LOCAL_DIR = os.getcwd()
-DATA_DIR = os.path.join(LOCAL_DIR, 'C:/Users/Sebastian Nows/OneDrive - th-koeln.de/Masterprojekt/50_Python Simulation/NREL/SRRL Weather Data')
-#DATA_DIR = os.path.join(LOCAL_DIR, 'C:/Users/Sebastian Nows/OneDrive - th-koeln.de/Masterprojekt/50_Python Simulation')
+localDir = os.getcwd()
+weatherDir = os.path.join(localDir, 'WeatherData\Golden_USA')
+#weatherDir = os.path.join(localDir, 'WeatherData\Ghana_Africa')
+weatherData = os.path.join(weatherDir, 'SRRL Weatherdata.csv') # get path to weather data
+#weatherData = os.path.join(weatherDir, 'Ghana_Reference.csv') # get path to weather data
+outputPath = os.path.join(localDir, 'Outputs')
+resultsPath = os.path.join(outputPath, date_time + '_results' ) 
 
-#DATA_DIR = os.path.join(LOCAL_DIR, 'C:/Users/fredk/th-koeln.de/Masterprojekt Bifacial Simulation - Dokumente/50_Python Simulation')
-#DATA_DIR = os.path.join(LOCAL_DIR, 'C:/Users/fredk/th-koeln.de/Masterprojekt Bifacial Simulation - Dokumente/50_Python Simulation/NREL/SRRL Weather Data')
 
-#DATA_DIR = os.path.join(LOCAL_DIR, 'C:/Users/Felix/th-koeln.de/Masterprojekt Bifacial Simulation - Documents/50_Python Simulation/NREL/SRRL Weather Data')
+if not os.path.exists(resultsPath):
+    os.makedirs(resultsPath)        # create path to output
 
-
-#filepath = os.path.join(DATA_DIR, 'Ghana_Reference.csv')
-filepath = os.path.join(DATA_DIR, 'SRRL Weatherdata 3.csv')
-
-# Create directories
-     
-measurementsPath = DATA_DIR + "/" + "Berechnungen"
-                
-if not os.path.exists(measurementsPath):
-    os.mkdir(measurementsPath)
 
 dpi = 150 #Quality for plot export
 
@@ -157,21 +152,22 @@ def export_data(fp):
     #    df = df.drop(column, axis = 1)
         
     # Rename columns for calculation
-    df = df.rename(columns = {'date2': 'timestamps'})
+    df = df.rename(columns = {'date': 'timestamps'})
     df = df.rename(columns = {'Diffuse horizontal irradiance (W/m2)': 'dhi'})
     df = df.rename(columns = {'Direct (beam) normal Irradiance (W/m2)': 'dni'})
-    df = df.rename(columns = {'Dry bulb temperature (deg. C)': 'temperature'})
+    df = df.rename(columns = {'Dry bulb temperature (deg, C)': 'temperature'})
     df = df.rename(columns = {'Windspeed (m/s)': 'windspeed'})
     df = df.rename(columns = {'Air pressure (Pa)': 'airpressure'})
  
-    df = df.set_index('timestamps') # Define index for dataframe
+    #df = df.set_index('timestamps') # Define index for dataframe
     df['datetime'] = pd.date_range(start='2019/10/01 00:00', end= '2020/05/01 00:00', freq='H')
     #df.index=pd.to_datetime(df.index) #Configure x-axis label
     df= df.set_index('datetime')
     
     return df
+    print(df)
 
-df = export_data(filepath) #print(df)
+df = export_data(weatherData) #print(df)
 
 #########################################################
 
@@ -187,7 +183,7 @@ f, (ax1) = plt.subplots(1, figsize=(12, 3))
 df_inputs[['dni', 'dhi']].plot(ax=ax1)
 ax1.locator_params(tight=True, nbins=6)
 ax1.set_ylabel('W/m2')
-f.savefig("Direct_Diffuse_irradiance:" + datetime.now().strftime("%Y-%m-%d-%H-%M") + ".png", dpi = dpi)
+f.savefig(resultsPath + "/Direct_Diffuse_irradiance:" + datetime.now().strftime("%Y-%m-%d-%H-%M") + ".png", dpi = dpi)
 plt.show(sns)
 
 # Measured Albedo average value
@@ -209,15 +205,15 @@ times = pd.date_range(start=datetime(2019,10,1), end=datetime(2020,5,1), freq='6
 #ephem_pos = pvlib.solarposition.get_solarposition(times.tz_localize(position.tz, ambiguous='NaT',nonexistent='NaT'), position.latitude, position.longitude)
 ephem_pos = pvlib.solarposition.get_solarposition(pd.date_range(start='2019/10/01 00:00', end= '2020/05/01 00:00', freq='H'), position.latitude, position.longitude)
 
-ephem_pos.to_csv(measurementsPath + '/Sonnenstand.csv')
+ephem_pos.to_csv(resultsPath + '/Sonnenstand.csv')
 #ephemout = ephem_pos.tz_convert(None)
 ephemout = ephem_pos
 
-df.to_excel(measurementsPath + '/Wetterdaten.xlsx')
-ephemout.to_excel(measurementsPath + '/Sonnenstand.xlsx')
+df.to_excel(resultsPath + '/Wetterdaten.xlsx')
+ephemout.to_excel(resultsPath + '/Sonnenstand.xlsx')
 dfSun = df.join(ephemout)
 dfSun.index.name = "datetime"
-dfSun.to_excel(measurementsPath + '/Sonnenstand_gesamt.xlsx')
+dfSun.to_excel(resultsPath + '/Sonnenstand_gesamt.xlsx')
 
 ####################################################
 
@@ -245,7 +241,7 @@ for i in range(0, simulationParameter['n_pvrows']):
 f, ax = plt.subplots(figsize = (12,4))
 pvarray.plot_at_idx(12,ax,with_surface_index = True)
 ax.set_xlim(-3,20)
-f.savefig("Segment_Division" + datetime.now().strftime("%Y-%m-%d-%H-%M") + ".png", dpi = dpi)
+f.savefig(resultsPath +"/Segment_Division" + datetime.now().strftime("%Y-%m-%d-%H-%M") + ".png", dpi = dpi)
 plt.show(sns)
 
 ####################################################
@@ -371,7 +367,7 @@ report = engine.run_full_mode(fn_build_report=Segments_report)
 df_report = pd.DataFrame(report, index=df.index)
 
 # Print results as .csv in directory
-df_report.to_excel("radiation_qabs_results_" + datetime.now().strftime("%Y-%m-%d-%H-%M") + ".xlsx")
+df_report.to_excel(resultsPath + "/radiation_qabs_results_" + datetime.now().strftime("%Y-%m-%d-%H-%M") + ".xlsx")
 #df_report.iloc[6:11]
 
 # Plot total qinc front and back for every row
@@ -384,7 +380,7 @@ ax[0].set_ylabel('W/m2')
 ax[1].set_ylabel('W/m2')
 ax[2].set_ylabel('W/m2')
 
-f.savefig("row0-3_qinc" + datetime.now().strftime("%Y-%m-%d-%H-%M") + ".png", dpi = dpi)
+f.savefig(resultsPath +"/row0-3_qinc" + datetime.now().strftime("%Y-%m-%d-%H-%M") + ".png", dpi = dpi)
 plt.show(sns)
 
 #print(df_report_AOI['aoi_losses_back_%'])
@@ -413,7 +409,7 @@ def save_view_factor(i, j, vf_matrix, timestamps):
     
     result = result.set_index('timestamps')
     
-    result.to_csv("view_factors_" + str(i) + "_" + str(j) + "_" + datetime.now().strftime("%Y-%m-%d-%H-%M") + ".csv") # Print ViewFactors to directory
+    result.to_csv(resultsPath + "/view_factors_" + str(i) + "_" + str(j) + "_" + datetime.now().strftime("%Y-%m-%d-%H-%M") + ".csv") # Print ViewFactors to directory
     #print("\n View Factors:")
     #print('View factor from surface {} to surface {}: {}'.format(i, j, np.around(vf, decimals=2))) # in case the matrix should be printed in the console
 
@@ -544,7 +540,7 @@ for i in range(0, len(P_bi_hourly_arrays[0])):
 # Create dataframe with average data
 p_bi_df = pd.DataFrame({"timestamps":df_report.index, "P_bi ": P_bi_hourly_average})
 p_bi_df.set_index("timestamps")
-p_bi_df.to_excel("P_bi_LG" + datetime.now().strftime("%Y-%m-%d-%H-%M") + ".xlsx")
+p_bi_df.to_excel(resultsPath + "/P_bi_LG" + datetime.now().strftime("%Y-%m-%d-%H-%M") + ".xlsx")
     
 
 sum_power = (sum_energy/simulationParameter['n_pvrows'])
@@ -556,7 +552,7 @@ print ("\n")
 f, (ax1) = plt.subplots(1, figsize=(12, 3))
 ax1.locator_params(tight=True, nbins=6)
 plt.plot(df.index, P_bi_hourly)
-f.savefig("P_bi_hourly" + datetime.now().strftime("%Y-%m-%d-%H-%M") + ".png", dpi = dpi)
+f.savefig(resultsPath +"/P_bi_hourly" + datetime.now().strftime("%Y-%m-%d-%H-%M") + ".png", dpi = dpi)
 plt.show(sns)
 
 
