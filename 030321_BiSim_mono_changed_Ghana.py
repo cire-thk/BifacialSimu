@@ -1,10 +1,15 @@
- #!/usr/bin/env python3
+#!/usr/bin/env python3
 # -*- coding: utf-8 -*-
 """
 Created on Mon Oct  7 12:57:54 2019
 
 @author:        Eva-Maria Grommes
-Master thesis:  Impact of dust and red soil on the annual yield of Bifacial PV-modules in Ghana
+Bifacial photovoltaic yield simulation as a function of the albedo
+
+
+Last change:
+    23.02.21 New solarposition calc method, new energy density calc
+    02.03.21 New method to calculate Bifacial Gain
 
 """
 
@@ -19,13 +24,13 @@ import os #to import directories
 import warnings
 import math
 import pvlib #for electrical output simulation
-from datetime import datetime
+from datetime import datetime #get current date and time
 from pvfactors.viewfactors.aoimethods import faoi_fn_from_pvlib_sandia #to calculate AOI reflection losses
 from pvfactors.engine import PVEngine
 from pvfactors.irradiance import HybridPerezOrdered
 from pvfactors.geometry import OrderedPVArray
 from pvfactors.viewfactors import VFCalculator
-from pvlib.location import Location
+from tqdm import tqdm
 
 # Settings for calculating ViewFactor
 get_ipython().run_line_magic('matplotlib', 'inline')
@@ -46,83 +51,57 @@ except ImportError:
 #########################################################
 
 # Path to import irradiance data / Quality for plot export
-now = datetime.now()
-date_time = now.strftime("%Y %m %d_%H_%M") # get current date and time
-
-
-localDir = os.getcwd()
-weatherDir = os.path.join(localDir, 'WeatherData\Golden_USA')
-#weatherDir = os.path.join(localDir, 'WeatherData\Ghana_Africa')
-weatherData = os.path.join(weatherDir, 'SRRL Weatherdata.csv') # get path to weather data
-#weatherData = os.path.join(weatherDir, 'Ghana_Reference.csv') # get path to weather data
-outputPath = os.path.join(localDir, 'Outputs')
-resultsPath = os.path.join(outputPath, date_time + '_results' ) 
-
-
-if not os.path.exists(resultsPath):
-    os.makedirs(resultsPath)        # create path to output
-
-
+LOCAL_DIR = os.getcwd()
+DATA_DIR = os.path.join(LOCAL_DIR, 'C:/Users/egrommes/sciebo/Simulation/Ghana_mono_changed')
+filepath = os.path.join(DATA_DIR, 'Ghana_Reference.csv')
 dpi = 150 #Quality for plot export
 
+# Pfad Sarah: C:/Users/sarah/OneDrive/Desktop/Hiwi/Simulation/Ghana_mono_changed
+# Pfad Eva: C:/Users/egrommes/sciebo/Simulation/Ghana_mono_changed
 #########################################################
     
 # Dictionary for Input Parameters
 simulationParameter = {
     'n_pvrows': 3, #number of PV rows
     'number_of_segments': 5, #number of segments for each PVrow
-    'pvrow_height': 1.50, #mounting height of the PV rows, measured at their center [m]
-    'pvrow_width': 2.0, #width of the PV panel in row, (but width doesn't mean width, actually it means length) considered 2D plane [m]
-    'surface_azimuth': 180, #azimuth of the PV surface [deg] 90°= East, 135° = South-East, 180°=South
+    'pvrow_height': 2.95, #height of the PV rows, measured at their center [m]
+    'pvrow_width': 1.968, #width of the PV panel in row, considered 2D plane [m]
+    'pvmodule_width': 0.992, #length of the PV panel in row, considered 2D plane [m]
+    'surface_azimuth': 135, #azimuth of the PV surface [deg] 90°= East, 135° = South-East, 180°=South
     'surface_tilt': 35, #tilt of the PV surface [deg]
-    'albedo': 0.26, # Measured Albedo average value
+    'albedo': 0.259597496, # Measured Albedo average value
     #'index_observed_pvrow': 1, #index of the PV row, whose incident irradiance will be returned
     'rho_front_pvrow' : 0.03, #front surface reflectivity of PV rows
     'rho_back_pvrow' : 0.05, #back surface reflectivity of PV rows
     'horizon_band_angle' : 6.5, #elevation angle of the sky dome's diffuse horizon band [deg]   
-    
-
-    'UTC_Time_Zone': 'US/Mountain', # https://en.wikipedia.org/wiki/List_of_tz_database_time_zones
-    'City':'Golden',
-    'Longitude_Position': -105, #Longitude of measurement position [deg]
-    'Longitude_Area': -105, #Longitude of timezone area [deg]
-    'Latitude_Position': 39.7, #Latitude of measurement position [deg]
-
-    
-# =============================================================================
-#     'UTC_Time_Zone': 'US/Arizona', # https://en.wikipedia.org/wiki/List_of_tz_database_time_zones
-#     'City':'Golden',
-#     'Longitude_Position': -111, #Longitude of measurement position [deg]
-#     'Longitude_Area': -111, #Longitude of timezone area [deg]
-#     'Latitude_Position': 32.2, #Latitude of measurement position [deg]
-# =============================================================================
-    
+    'L_Position': -0.206000, #Longitude of measurement position [deg]
+    'L_Area': -0.206000, #Longitude of timezone area [deg]
+    'Latitude_Position': 5.560000, #Latitude of measurement position [deg]
     'axis_azimuth': 0.0, #Axis Azimuth angle [deg]
-    'gcr': 0.35, #ground coverage ratio (module area / land use)
+    'gcr': 0.55, #ground coverage ratio (module area / land use)
 }
 
-position = Location(simulationParameter["Latitude_Position"], simulationParameter['Longitude_Position'], simulationParameter['UTC_Time_Zone'], 700, simulationParameter['City'])
-print(position)
-   
-    
 irradiance_model = HybridPerezOrdered(rho_front=simulationParameter['rho_front_pvrow'], rho_back=simulationParameter['rho_back_pvrow']) #choose an irradiance model
 
 # Dictionary for Module Parameters
 
-#NREL Row 2
-print("\n NREL Row 2:") 
+#GCL P6 72GD
+print("\n GCL P6 72GD 335 Wp:") #SG
 moduleParameter = {
-    'I_sc_f': 9.5, #Short-circuit current measured for front side illumination of the module at STC [A]
-    'I_sc_r': 6.56, #Short-circuit current measured for rear side illumination of the module at STC [A]
-    'V_oc_f': 48, #Open-circuit voltage measured for front side illumination of module at STC [V]
-    'V_oc_r': 47.3, #Open-circuit voltage measured for rear side illumination of module at STC [V]
-    'V_mpp_f': 39.2, #Front Maximum Power Point Voltage [V]
-    'V_mpp_r': 39.5, #Rear Maximum Power Point Voltage [V]
-    'I_mpp_f': 9.00, #Front Maximum Power Point Current [A]
-    'I_mpp_r': 6.2, #Rear Maximum Power Point Current [A]
-    'P_mpp': 354, # Power at maximum power Point [W]
-    'T_koeff': -0.0036, #Temperature Coeffizient [1/°C]
-    'T_amb':20, #Ambient Temperature for measuring the Temperature Coeffizient [°C]
+    'I_sc_f': 9.34, #Short-circuit current measured for front side illumination of the module at STC [A]
+    'I_sc_r': 6.54, #Short-circuit current measured for rear side illumination of the module at STC [A]
+    'V_oc_f': 46.57, #Open-circuit voltage measured for front side illumination of module at STC [V]
+    'V_oc_r': 45.77, #Open-circuit voltage measured for rear side illumination of module at STC [V]
+    'V_mpp_f': 37.77, #Front Maximum Power Point Voltage [V]
+    'V_mpp_r': 38.27, #Rear Maximum Power Point Voltage [V]
+    'I_mpp_f': 8.87, #Front Maximum Power Point Current [A]
+    'I_mpp_r': 6.19, #Rear Maximum Power Point Current [A]
+    'P_mpp': 335, # Power at maximum power Point [W]
+    'T_koeff_P': -0.0039, #Temperature Coeffizient for P_max [1/°C] #SG
+    'T_amb': 25, #Ambient Temperature for measuring the Temperature Coeffizient [°C] #SG
+    'T_koeff_I': 0.0005, #Temperaturkoeffizient for I_sc [1/°C] #SG
+    'T_koeff_V': 0.0005, #Temperaturkoeffizient for U_oc [1/°C] #SG
+    'zeta': 0.06 #Bestrahlungskoeffizient für Leerlaufspannung [-]
     
     #'inverter': pvlib.pvsystem.retrieve_sam('cecinverter')['ABB__MICRO_0_25_I_OUTD_US_208_208V__CEC_2014_'],
     #'module': pvlib.pvsystem.retrieve_sam('SandiaMod')['Canadian_Solar_CS5P_220M___2009_'],
@@ -143,7 +122,7 @@ simulationParameter.update(discretization)
 # Define timezone and table specifications
 def export_data(fp):
     #tz = tz_localize('Africa/Accra')
-    df = pd.read_csv(fp, header = 0)
+    df = pd.read_csv(fp, header = 16)
     
     # Define, which columns to drop, if none, comment out
     #columnsToDrop = [df.columns[1]] 
@@ -152,27 +131,27 @@ def export_data(fp):
     #    df = df.drop(column, axis = 1)
         
     # Rename columns for calculation
-    df = df.rename(columns = {'date': 'timestamps'})
+    df = df.rename(columns = {'Date': 'timestamps'})
     df = df.rename(columns = {'Diffuse horizontal irradiance (W/m2)': 'dhi'})
     df = df.rename(columns = {'Direct (beam) normal Irradiance (W/m2)': 'dni'})
-    df = df.rename(columns = {'Dry bulb temperature (deg, C)': 'temperature'})
+    df = df.rename(columns = {'Dry bulb temperature (deg. C)': 'temperature'})
     df = df.rename(columns = {'Windspeed (m/s)': 'windspeed'})
     df = df.rename(columns = {'Air pressure (Pa)': 'airpressure'})
  
-    #df = df.set_index('timestamps') # Define index for dataframe
-    df['datetime'] = pd.date_range(start='2019/10/01 00:00', end= '2020/05/01 00:00', freq='H')
+    df = df.set_index('timestamps') # Define index for dataframe
+    df['datetime'] = pd.date_range(start='1/1/2015', end= '31/12/2015 23:00', freq='H')
     #df.index=pd.to_datetime(df.index) #Configure x-axis label
     df= df.set_index('datetime')
     
     return df
-    print(df)
 
-df = export_data(weatherData) #print(df)
+df = export_data(filepath)
+#print(df)
 
 #########################################################
 
 #Pick a specific day for closer data consideration
-dayUnderConsideration = 1
+dayUnderConsideration = 224
 
 df_inputs = df.iloc[dayUnderConsideration * 24:(dayUnderConsideration + 1) * 24, :] #rows to look at in .csv
 
@@ -183,38 +162,88 @@ f, (ax1) = plt.subplots(1, figsize=(12, 3))
 df_inputs[['dni', 'dhi']].plot(ax=ax1)
 ax1.locator_params(tight=True, nbins=6)
 ax1.set_ylabel('W/m2')
-f.savefig(resultsPath + "/Direct_Diffuse_irradiance:" + datetime.now().strftime("%Y-%m-%d-%H-%M") + ".png", dpi = dpi)
+f.savefig("Direct_Diffuse_irradiance:" + datetime.now().strftime("%Y-%m-%d-%H-%M") + ".png", dpi = dpi)
 plt.show(sns)
 
 # Measured Albedo average value
 albedo = simulationParameter['albedo']
 
-
 #########################################################
 #Calculation of sun parameters
+"""
+def calcB(n):
+    return math.radians((n - 1) * (360/365))
 
-    # Begin loop: Calculate for every hour 
+def calcDeclination(B): #Declination on North-South axis
+    return 0.006918 - 0.399912 * math.cos(B) + 0.070257 * math.sin(B) - 0.006758 * math.cos(2 * B) + 0.000907 * math.sin(2 * B) - 0.002697 * math.cos(3 * B) + 0.00148 * math.sin(3 * B)
+
+def calcE(B): #Equation of time
+    return 229.2 * (0.000075 + 0.001868 * math.cos(B) - 0.032077 * math.sin(B) - 0.014615 * math.cos(2 * B) - 0.04089 * math.sin(2 * B))
+
+def calcLT(L_Area, L_Position, E, LET): #local time and longitude
+    return (4 * (L_Area - L_Position) + E) / 60 + LET #LET=legal time (GEZ)
+
+def calcHourAngle(LT): #Hour angle
+    return math.radians((LT - 12) * 15)
+
+def calcCrownAngle(Declination, Latitude, HourAngle): #Zenit- or Crown Angle
+    return math.acos(math.sin(Declination) * math.sin(Latitude) + math.cos(Declination) * math.cos(Latitude) * math.cos(HourAngle))
+
+def calcAzimuthAngle(HourAngle, CrownAngle, Latitude, Declination): #Azimuth Angle
+    
+    f = 1
+    if HourAngle < 0:
+        f = -1
+    
+    return f * abs(math.acos((math.cos(CrownAngle) * math.sin(Latitude) - math.sin(Declination)) / (math.sin(CrownAngle) * math.cos(Latitude))))
+
+def calcInclinationAngle(CrownAngle, AzimuthAngle, HourAngle, Latitude, Declination): #Inclination (Neigung) Angle
+
+    AzimuthAngle = calcAzimuthAngle(HourAngle, CrownAngle, Latitude, Declination)
+    f = 1
+    if AzimuthAngle < 0:
+        f = -1
+    
+    ElevationAngle = math.radians(90) - CrownAngle
+    
+    if ElevationAngle > 0:
+        return f * math.atan(math.tan(CrownAngle) * abs(math.cos(math.radians(90) - AzimuthAngle)))
+    else:
+        return f * math.radians(90)
+
+def calcElevationAngle(CrownAngle): #Elevation Angle (Höhenwinkel)
+    return math.radians(90) - CrownAngle
+"""
+#########################################################
+# Calculate sun parameters for every timestamp
+
+# Clear lists/columns
+solar_zenith = []
+solar_azimuth = []
+surface_tilt = []
+surface_azimuth = []
+
+# Begin loop: Calculate for every hour 
 for index, row in df.iterrows():
+    
+    dayOfYear = df.index.get_loc(index) / 24    
+    Declination = pvlib.solarposition.declination_spencer71(dayOfYear)  #return radiant
+    #Declination = pvlib.solarposition.declination_cooper69(dayOfYear) #return radiant
+    equationOfTime = pvlib.solarposition.equation_of_time_spencer71 (dayOfYear)   #return minutes
+    HourAngle = pvlib.solarposition.hour_angle(pd.date_range(start='1/1/2015', end= '31/12/2015 23:00', freq='H'), simulationParameter['L_Position'], equationOfTime)    #need longitude in degree, equation of time (in min), return degree
+    solar_zenith = pvlib.solarposition.solar_zenith_analytical(np.rad2deg(simulationParameter['Latitude_Position']), np.rad2deg(HourAngle), Declination)    #need latitude in radiant (actuall in degree), hourangle in radiant (actuall in degree), declination in radiant, return radiant
+    solar_azimuth = pvlib.solarposition.solar_azimuth_analytical(np.rad2deg(simulationParameter['Latitude_Position']), np.rad2deg(HourAngle), Declination, solar_zenith)    #need latitude in radiant (actuall in degree), hourangle in radiant (actuall in degree), declination in radiant, zenit in radiant, return radiant
     surface_tilt = simulationParameter['surface_tilt']
     surface_azimuth = simulationParameter['surface_azimuth']
+    
+df['solar_zenith'] = solar_zenith
+
+df['solar_azimuth'] = solar_azimuth
+
 df['surface_tilt'] = surface_tilt
+
 df['surface_azimuth'] = surface_azimuth
-
-times = pd.date_range(start=datetime(2019,10,1), end=datetime(2020,5,1), freq='60Min', ambiguous=True)
-
-#ephem_pos = pvlib.solarposition.get_solarposition(times.tz_localize(position.tz, ambiguous='NaT',nonexistent='NaT'), position.latitude, position.longitude)
-ephem_pos = pvlib.solarposition.get_solarposition(pd.date_range(start='2019/10/01 00:00', end= '2020/05/01 00:00', freq='H'), position.latitude, position.longitude)
-
-ephem_pos.to_csv(resultsPath + '/Sonnenstand.csv')
-#ephemout = ephem_pos.tz_convert(None)
-ephemout = ephem_pos
-
-df.to_excel(resultsPath + '/Wetterdaten.xlsx')
-ephemout.to_excel(resultsPath + '/Sonnenstand.xlsx')
-dfSun = df.join(ephemout)
-dfSun.index.name = "datetime"
-dfSun.to_excel(resultsPath + '/Sonnenstand_gesamt.xlsx')
-
+    
 ####################################################
 
 # Run full bifacial simulation
@@ -224,9 +253,9 @@ pvarray = OrderedPVArray.init_from_dict(simulationParameter)
 
 engine = PVEngine(pvarray)
 
-engine.fit(dfSun.index, dfSun.dni, dfSun.dhi,
-           dfSun.azimuth, dfSun.zenith,
-           dfSun.surface_tilt, dfSun.surface_azimuth,
+engine.fit(df.index, df.dni, df.dhi,
+           df.solar_zenith, df.solar_azimuth,
+           df.surface_tilt, df.surface_azimuth,
            albedo)
 
 # Devide PV array into segments
@@ -241,7 +270,7 @@ for i in range(0, simulationParameter['n_pvrows']):
 f, ax = plt.subplots(figsize = (12,4))
 pvarray.plot_at_idx(12,ax,with_surface_index = True)
 ax.set_xlim(-3,20)
-f.savefig(resultsPath +"/Segment_Division" + datetime.now().strftime("%Y-%m-%d-%H-%M") + ".png", dpi = dpi)
+f.savefig("Segment_Division" + datetime.now().strftime("%Y-%m-%d-%H-%M") + ".png", dpi = dpi)
 plt.show(sns)
 
 ####################################################
@@ -297,31 +326,27 @@ def fn_report(pvarray):
 
 # Run full mode simulation
 reportAOI = engine.run_full_mode(fn_build_report=fn_report)
-
 # Turn report into dataframe
 df_report_AOI = pd.DataFrame(reportAOI, index=df.index)
 
 plot_irradiance(df_report_AOI)
-
 ####################################################
 # Define Function calculating the total incident irradiance for the front and back side and the different segments of the backside
 
 # qinc = total incident irradiance on a surface, and it does not account for reflection losses [W/m2]
 # qabs = total absorbed irradiance by a surface [W/m2]
 
-#ts=timeseries 
-
 def Segments_report(pvarray):
     result = dict()
     
-    for i in range(0, len(pvarray.ts_pvrows)):
+    for i in tqdm(range(0, len(pvarray.ts_pvrows))):
         
         row = pvarray.ts_pvrows[i]
         
-        result["row_" + str(i) + "_qabs_front"] = row.front.get_param_weighted('qabs') #avg qabs for every row front
-        result["row_" + str(i) + "_qabs_back"] = row.back.get_param_weighted('qabs') #avg qabs for every row back
-        result["row_" + str(i) + "_qinc_front"] = row.front.get_param_weighted('qinc') #avg qinc for every row front
-        result["row_" + str(i) + "_qinc_back"] = row.back.get_param_weighted('qinc') #avg qinc for every row back
+        result["row_" + str(i) + "_qabs_front"] = row.front.get_param_weighted('qabs') #total qabs for every row front
+        result["row_" + str(i) + "_qabs_back"] = row.back.get_param_weighted('qabs') #total qabs for every row back
+        result["row_" + str(i) + "_qinc_front"] = row.front.get_param_weighted('qinc') #total qinc for every row front
+        result["row_" + str(i) + "_qinc_back"] = row.back.get_param_weighted('qinc') #total qinc for every row back
         
         for ts_surface in row.front.all_ts_surfaces:
             key = "qabs_segment_" + str(ts_surface.index)  # updated
@@ -367,7 +392,7 @@ report = engine.run_full_mode(fn_build_report=Segments_report)
 df_report = pd.DataFrame(report, index=df.index)
 
 # Print results as .csv in directory
-df_report.to_excel(resultsPath + "/radiation_qabs_results_" + datetime.now().strftime("%Y-%m-%d-%H-%M") + ".xlsx")
+df_report.to_excel("radiation_qabs_results_" + datetime.now().strftime("%Y-%m-%d-%H-%M") + ".xlsx")
 #df_report.iloc[6:11]
 
 # Plot total qinc front and back for every row
@@ -380,7 +405,7 @@ ax[0].set_ylabel('W/m2')
 ax[1].set_ylabel('W/m2')
 ax[2].set_ylabel('W/m2')
 
-f.savefig(resultsPath +"/row0-3_qinc" + datetime.now().strftime("%Y-%m-%d-%H-%M") + ".png", dpi = dpi)
+f.savefig("row0-3_qinc" + datetime.now().strftime("%Y-%m-%d-%H-%M") + ".png", dpi = dpi)
 plt.show(sns)
 
 #print(df_report_AOI['aoi_losses_back_%'])
@@ -409,7 +434,7 @@ def save_view_factor(i, j, vf_matrix, timestamps):
     
     result = result.set_index('timestamps')
     
-    result.to_csv(resultsPath + "/view_factors_" + str(i) + "_" + str(j) + "_" + datetime.now().strftime("%Y-%m-%d-%H-%M") + ".csv") # Print ViewFactors to directory
+    result.to_csv("view_factors_" + str(i) + "_" + str(j) + "_" + datetime.now().strftime("%Y-%m-%d-%H-%M") + ".csv") # Print ViewFactors to directory
     #print("\n View Factors:")
     #print('View factor from surface {} to surface {}: {}'.format(i, j, np.around(vf, decimals=2))) # in case the matrix should be printed in the console
 
@@ -437,61 +462,69 @@ save_view_factor(4, 46, vf_matrix, df.index)
 
 
 ####################################################
-
 # Definition of simulation parameter
-V_mpp_f = moduleParameter['V_mpp_f']
-V_mpp_r = moduleParameter['V_mpp_r']
+V_mpp_f0 = moduleParameter['V_mpp_f']
+V_mpp_r0 = moduleParameter['V_mpp_r']
 
-I_mpp_f = moduleParameter['I_mpp_f']
-I_mpp_r = moduleParameter['I_mpp_r']
+I_mpp_f0 = moduleParameter['I_mpp_f']
+I_mpp_r0 = moduleParameter['I_mpp_r']
 
-I_sc_r = moduleParameter['I_sc_r']
-I_sc_f = moduleParameter['I_sc_f']
+I_sc_r0 = moduleParameter['I_sc_r']
+I_sc_f0 = moduleParameter['I_sc_f']
 
-V_oc_r = moduleParameter['V_oc_r']
-V_oc_f = moduleParameter['V_oc_f']
+V_oc_r0 = moduleParameter['V_oc_r']
+V_oc_f0 = moduleParameter['V_oc_f']
 
 #module = moduleParameter['module']
 #inverter = moduleParameter['inverter']
 
-P_mpp = moduleParameter['P_mpp']
-V_mpp = V_mpp_f
+P_mpp0 = moduleParameter['P_mpp']
+V_mpp0 = V_mpp_f0
 
-T_koeff =moduleParameter['T_koeff']
-T_amb =moduleParameter['T_amb']
+T_koeff_P = moduleParameter['T_koeff_P'] 
+T_koeff_I = moduleParameter['T_koeff_I'] 
+T_koeff_V = moduleParameter['T_koeff_V'] 
+T_amb = moduleParameter['T_amb']
+
+q_stc_front = 1000  # [W/m^2] 
+q_stc_rear = 1000   # [W/m^2] 
+
+# Calculation of fill factor for STC conditions
+FF_f0 = (I_mpp_f0 * V_mpp_f0)/(I_sc_f0 * V_oc_f0) 
+FF_r0 = (I_mpp_r0 * V_mpp_r0)/(I_sc_r0 * V_oc_r0) 
 
 ####################################################
 # Bifacial performance Calculation
 
-# Fillfactor Calculation for front and back
-FF_f = (V_mpp_f * I_mpp_f)/(V_oc_f * I_sc_f) # Fill factor measured for front side illumination of the module at STC [%/100]
-print("Fill Factor front: " + str(FF_f))
+# # Fillfactor Calculation for front and back
+# FF_f = (V_mpp_f * I_mpp_f)/(V_oc_f * I_sc_f) # Fill factor measured for front side illumination of the module at STC [%/100]
+# print("Fill Factor front: " + str(FF_f))
 
-FF_r = (V_mpp_r * I_mpp_r)/(V_oc_r * I_sc_r) # Fill factor measured for front back illumination of the module at STC [%/100]
-print("Fill Factor back: " + str(FF_r))
-print ("\n")
+# FF_r = (V_mpp_r * I_mpp_r)/(V_oc_r * I_sc_r) # Fill factor measured for front back illumination of the module at STC [%/100]
+# print("Fill Factor back: " + str(FF_r))
+# print ("\n")
 
 # Set Energy to Zero       
-sum_energy = 0
-sum_power = 0
+sum_energy_b = 0
+sum_power_b = 0
 
 # Array to hold other arrays -> average after for loop
 P_bi_hourly_arrays = []
 
 # Loop to calculate the Bifacial Output power for every row in every hour
-for i in range(0, simulationParameter['n_pvrows']):
+for i in tqdm(range(0, simulationParameter['n_pvrows'])):
     
     key_front = "row_" + str(i) + "_qabs_front"
     key_back = "row_" + str(i) + "_qabs_back"
 
     P_bi_hourly = []
+  
 
-    
     for index, row in df_report.iterrows():
         
         row_qabs_front = row[key_front]
         row_qabs_back = row[key_back]
-        Current_Temp = df.loc[index,'temperature']
+        T_Current = df.loc[index,'temperature']
         
         
         #print("front: " + str(row_qabs_front))
@@ -499,23 +532,28 @@ for i in range(0, simulationParameter['n_pvrows']):
         
         
         if row_qabs_back + row_qabs_front > 0.0:
-            x = row_qabs_back / row_qabs_front # Irradiance ratio (dimensionless)
-        
-            if math.isnan(x):   # necessary for the night to prevent deviding through Zero
-                print("is nan")          
-        
-            R_isc = 1 + x * (I_sc_r / I_sc_f) # Relative current gain (dimensionless)
-            I_sc_bi = I_sc_f * R_isc # Short-circuit current of bifacial module for bifacial illumination [A]
             
-            V_oc_bi = V_oc_f + ((V_oc_r-V_oc_f)*np.log(R_isc))/(np.log(I_sc_r/I_sc_f)) # Open-circuit voltage of bifacial module for bifacial illumination [V]
+            I_sc_f = I_sc_f0 * (1 + T_koeff_I * (T_Current - T_amb))     
+            I_sc_r = I_sc_r0 * (1 + T_koeff_I * (T_Current - T_amb))
             
-            pFF = (((I_sc_r/I_sc_f)*FF_f)-(FF_r*(V_oc_r/V_oc_f)))/((I_sc_r/I_sc_f)-(V_oc_r/V_oc_f)) # Pseudo fill factor (FF of the module considering no series resistance effect) [%]
-            FF_bi = pFF - R_isc*(V_oc_f/V_oc_bi)*(pFF-FF_f) #  Fill factor of bifacial module for bifacial illumination [%]
-            P_bi = I_sc_bi*V_oc_bi*FF_bi*(1+T_koeff*(Current_Temp-T_amb)) # Output power of bifacial module for bifacial illumination [W]
+            V_oc_f = V_oc_f0 * (1 + T_koeff_V * (T_Current - T_amb))
+            V_oc_r = V_oc_r0 * (1 + T_koeff_V * (T_Current - T_amb))
+            
+            FF_f = FF_f0 * ((1 + T_koeff_P * (T_Current-T_amb)) / ((1 + T_koeff_I * (T_Current - T_amb)) * (1 + T_koeff_V * (T_Current - T_amb))))
+            FF_r = FF_r0 * ((1 + T_koeff_P * (T_Current-T_amb)) / ((1 + T_koeff_I * (T_Current - T_amb)) * (1 + T_koeff_V * (T_Current - T_amb))))
+            
+            I_sc_b = (row_qabs_front / q_stc_front) * I_sc_f + (row_qabs_back / q_stc_rear) * I_sc_r
+            R_I_sc_b = I_sc_b / I_sc_f
+            V_oc_b = V_oc_f + ((V_oc_r - V_oc_f) * np.log(R_I_sc_b) / np.log(I_sc_r / I_sc_f))
+            
+            pFF = ((I_sc_r0/I_sc_f0) * FF_f0 - (FF_r0 * (V_oc_r0 / V_oc_f0))) / ((I_sc_r0/I_sc_f0) - (V_oc_r0 / V_oc_f0))
+            FF_b = pFF - (R_I_sc_b * (V_oc_f0 / V_oc_b) * (pFF - FF_f0))
+        
+            P_bi = FF_b * V_oc_b * I_sc_b
             #print("Power: " + str(P_bi))
-     
-            sum_energy += P_bi # Sum up the energy of every row in every hour
-   
+    
+            sum_energy_b += P_bi # Sum up the energy of every row in every hour
+    
         else:
             P_bi=0
         
@@ -527,7 +565,7 @@ for i in range(0, simulationParameter['n_pvrows']):
         
 P_bi_hourly_average = []
 
-for i in range(0, len(P_bi_hourly_arrays[0])):
+for i in tqdm(range(0, len(P_bi_hourly_arrays[0]))):
     sum = 0
   
     for j in range(0, len(P_bi_hourly_arrays)):
@@ -540,19 +578,31 @@ for i in range(0, len(P_bi_hourly_arrays[0])):
 # Create dataframe with average data
 p_bi_df = pd.DataFrame({"timestamps":df_report.index, "P_bi ": P_bi_hourly_average})
 p_bi_df.set_index("timestamps")
-p_bi_df.to_excel(resultsPath + "/P_bi_LG" + datetime.now().strftime("%Y-%m-%d-%H-%M") + ".xlsx")
-    
+p_bi_df.to_excel("P_bi_LG" + datetime.now().strftime("%Y-%m-%d-%H-%M") + ".xlsx")
 
-sum_power = (sum_energy/simulationParameter['n_pvrows'])
-print("Yearly bifacial module output power: " + str(sum_power) + " Wh/m^2")
-print("Yearly bifacial module output energy: " + str(sum_power/1000) + " kWh/m^2") # Because the input data is per hour, the Energy is equivalent to the performance 
+
+annual_power_per_module_b = (sum_energy_b/simulationParameter['n_pvrows']) #[W] annual bifacial output power per module
+print("Yearly bifacial output power per module: " + str(annual_power_per_module_b) + " W/module")
+print("Yearly bifacial output energy per module: " + str(annual_power_per_module_b/1000) + " kWh/module") # Because the input data is per hour, the Energy is equivalent to the performance
+print ("\n")
+
+annual_power_per_peak_b = (sum_energy_b/(P_mpp0 * simulationParameter['n_pvrows']))   #[W/Wp] annual bifacial output power per module peak power
+print("Yearly bifacial output power per module peak power: " + str(annual_power_per_peak_b) + " W/Wp")
+print("Yearly bifacial output energy per module peak power: " + str(annual_power_per_peak_b) + " kWh/kWp") # Because the input data is per hour, the Energy is equivalent to the performance 
+print ("\n")
+
+module_area = (simulationParameter['pvrow_width'] * simulationParameter['pvmodule_width'])
+
+annual_power_per_area_b = (annual_power_per_module_b / module_area)    #[W/m^2] annual bifacial poutput power per module area
+print("Yearly bifacial output power per module area: " + str(annual_power_per_area_b) + " W/m^2")
+print("Yearly bifacial output energy per module area: " + str(annual_power_per_area_b/1000) + " kWh/m^2") # Because the input data is per hour, the Energy is equivalent to the performance 
 print ("\n")
 
 # Plot total qinc front and back for every row
 f, (ax1) = plt.subplots(1, figsize=(12, 3))
 ax1.locator_params(tight=True, nbins=6)
 plt.plot(df.index, P_bi_hourly)
-f.savefig(resultsPath +"/P_bi_hourly" + datetime.now().strftime("%Y-%m-%d-%H-%M") + ".png", dpi = dpi)
+f.savefig("P_bi_hourly" + datetime.now().strftime("%Y-%m-%d-%H-%M") + ".png", dpi = dpi)
 plt.show(sns)
 
 
@@ -560,51 +610,58 @@ plt.show(sns)
 # Monofacial performance Calculation
 
 # Set Energy to Zero       
-sum_energy_mono = 0
-sum_power_mono = 0
+sum_energy_m = 0
+sum_power_m = 0
 
 # Loop to calculate the Monofacial Output power for every row in every hour
-for i in range(0, simulationParameter['n_pvrows']):
+for i in tqdm(range(0, simulationParameter['n_pvrows'])):
     
     key_front_mono = "row_" + str(i) + "_qabs_front"
     
     for index, row in df_report.iterrows():
         
+        #SG
         row_qabs_front = row[key_front_mono]
-        Current_Temp = df.loc[index,'temperature']
+        T_Current = df.loc[index,'temperature']
         
         
         #print("front: " + str(row_qabs_front))
         
         
         if  row_qabs_front > 0.0:
+      
+            V_oc_f = V_oc_f0 * (1 + T_koeff_V * (T_Current - T_amb) + moduleParameter['zeta'] * np.log(row_qabs_front / q_stc_front))
+            I_sc_f = I_sc_f0 * (1 + T_koeff_I * (T_Current - T_amb)) * (row_qabs_front / q_stc_front)
+            P_m = FF_f0 * V_oc_f * I_sc_f
         
-            if math.isnan(x):   # necessary for the night to prevent deviding through Zero
-                print("is nan")          
-        
-            R_isc = (I_sc_r / I_sc_f) # Relative current gain (dimensionless)
-            I_sc_bi = I_sc_f * R_isc # Short-circuit current of bifacial module for bifacial illumination [A]
-            
-            V_oc_bi = V_oc_f + ((V_oc_r-V_oc_f)*np.log(R_isc))/(np.log(I_sc_r/I_sc_f)) # Open-circuit voltage of bifacial module for bifacial illumination [V]
-            
-            pFF = (((I_sc_r/I_sc_f)*FF_f)-(FF_r*(V_oc_r/V_oc_f)))/((I_sc_r/I_sc_f)-(V_oc_r/V_oc_f)) # Pseudo fill factor (FF of the module considering no series resistance effect) [%]
-            FF_bi = pFF - R_isc*(V_oc_f/V_oc_bi)*(pFF-FF_f) #  Fill factor of bifacial module for bifacial illumination [%]
-            P_bi = I_sc_bi*V_oc_bi*FF_bi*(1+T_koeff*(Current_Temp-T_amb)) # Output power of bifacial module for bifacial illumination [W]
             #print("Power: " + str(P_bi))
      
-            sum_energy_mono += P_bi # Sum up the energy of every row in every hour
-   
-        #else:
+            sum_energy_m += P_m # Sum up the energy of every row in every hour
+        
+         #else:
             #print("Power: 0.0")
 
-sum_power_mono = (sum_energy_mono/simulationParameter['n_pvrows'])
-print("Yearly module monofacial output power: " + str(sum_power_mono) + " Wh/m^2")
-print("Yearly module monofacial output energy: " + str(sum_power_mono/1000) + " kWh/m^2") # Because the input data is per hour, the Energy is equivalent to the performance 
+annual_power_per_module_m = (sum_energy_m/simulationParameter['n_pvrows']) #[W] annual monofacial output power per module
+print("Yearly monofacial output power per module: " + str(annual_power_per_module_m) + " W/module")
+print("Yearly monofacial output energy per module: " + str(annual_power_per_module_m/1000) + " kWh/module") # Because the input data is per hour, the Energy is equivalent to the performance
+print ("\n")
+
+annual_power_per_peak_m = (sum_energy_m/(P_mpp0 * simulationParameter['n_pvrows']))   #[W/Wp] annual monofacial output power per module peak power
+print("Yearly monofacial output power per module peak power: " + str(annual_power_per_peak_m) + " W/Wp")
+print("Yearly monofacial output energy per module peak power: " + str(annual_power_per_peak_m) + " kWh/kWp") # Because the input data is per hour, the Energy is equivalent to the performance 
+print ("\n")
+
+module_area = (simulationParameter['pvrow_width'] * simulationParameter['pvmodule_width'])
+
+annual_power_per_area_m = (annual_power_per_module_m / module_area)    #[W/m^2] annual monofacial poutput power per module area
+print("Yearly monofacial output power per module area: " + str(annual_power_per_area_m) + " W/m^2")
+print("Yearly monofacial output energy per module area: " + str(annual_power_per_area_m/1000) + " kWh/m^2") # Because the input data is per hour, the Energy is equivalent to the performance 
 print ("\n")
 
 ####################################################
 
 # Bifacial Gain Calculation
 
-Bifacial_gain= (sum_power-sum_power_mono)/sum_power_mono
+Bifacial_gain= (annual_power_per_peak_b - annual_power_per_peak_m) / annual_power_per_peak_m
 print("Bifacial Gain: " + str(Bifacial_gain*100) + " %")
+
