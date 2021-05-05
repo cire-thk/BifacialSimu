@@ -1,27 +1,56 @@
-# Project Title
+# BifacialSimu
 
-One Paragraph of project description goes here
+BifacialSimu contains a series of python wrapper functions to simulate the energy density of a bifacial PV system. It is using libaries such as bifacial_radiance (Ray Traying) and pvfactors (View Factors).
 
 ## Getting Started
 
-These instructions will get you a copy of the project up and running on your local machine for development and testing purposes. See deployment for notes on how to deploy the project on a live system.
+These instructions will get you a copy of the project up and running on your local machine for development and testing purposes.
 
 ### Prerequisites
 
-What things you need to install the software and how to install them
+Which prerequisites you need to install the software and how to install them
 
 ```
-Give examples
+from IPython import get_ipython
+get_ipython().magic('reset -sf')
+
+import pandas as pd
+import matplotlib.pyplot as plt
+import numpy as np
+import os
+import warnings
+import math
+import pvlib
+from datetime import datetime
+from pvfactors.viewfactors.aoimethods 
+from pvfactors.engine import PVEngine
+from pvfactors.irradiance import HybridPerezOrdered
+from pvfactors.geometry import OrderedPVArray
+from pvfactors.viewfactors import VFCalculator
+from tqdm import tqdm
 ```
+
+Additionally this video shows how to install the bifacial_radiance software and all associated software needed:
+https://youtu.be/4A9GocfHKyM
+```
+pip install bifacial_radiance
+```
+If you want to make changes to the system, clone the repository, navigate to the folder and istall it in conda unsing:
+```
+pip install -e .
+```
+
 
 ### Installing
 
-A step by step series of examples that tell you how to get a development env running
+A step by step series of examples that tell you how to get BifacialSimu running.
 
-Say what the step will be
+The first step to run bifacial_radiance is:
 
 ```
-Give the example
+
+Copy gencumulativesky.exe from the repo’s /bifacial_radiance/data/ directory and copy into your Radiance install directory. This is typically found in /program files/radiance/bin/.
+
 ```
 
 And repeat
@@ -30,11 +59,11 @@ And repeat
 until finished
 ```
 
-End with an example of getting some data out of the system or using it for a little demo
+Following an example with test parameters is shown.
 
 ## Running the tests
 
-Explain how to run the automated tests for this system
+Explain how to run the automated tests for BifacialSimu
 
 ### Break down into end to end tests
 
@@ -52,37 +81,26 @@ Explain what these tests test and why
 Give an example
 ```
 
-## Deployment
 
-Add additional notes about how to deploy this on a live system
-
-## Built With
-
-* [Dropwizard](http://www.dropwizard.io/1.0.2/docs/) - The web framework used
-* [Maven](https://maven.apache.org/) - Dependency Management
-* [ROME](https://rometools.github.io/rome/) - Used to generate RSS Feeds
 
 ## Contributing
 
-Please read [CONTRIBUTING.md](https://gist.github.com/PurpleBooth/b24679402957c63ec426) for details on our code of conduct, and the process for submitting pull requests to us.
+Thank you to all the contributors to BifacialSimu, who worked on the library during their projects and thesis:
+
+Felix Schemann, Frederik Klag, Jan Schmitt, Sarah Glaubitz, Sebastian Nows,
 
 ## Versioning
 
-We use [SemVer](http://semver.org/) for versioning. For the versions available, see the [tags on this repository](https://github.com/your/project/tags). 
+The current version is v1.
 
 ## Authors
 
-* **Billie Thompson** - *Initial work* - [PurpleBooth](https://github.com/PurpleBooth)
+* **Eva-Maria Grommes** - *Initial work* - [EwaGomez](https://github.com/EwaGomez)
 
 See also the list of [contributors](https://github.com/your/project/contributors) who participated in this project.
 
-## License
-
-This project is licensed under the MIT License - see the [LICENSE.md](LICENSE.md) file for details
 
 ## Acknowledgments
 
-* Hat tip to anyone whose code was used
-* Inspiration
-* etc
+This open-source simulation tool for bifacial PV systems is part of my PhD project at the University of Applied Sciences Cologne (Germany) and the University of Luxembourg.
 
