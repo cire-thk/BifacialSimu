@@ -826,7 +826,6 @@ class RadianceObj:
         ground = self.ground
         
         locName = metdata.city
-        print(timeindex)
         dni = metdata.dni[timeindex]
         dhi = metdata.dhi[timeindex]
         ghi = metdata.ghi[timeindex]
@@ -2172,7 +2171,7 @@ class RadianceObj:
 
 
     def analysis1axis(self, trackerdict=None, singleindex=None, accuracy='low',
-                      customname=None, modWanted=None, rowWanted=None, sensorsy=9, hpc=False, onlyBackscan = False): # changed by THKoeln
+                      customname=None, modWanted=None, rowWanted=None, sensorsy=9, hpc=False):
         """
         Loop through trackerdict and runs linescans for each scene and scan in there.
 
@@ -2192,8 +2191,6 @@ class RadianceObj:
             Row to be sampled. Index starts at 1. (row 1)
         sensorsy : int 
             Sampling resolution for the irradiance across the collector width.
-        onlyBackscan : 
-            False = front and backscan, True = only backscan
 
         Returns
         -------
@@ -2243,42 +2240,29 @@ class RadianceObj:
                 analysis = AnalysisObj(octfile,name)
                 name = '1axis_%s%s'%(index,customname,)
                 frontscan, backscan = analysis.moduleAnalysis(scene=scene, modWanted=modWanted, rowWanted=rowWanted, sensorsy=sensorsy)
-                if onlyBackscan == False:
-                    analysis.analysis(octfile=octfile,name=name, frontscan=frontscan,backscan=backscan,accuracy=accuracy, hpc=hpc, onlyBackscan = False)                
-                else:
-                    analysis.analysis(octfile=octfile,name=name, frontscan=frontscan,backscan=backscan,accuracy=accuracy, hpc=hpc, onlyBackscan = True)
+                analysis.analysis(octfile=octfile,name=name,frontscan=frontscan,backscan=backscan,accuracy=accuracy, hpc=hpc)                
                 trackerdict[index]['AnalysisObj'] = analysis
             except Exception as e: # problem with file. TODO: only catch specific error types here.
                 warnings.warn('Index: {}. Problem with file. Error: {}. Skipping'.format(index,e), Warning)
                 return
-            if onlyBackscan == False:
-                #combine cumulative front and back irradiance for each tracker angle
-                try:  #on error, trackerdict[index] is returned empty
-                    trackerdict[index]['Wm2Front'] = analysis.Wm2Front
-                    trackerdict[index]['Wm2Back'] = analysis.Wm2Back
-                    trackerdict[index]['backRatio'] = analysis.backRatio
-                except AttributeError as  e:  # no key Wm2Front.
-                    warnings.warn('Index: {}. Trackerdict key not found: {}. Skipping'.format(index,e), Warning)
-                    return
-    
-                if np.sum(frontWm2) == 0:  # define frontWm2 the first time through
-                    frontWm2 =  np.array(analysis.Wm2Front)
-                    backWm2 =  np.array(analysis.Wm2Back)
-                else:
-                    frontWm2 +=  np.array(analysis.Wm2Front)
-                    backWm2 +=  np.array(analysis.Wm2Back)
-                print('Index: {}. Wm2Front: {}. Wm2Back: {}'.format(index,
-                      np.mean(analysis.Wm2Front), np.mean(analysis.Wm2Back)))
-            else: 
-                            #combine cumulative front and back irradiance for each tracker angle
-                try:  #on error, trackerdict[index] is returned empty
-                    trackerdict[index]['Wm2Back'] = analysis.Wm2Back
-                except AttributeError as  e:  # no key Wm2Front.
-                    warnings.warn('Index: {}. Trackerdict key not found: {}. Skipping'.format(index,e), Warning)
-                    return
-    
-                backWm2 +=  np.array(analysis.Wm2Back)
 
+            #combine cumulative front and back irradiance for each tracker angle
+            try:  #on error, trackerdict[index] is returned empty
+                trackerdict[index]['Wm2Front'] = analysis.Wm2Front
+                trackerdict[index]['Wm2Back'] = analysis.Wm2Back
+                trackerdict[index]['backRatio'] = analysis.backRatio
+            except AttributeError as  e:  # no key Wm2Front.
+                warnings.warn('Index: {}. Trackerdict key not found: {}. Skipping'.format(index,e), Warning)
+                return
+
+            if np.sum(frontWm2) == 0:  # define frontWm2 the first time through
+                frontWm2 =  np.array(analysis.Wm2Front)
+                backWm2 =  np.array(analysis.Wm2Back)
+            else:
+                frontWm2 +=  np.array(analysis.Wm2Front)
+                backWm2 +=  np.array(analysis.Wm2Back)
+            print('Index: {}. Wm2Front: {}. Wm2Back: {}'.format(index,
+                  np.mean(analysis.Wm2Front), np.mean(analysis.Wm2Back)))
 
         if np.sum(self.Wm2Front) == 0:
             self.Wm2Front = frontWm2   # these are accumulated over all indices passed in.
@@ -2956,10 +2940,7 @@ class MetObj:
         self.dhi = np.array(tmydata.DHI)
         self.dni = np.array(tmydata.DNI)
         self.albedo = np.array(tmydata.Alb)
-        try:
-            self.temp_air = np.array(tmydata.DryBulb) #changed by THKoeln
-        except:
-            self.temp_air = np.array(tmydata.temp_air)  #changed by THKoeln
+        
         #v0.2.5: initialize MetObj with solpos, sunrise/set and corrected time
         datetimetz = pd.DatetimeIndex(self.datetime)
         try:  # make sure the data is tz-localized.
@@ -3539,13 +3520,10 @@ class AnalysisObj:
                 plt.show()
         else:
             out = None   # return empty if error message.
-            
-        print(out)
-        
 
         return(out)
 
-    def _saveResults(self, data=None, reardata=None, savefile=None, RGB = False):# changed by THKoeln
+    def _saveResults(self, data, reardata=None, savefile=None, RGB = False):
         """
         Function to save output from _irrPlot
         If rearvals is passed in, back ratio is saved
@@ -3559,130 +3537,72 @@ class AnalysisObj:
         if savefile is None:
             savefile = data['title'] + '.csv'
         # make dataframe from results
-   
-        if data is not None:
+        
+        if RGB:
+            data_sub = {key:data[key] for key in ['x', 'y', 'z', 'r', 'g', 'b', 'Wm2', 'mattype']}
+            self.R = data['R']
+            self.G = data['G']
+            self.B = data['B']
+            self.x = data['x']
+            self.y = data['y']
+            self.z = data['z']
+            self.mattype = data['mattype']
+        else:
+            data_sub = {key:data[key] for key in ['x', 'y', 'z', 'Wm2', 'mattype']}
+            self.x = data['x']
+            self.y = data['y']
+            self.z = data['z']
+            self.mattype = data['mattype']
+            
+        if reardata is not None:
+            self.rearX = reardata['x']
+            self.rearY = reardata['y']
+            self.rearMat = reardata['mattype']
+            data_sub['rearMat'] = self.rearMat
+            self.rearZ = reardata['z']
+            data_sub['rearZ'] = self.rearZ
+            self.Wm2Front = data_sub.pop('Wm2')
+            data_sub['Wm2Front'] = self.Wm2Front
+            self.Wm2Back = reardata['Wm2']
+            data_sub['Wm2Back'] = self.Wm2Back
+            self.backRatio = [x/(y+.001) for x,y in zip(reardata['Wm2'],data['Wm2'])] # add 1mW/m2 to avoid dividebyzero
+            data_sub['Back/FrontRatio'] = self.backRatio
+            
             if RGB:
-                data_sub = {key:data[key] for key in ['x', 'y', 'z', 'r', 'g', 'b', 'Wm2', 'mattype']}
-                self.R = data['R']
-                self.G = data['G']
-                self.B = data['B']
-                self.x = data['x']
-                self.y = data['y']
-                self.z = data['z']
-                self.mattype = data['mattype']
+                self.rearR = reardata['r']
+                data_sub['rearR'] = self.rearR
+                self.rearG = reardata['g']
+                data_sub['rearG'] = self.rearG
+                self.rearB = reardata['b']
+                data_sub['rearB'] = self.rearB
+                
+                df = pd.DataFrame.from_dict(data_sub)
+                df.to_csv(os.path.join("results", savefile), sep = ',',
+                          columns = ['x','y','z','rearZ','mattype','rearMat',
+                                     'Wm2Front','Wm2Back','Back/FrontRatio', 'R','G','B', 'rearR','rearG','rearB'],
+                                     index = False) # new in 0.2.3
+
             else:
-                data_sub = {key:data[key] for key in ['x', 'y', 'z', 'Wm2', 'mattype']}
-                self.x = data['x']
-                self.y = data['y']
-                self.z = data['z']
-                self.mattype = data['mattype']
-                
-            if reardata is not None:
-                self.rearX = reardata['x']
-                self.rearY = reardata['y']
-                self.rearMat = reardata['mattype']
-                data_sub['rearMat'] = self.rearMat
-                self.rearZ = reardata['z']
-                data_sub['rearZ'] = self.rearZ
-                self.Wm2Front = data_sub.pop('Wm2')
-                data_sub['Wm2Front'] = self.Wm2Front
-                self.Wm2Back = reardata['Wm2']
-                data_sub['Wm2Back'] = self.Wm2Back
-                self.backRatio = [x/(y+.001) for x,y in zip(reardata['Wm2'],data['Wm2'])] # add 1mW/m2 to avoid dividebyzero
-                data_sub['Back/FrontRatio'] = self.backRatio
-                
-                if RGB:
-                    self.rearR = reardata['r']
-                    data_sub['rearR'] = self.rearR
-                    self.rearG = reardata['g']
-                    data_sub['rearG'] = self.rearG
-                    self.rearB = reardata['b']
-                    data_sub['rearB'] = self.rearB
-                    
-                    df = pd.DataFrame.from_dict(data_sub)
-                    df.to_csv(os.path.join("results", savefile), sep = ',',
-                              columns = ['x','y','z','rearZ','mattype','rearMat',
-                                         'Wm2Front','Wm2Back','Back/FrontRatio', 'R','G','B', 'rearR','rearG','rearB'],
-                                         index = False) # new in 0.2.3
-    
-                else:
-                    df = pd.DataFrame.from_dict(data_sub)
-                    df.to_csv(os.path.join("results", savefile), sep = ',',
-                              columns = ['x','y','z','rearZ','mattype','rearMat',
-                                         'Wm2Front','Wm2Back','Back/FrontRatio'],
-                                         index = False) # new in 0.2.3
-    
-            else:
-                if RGB:
-                    df = pd.DataFrame.from_dict(data_sub)
-                    df.to_csv(os.path.join("results", savefile), sep = ',',
-                              columns = ['x','y','z', 'mattype','Wm2', 'R', 'G', 'B'], index = False)
-                else:
-                    df = pd.DataFrame.from_dict(data_sub)
-                    df.to_csv(os.path.join("results", savefile), sep = ',',
-                              columns = ['x','y','z', 'mattype','Wm2'], index = False)
-                
+                df = pd.DataFrame.from_dict(data_sub)
+                df.to_csv(os.path.join("results", savefile), sep = ',',
+                          columns = ['x','y','z','rearZ','mattype','rearMat',
+                                     'Wm2Front','Wm2Back','Back/FrontRatio'],
+                                     index = False) # new in 0.2.3
+
         else:
             if RGB:
-                data_sub = {key:reardata[key] for key in ['x', 'y', 'z', 'r', 'g', 'b', 'Wm2', 'mattype']}
-                self.R = reardata['R']
-                self.G = reardata['G']
-                self.B = reardata['B']
-                self.x = reardata['x']
-                self.y = reardata['y']
-                self.z = reardata['z']
-                self.mattype = reardata['mattype']
-            else:
-                data_sub = {key:reardata[key] for key in ['x', 'y', 'z', 'Wm2', 'mattype']}
-                self.x = reardata['x']
-                self.y = reardata['y']
-                self.z = reardata['z']
-                self.mattype = reardata['mattype']
-                
-            if reardata is not None:
-                self.rearX = reardata['x']
-                self.rearY = reardata['y']
-                self.rearMat = reardata['mattype']
-                data_sub['rearMat'] = self.rearMat
-                self.rearZ = reardata['z']
-                data_sub['rearZ'] = self.rearZ
-                self.Wm2Back = reardata['Wm2']
-                data_sub['Wm2Back'] = self.Wm2Back
-
-                
-                if RGB:
-                    self.rearR = reardata['r']
-                    data_sub['rearR'] = self.rearR
-                    self.rearG = reardata['g']
-                    data_sub['rearG'] = self.rearG
-                    self.rearB = reardata['b']
-                    data_sub['rearB'] = self.rearB
-                    
-                    df = pd.DataFrame.from_dict(data_sub)
-                    df.to_csv(os.path.join("results", savefile), sep = ',',
-                              columns = ['x','y','z','rearZ','mattype','rearMat',
-                                         'Wm2Back', 'R','G','B', 'rearR','rearG','rearB'],
-                                         index = False) # new in 0.2.3
-    
-                else:
-                    df = pd.DataFrame.from_dict(data_sub)
-                    df.to_csv(os.path.join("results", savefile), sep = ',',
-                              columns = ['x','y','z','rearZ','mattype','rearMat',
-                                         'Wm2Back'],
-                                         index = False) # new in 0.2.3    
-            '''if RGB:
                 df = pd.DataFrame.from_dict(data_sub)
                 df.to_csv(os.path.join("results", savefile), sep = ',',
                           columns = ['x','y','z', 'mattype','Wm2', 'R', 'G', 'B'], index = False)
             else:
                 df = pd.DataFrame.from_dict(data_sub)
                 df.to_csv(os.path.join("results", savefile), sep = ',',
-                          columns = ['x','y','z', 'mattype','Wm2'], index = False)'''
+                          columns = ['x','y','z', 'mattype','Wm2'], index = False)
                 
         print('Saved: %s'%(os.path.join("results", savefile)))
         return os.path.join("results", savefile)
 
-    def _saveResultsCumulative(self, data, reardata=None, savefile=None):# changed by THKoeln
+    def _saveResultsCumulative(self, data, reardata=None, savefile=None):
         """
         TEMPORARY FUNCTION -- this is a fix to save ONE cumulative results csv
         in the main working folder for when doing multiple entries in a 
@@ -3949,7 +3869,7 @@ class AnalysisObj:
 
         return frontscan, backscan
 
-    def analysis(self, octfile, name, frontscan, backscan, plotflag=False, accuracy='low', hpc = False, onlyBackscan = False):
+    def analysis(self, octfile, name, frontscan, backscan, plotflag=False, accuracy='low', hpc = False):
         """
         General analysis function, where linepts are passed in for calling the
         raytrace routine :py:class:`~bifacial_radiance.AnalysisObj._irrPlot` 
@@ -3976,39 +3896,30 @@ class AnalysisObj:
             Include plot of resulting irradiance
         accuracy : string 
             Either 'low' (default - faster) or 'high' (better for low light)
-        onlyBackscan : False = front and backscan, True = only backscan # changed by THKoeln
+
         Returns
         -------
          File saved in `\\results\\irr_name.csv`
 
         """
-# changed by THKoeln
+
         if octfile is None:
             print('Analysis aborted - no octfile \n')
             return None, None
-        if onlyBackscan == False:
-            linepts = self._linePtsMakeDict(frontscan)
-            frontDict = self._irrPlot(octfile, linepts, name+'_Front',
-                                        plotflag=plotflag, accuracy=accuracy, hpc = hpc)
+        linepts = self._linePtsMakeDict(frontscan)
+        frontDict = self._irrPlot(octfile, linepts, name+'_Front',
+                                    plotflag=plotflag, accuracy=accuracy, hpc = hpc)
 
         #bottom view.
         linepts = self._linePtsMakeDict(backscan)
         backDict = self._irrPlot(octfile, linepts, name+'_Back',
                                    plotflag=plotflag, accuracy=accuracy, hpc = hpc)
         # don't save if _irrPlot returns an empty file.
-        if onlyBackscan == False and frontDict is not None:
+        if frontDict is not None:
             self._saveResults(frontDict, backDict,'irr_%s.csv'%(name) )
-
-        # set frontDict to 'None' and don't save if _irrPlot returns an empty file.
-        if onlyBackscan == True and backDict is not None:
-            frontDict = None
-            self._saveResults(frontDict, backDict,'irr_%s.csv'%(name) )
- 
-          
 
         return frontDict, backDict
-# changed by THKoeln        
-        
+    
 def runJob(daydate):
     """
     Routine for the HPC, assigns each daydate to a different node and 
