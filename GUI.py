@@ -1091,7 +1091,7 @@ class Window(tk.Tk):
         Entry_Tilt.grid(column=1, row=2, sticky=W)
 
         #Limit Angle
-        Label_LimitAngle=ttk.Label(simulationParameter_frame, text="Limit Anlge of Tracking System:")
+        Label_LimitAngle=ttk.Label(simulationParameter_frame, text="Limit Angle of Tracking System:")
         Label_LimitAngle.grid(column=0, row=3, sticky=W)
         Label_LimitAnglePar=ttk.Label(simulationParameter_frame, text="[Deg°]")
         Label_LimitAnglePar.grid(column=2, row=3, sticky=W)
