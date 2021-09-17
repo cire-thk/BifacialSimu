@@ -39,9 +39,9 @@ import BiSim_dataHandler
 def startSimulation(simulationDict, moduleDict, resultsPath):
 
     #the path is implemented in GUI.py
-   # resultsPath = BiSim_dataHandler.DataHandler().setDirectories()
-   # print('created resultsPath at: ' + resultsPath)
-   
+    # resultsPath = BiSim_dataHandler.DataHandler().setDirectories()
+    # print('created resultsPath at: ' + resultsPath)
+
     
     #get weatherFile
     metdata, demo = BiSim_dataHandler.DataHandler().getWeatherData(simulationDict, resultsPath)
