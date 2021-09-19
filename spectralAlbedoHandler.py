@@ -20,7 +20,9 @@ from pvlib import spectrum, solarposition, irradiance, atmosphere
 import os
 import numpy
 import matplotlib.pyplot as plt
-
+import math
+import dateutil.tz
+import datetime
 
 import BiSim_dataHandler
 import BiSim_radiationHandler
@@ -34,12 +36,13 @@ def getReflectanceData(simulationDict):
     None.
 
     '''
-    # If-Abfrage, ob Werte gleich -1.23e+34 sind, da Werte dann ungültig
-    # Eingelesene Werte müssen geschnitten werden, da diese im wissenschaftlichen Format notiert sind
+    # TODO: If-Abfrage, ob Werte gleich -1.23e+34 sind, da Werte dann ungültig
+    # TODO: Eingelesene Werte müssen geschnitten werden, da diese im wissenschaftlichen Format notiert sind
+    
     
     R_lamda=numpy.loadtxt(simulationDict['spectralReflectancefile']) 
     
-def modelingSpectralIrradiance(simulationDict):
+def modelingSpectralIrradiance(simulationDict, currentDate):
     '''
     Model the spectral distribution of irradiance based on atmospheric conditions. 
     The spectral distribution of irradiance is the power content at each wavelength 
@@ -51,8 +54,6 @@ def modelingSpectralIrradiance(simulationDict):
     diffuse irradiance on horizontal and tilted planes at the earth's surface 
     for cloudless atmospheres", NREL Technical Report TR-215-2436 
     doi:10.2172/5986936.
-
-    The figure shows modeled spectra at hourly intervals across a single morning.
     
     Parameters
     ----------
@@ -60,7 +61,7 @@ def modelingSpectralIrradiance(simulationDict):
 
     Returns
     -------
-    None.
+    spectra: dict of arrays
 
     '''
     lat = simulationDict('latitude')    # [deg] latitude of ground surface to calculate spectral albedo
@@ -73,18 +74,20 @@ def modelingSpectralIrradiance(simulationDict):
     ozone = 0.314                       # [atm-cm] Atmospheric ozone content; data from WOUDC for Aug 2021 for Hohenpeissenberg
     albedo = simulationDict('albedo')   # [-] fix albedo value
     
-    times = pd.date_range('2021-09-22 12:00', freq='h', periods=1, tz='Etc/GMT+' + simulationDict('utcOffset')) # posibility to calculate several spectras for diffrent times, when period >1 
+    times = pd.date_range(currentDate, freq='h', periods=1, tz='Etc/GMT+' + simulationDict('utcOffset')) # posibility to calculate several spectras for diffrent times, when period >1 
     solpos = solarposition.get_solarposition(times, lat, lon, pressure = pressure) #pressure selber hinzugefügt
     aoi = irradiance.aoi(tilt, azimuth, solpos.apparent_zenith, solpos.azimuth)
 
     # The technical report uses the 'kasten1966' airmass model, but later versions of SPECTRL2 use 'kastenyoung1989'.
     relative_airmass = atmosphere.get_relative_airmass(solpos.apparent_zenith, model='kastenyoung1989')
 
-    # model spectral irradiance using `pvlib.spectrum.spectrl2`
-    # Returns: A dict of arrays with wavelength; dni_extra; dhi; dni; poa_sky_diffuse; poa_ground_diffuse; poa_direct; poa_global
-    # The poa_global array represents the total spectral irradiance on the ground surface
-    # Note: because calculating the spectra for more than one set of conditions, 2-D arrays is given back (one dimension for wavelength, one for time).
-
+    '''
+    model spectral irradiance using `pvlib.spectrum.spectrl2`
+    Returns: A dict of arrays with wavelength; dni_extra; dhi; dni; poa_sky_diffuse; poa_ground_diffuse; poa_direct; poa_global
+    The poa_global array represents the total spectral irradiance on the ground surface
+    Note: because calculating the spectra for more than one set of conditions, 2-D arrays is given back (one dimension for wavelength, one for time).
+    '''
+    
     spectra = spectrum.spectrl2(
         apparent_zenith=solpos.apparent_zenith,
         aoi=aoi,
@@ -97,7 +100,7 @@ def modelingSpectralIrradiance(simulationDict):
         aerosol_turbidity_500nm=tau500,
     )
    
-    # plot: poa_global against wavelength (like Figure 5-1A from the SPECTRL2 NREL Technical Report)
+    # plot: modeled poa_global against wavelength (like Figure 5-1A from the SPECTRL2 NREL Technical Report)
     #plt.figure()
     #plt.plot(spectra['wavelength'], spectra['poa_global'])
     #plt.xlim(200, 2700)
@@ -123,25 +126,113 @@ def modelingSpectralIrradiance(simulationDict):
     return spectra
     
     
-def CalculateR():
+def CalculateR(simulationDict):
     '''
-    Calculates R value
+    Calculates R value for every hour in the time period between startHour and endHour
+        
+    Parameters
+    ----------
+    simulationDict: simulation Dictionary, which can be found in BiSimu_main_spectralAlbedo.py
 
     Returns
     -------
     None.
 
     '''
+    # Translate startHour und endHour in timeindexes
+    dtStart = datetime.datetime(simulationDict['startHour'][0], simulationDict['startHour'][1], simulationDict['startHour'][2], simulationDict['startHour'][3], tzinfo=dateutil.tz.tzoffset(None, simulationDict['utcOffset']*60*60))
+    beginning_of_year = datetime.datetime(dtStart.year, 1, 1, tzinfo=dtStart.tzinfo)
+    startHour = int((dtStart - beginning_of_year).total_seconds() // 3600) # gives the hour in the year
+                
+    dtEnd = datetime.datetime(simulationDict['endHour'][0], simulationDict['endHour'][1], simulationDict['endHour'][2], simulationDict['endHour'][3], tzinfo=dateutil.tz.tzoffset(None, simulationDict['utcOffset']*60*60))
+    beginning_of_year = datetime.datetime(dtEnd.year, 1, 1, tzinfo=dtEnd.tzinfo)
+    endHour = int((dtEnd - beginning_of_year).total_seconds() // 3600) # gives the hour in the year
     
-def CalculateH():
+    R_hourly = []     # array to hold R value
+    
+    '''
+    Loop to calculate R for each hour. Start value is the starthour of the calculation period. 
+    End value is the end time of the calculation period. The start and endhour for the desired 
+    calculation period must match the weather file. The increment is one hour.
+    '''
+    for time in range(startHour, endHour+1):
+        
+              
+        currentDate = time # ? ... hier noch weiter programmieren
+        # TODO: aktuelle Stunde muss wieder in Datumsformat konvertiert werden, damit dieses der 
+        # modelingSpectralIrrandiance Funktion übergeben wird
+        
+        spectrum = modelingSpectralIrradiance(simulationDict, currentDate)
+                
+        # Schleifenstart
+        for i in range(122): # 122, da spectra 122 Wellenlängen enthält
+            
+            # i muss der Schlüssel für die Liste sein, der die Zeilennummer angibt (feste Anzahl an Wellenlängen notwendig)
+            # in jeder Zeile müssen Wellenlänge, R und G stehen (aktuell R und G noch in zwei verschiedenen Listen)
+            # TODO: G für die aktuelle Wellenlänge aus den Dict of Arrays 'spectrum' ziehen
+            # TODO: R für die aktuelle Wellenlänge ziehen
+            # TODO: lamda als aktuelle Wellenlänge ziehen
+            # Problem: R Werte sind für andere Wellenlängen als G Werte
+            
+            G_lamda = spectrum['poa_global'] # Wert aus Array muss für i-te Stelle abrufen werden, aber wie? # G for current wavelength lamda [W/m²/nm]
+            R_lamda =  # R for current wavelength lamda [-]
+            lamda = spectrum ['wavelength']  # Wert aus Array muss für i-te Stelle abrufen werden, aber wie? # current wavelength lamda [nm]
+        
+            sum_R_G += (G_lamda * R_lamda * lamda) # sum up the Multiplication of R and G for every wavelength [W/m²]
+            sum_G += (G_lamda * lamda)  # sum up G for every wavelength [W/m²]
+        # Schleifenende
+    
+        R = sum_R_G / sum_G
+    
+        R_hourly.append(R)
+    
+    
+    
+def CalculateH(simulationDict):
     '''
     Calculates H value for every hour in the time period between startHour and endHour
+    
+    Paramteres
+    ----------
+    simulationDict: simulation Dictionary, which can be found in BiSimu_main_spectralAlbedo.py
 
     Returns
     -------
-    None.
+    H_hourly: array of H for every hour between startHour and endHour
 
     '''
+      
+    # Translate startHour und endHour in timeindexes
+    dtStart = datetime.datetime(simulationDict['startHour'][0], simulationDict['startHour'][1], simulationDict['startHour'][2], simulationDict['startHour'][3], tzinfo=dateutil.tz.tzoffset(None, simulationDict['utcOffset']*60*60))
+    beginning_of_year = datetime.datetime(dtStart.year, 1, 1, tzinfo=dtStart.tzinfo)
+    startHour = int((dtStart - beginning_of_year).total_seconds() // 3600) # gives the hour in the year
+                
+    dtEnd = datetime.datetime(simulationDict['endHour'][0], simulationDict['endHour'][1], simulationDict['endHour'][2], simulationDict['endHour'][3], tzinfo=dateutil.tz.tzoffset(None, simulationDict['utcOffset']*60*60))
+    beginning_of_year = datetime.datetime(dtEnd.year, 1, 1, tzinfo=dtEnd.tzinfo)
+    endHour = int((dtEnd - beginning_of_year).total_seconds() // 3600) # gives the hour in the year
+    
+    H_hourly = []     # array to hold H value
+    
+    '''
+    Loop to calculate R for each hour. Start value is the starthour of the calculation period. 
+    End value is the end time of the calculation period. The start and endhour for the desired 
+    calculation period must match the weather file. The increment is one hour.
+    '''
+    
+    for time in range(startHour, endHour+1):
+        # TODO: DNI, DHI und theta müssen immer für die aktuelle Stunde des Schleifendurchlaufs 
+        # aus dem dataframe der Wetterdatei gezogen werden.
+        
+        DNI = # direct normal irradiation out of weatherfile [W/m²]
+        DHI = # diffuse horizontal irradation out of weatherfile [W/m²]
+        theta = # sun zenith angle [deg]
+    
+        H = (DNI/DHI) * cos(theta)
+    
+        H_hourly.append(H)
+     
+        
+    return H_hourly
     
 def CalculateAlbedo():
     '''
