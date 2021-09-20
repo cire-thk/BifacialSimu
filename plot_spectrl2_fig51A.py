@@ -95,3 +95,5 @@ plt.show()
 # position and the solar position calculation in the technical report does not
 # exactly match the one used here.  However, the differences are minor enough
 # to not materially change the spectra.
+
+print(spectra['wavelength'][1])

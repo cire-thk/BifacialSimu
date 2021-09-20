@@ -29,7 +29,7 @@ import BiSim_radiationHandler
 
 def getReflectanceData(simulationDict):
     '''
-    Read the spectral Reflectance data of the material (sand); R(lamda)
+    Read the spectral reflectance data of the material (sand); R(lamda)
 
     Returns
     -------
@@ -37,7 +37,7 @@ def getReflectanceData(simulationDict):
 
     '''
     # TODO: If-Abfrage, ob Werte gleich -1.23e+34 sind, da Werte dann ungültig
-    # TODO: Eingelesene Werte müssen geschnitten werden, da diese im wissenschaftlichen Format notiert sind
+    
     
     
     R_lamda=numpy.loadtxt(simulationDict['spectralReflectancefile']) 
@@ -152,7 +152,7 @@ def CalculateR(simulationDict):
     
     '''
     Loop to calculate R for each hour. Start value is the starthour of the calculation period. 
-    End value is the end time of the calculation period. The start and endhour for the desired 
+    End value is the endhour of the calculation period. The start- and endhour for the desired 
     calculation period must match the weather file. The increment is one hour.
     '''
     for time in range(startHour, endHour+1):
@@ -165,18 +165,15 @@ def CalculateR(simulationDict):
         spectrum = modelingSpectralIrradiance(simulationDict, currentDate)
                 
         # Schleifenstart
-        for i in range(122): # 122, da spectra 122 Wellenlängen enthält
+        for i in range(112): # 112 loops, because of 112 wavelenghts in spectra, which are used for calculation
             
-            # i muss der Schlüssel für die Liste sein, der die Zeilennummer angibt (feste Anzahl an Wellenlängen notwendig)
             # in jeder Zeile müssen Wellenlänge, R und G stehen (aktuell R und G noch in zwei verschiedenen Listen)
-            # TODO: G für die aktuelle Wellenlänge aus den Dict of Arrays 'spectrum' ziehen
             # TODO: R für die aktuelle Wellenlänge ziehen
-            # TODO: lamda als aktuelle Wellenlänge ziehen
             # Problem: R Werte sind für andere Wellenlängen als G Werte
             
-            G_lamda = spectrum['poa_global'] # Wert aus Array muss für i-te Stelle abrufen werden, aber wie? # G for current wavelength lamda [W/m²/nm]
+            G_lamda = spectrum['poa_global'][i] # G for current wavelength lamda [W/m²/nm]
             R_lamda =  # R for current wavelength lamda [-]
-            lamda = spectrum ['wavelength']  # Wert aus Array muss für i-te Stelle abrufen werden, aber wie? # current wavelength lamda [nm]
+            lamda = spectrum ['wavelength'][i]  # current wavelength lamda [nm]
         
             sum_R_G += (G_lamda * R_lamda * lamda) # sum up the Multiplication of R and G for every wavelength [W/m²]
             sum_G += (G_lamda * lamda)  # sum up G for every wavelength [W/m²]
@@ -215,7 +212,7 @@ def CalculateH(simulationDict):
     
     '''
     Loop to calculate R for each hour. Start value is the starthour of the calculation period. 
-    End value is the end time of the calculation period. The start and endhour for the desired 
+    End value is the endhour of the calculation period. The start- and endhour for the desired 
     calculation period must match the weather file. The increment is one hour.
     '''
     
