@@ -125,7 +125,7 @@ def modelingSpectralIrradiance(simulationDict, currentDate):
     return spectra
     
     
-def CalculateAlbedo(simulationDict):
+def CalculateAlbedo(simulationDict, dataframe):
     '''
     Calculates R value for every hour in the time period between startHour and endHour
     Calculates H value for every hour in the time period between startHour and endHour
@@ -134,12 +134,16 @@ def CalculateAlbedo(simulationDict):
     Parameters
     ----------
     simulationDict: simulation Dictionary, which can be found in BiSimu_main_spectralAlbedo.py
-
+    TODO: Muss den dataframe 'df' aus der Funktion 'startSimulation' aus simualtionController.pv irgendwie übergeben bekommen.
+    TODO: Eventuell über den radiationHandler möglich, da der df an die Funktion simulateRaytrace und simulateViewFactors übergeben wird
+    
     Returns
     -------
     None.
 
     '''
+    df = dataFrame
+    
     # Translate startHour und endHour in timeindexes
     dtStart = datetime.datetime(simulationDict['startHour'][0], simulationDict['startHour'][1], simulationDict['startHour'][2], simulationDict['startHour'][3], tzinfo=dateutil.tz.tzoffset(None, simulationDict['utcOffset']*60*60))
     beginning_of_year = datetime.datetime(dtStart.year, 1, 1, tzinfo=dtStart.tzinfo)
@@ -149,24 +153,26 @@ def CalculateAlbedo(simulationDict):
     beginning_of_year = datetime.datetime(dtEnd.year, 1, 1, tzinfo=dtEnd.tzinfo)
     endHour = int((dtEnd - beginning_of_year).total_seconds() // 3600) # gives the hour in the year
     
+    # Intialise arrays
     R_hourly = []     # array to hold R value
     H_hourly = []     # array to hold H value
-    a_houly = []      # array to hold a value
+    a_hourly = []     # array to hold a value
+    
     '''
     Loop to calculate R for each hour. Start value is the starthour of the calculation period. 
     End value is the endhour of the calculation period. The start- and endhour for the desired 
     calculation period must match the weather file. The increment is one hour.
     '''
+    
     for time in range(startHour, endHour+1):
         
               
-        currentDate = time # ? ... hier noch weiter programmieren
+        currentDate = time # ? ... hier noch weiter programmieren # yyyy-mm-dd hh:mm
         # TODO: aktuelle Stunde muss wieder in Datumsformat konvertiert werden, damit dieses der 
         # modelingSpectralIrrandiance Funktion übergeben wird
         
         spectrum = modelingSpectralIrradiance(simulationDict, currentDate)
                 
-        # Schleifenstart
         for i in range(112): # 112 loops, because of 112 wavelenghts in spectra, which are used for calculation
             
             # in jeder Zeile müssen Wellenlänge, R und G stehen (aktuell R und G noch in zwei verschiedenen Listen)
@@ -179,29 +185,31 @@ def CalculateAlbedo(simulationDict):
         
             sum_R_G += (G_lamda * R_lamda * lamda) # sum up the Multiplication of R and G for every wavelength [W/m²]
             sum_G += (G_lamda * lamda)  # sum up G for every wavelength [W/m²]
-        # Schleifenende
-    
+      
         # Calcualte R value
-        
         R = sum_R_G / sum_G
     
         R_hourly.append(R)
         
         # Calculates H value
-        
-        # TODO: DNI, DHI und theta müssen immer für die aktuelle Stunde des Schleifendurchlaufs 
-        # aus dem dataframe der Wetterdatei gezogen werden.
-        
-        DNI = # direct normal irradiation out of weatherfile [W/m²]
-        DHI = # diffuse horizontal irradation out of weatherfile [W/m²]
-        theta = # sun zenith angle [deg]
+               
+        DNI = df[i, 'dni']          # direct normal irradiation out of weatherfile [W/m²]
+        DHI = df[i, 'dhi']          # diffuse horizontal irradation out of weatherfile [W/m²]
+        theta = df[i, 'zenith']     # sun zenith angle [deg]
     
         H = (DNI/DHI) * cos(theta)
     
         H_hourly.append(H)
         
         # Calculate Albedo
+        # TODO: Viewfactor übergeben
+        vf_s_a1 # Viewfactor from surface S (Albedo measurement) to surface A1 (unshaded ground)
+        vf_s_a2 # Viewfactor from surface S (Albedo measurement) to surface A2 (shaded ground)
         
-    return 
+        a = R * (vf_s_a1 + (1/(H+1)) * vf_s_a2) # Albedo [-]
+        
+        a_hourly.append(a)
+        
+    return a_hourly
     
 

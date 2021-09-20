@@ -168,7 +168,7 @@ def read1Result(selectfile):
     return resultsDF
 # End read1Result subroutine
 
-def cleanResult(resultsDF, matchers=None):
+def cleanResult(resultsDF, matchers=None):#changed by THKoeln
     """
     Replace irradiance values with NaN's when the scan intersects ground, 
     sky, or anything in `matchers`.
@@ -200,11 +200,15 @@ def cleanResult(resultsDF, matchers=None):
         matchers = ['sky','pole','tube','bar','ground', '3267', '1540']
     NaNindex = [i for i,s in enumerate(resultsDF['mattype']) if any(xs in s for xs in matchers)]
     NaNindex2 = [i for i,s in enumerate(resultsDF['rearMat']) if any(xs in s for xs in matchers)]
-    #NaNindex += [i for i,s in enumerate(frontDict['mattype']) if any(xs in s for xs in matchers)]    
-    for i in NaNindex:
-        resultsDF['Wm2Front'].loc[i] = np.NAN 
-    for i in NaNindex2:
-        resultsDF['Wm2Back'].loc[i] = np.NAN
+    #NaNindex += [i for i,s in enumerate(frontDict['mattype']) if any(xs in s for xs in matchers)]  
+    columns= resultsDF.columns.values
+    if "Wm2Front" in columns:
+        for i in NaNindex:
+            resultsDF['Wm2Front'].loc[i] = np.NAN 
+    
+    if "Wm2Back" in columns:        
+        for i in NaNindex2:
+            resultsDF['Wm2Back'].loc[i] = np.NAN
     
     return resultsDF
 
