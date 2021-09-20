@@ -36,8 +36,7 @@ def getReflectanceData(simulationDict):
     None.
 
     '''
-    # TODO: If-Abfrage, ob Werte gleich -1.23e+34 sind, da Werte dann ungültig
-    
+     
     
     
     R_lamda=numpy.loadtxt(simulationDict['spectralReflectancefile']) 
@@ -126,9 +125,11 @@ def modelingSpectralIrradiance(simulationDict, currentDate):
     return spectra
     
     
-def CalculateR(simulationDict):
+def CalculateAlbedo(simulationDict):
     '''
     Calculates R value for every hour in the time period between startHour and endHour
+    Calculates H value for every hour in the time period between startHour and endHour
+    Calculates a value (Albedo) for every hour in the time period between startHour and endHour
         
     Parameters
     ----------
@@ -149,7 +150,8 @@ def CalculateR(simulationDict):
     endHour = int((dtEnd - beginning_of_year).total_seconds() // 3600) # gives the hour in the year
     
     R_hourly = []     # array to hold R value
-    
+    H_hourly = []     # array to hold H value
+    a_houly = []      # array to hold a value
     '''
     Loop to calculate R for each hour. Start value is the starthour of the calculation period. 
     End value is the endhour of the calculation period. The start- and endhour for the desired 
@@ -179,44 +181,14 @@ def CalculateR(simulationDict):
             sum_G += (G_lamda * lamda)  # sum up G for every wavelength [W/m²]
         # Schleifenende
     
+        # Calcualte R value
+        
         R = sum_R_G / sum_G
     
         R_hourly.append(R)
-    
-    
-    
-def CalculateH(simulationDict):
-    '''
-    Calculates H value for every hour in the time period between startHour and endHour
-    
-    Paramteres
-    ----------
-    simulationDict: simulation Dictionary, which can be found in BiSimu_main_spectralAlbedo.py
-
-    Returns
-    -------
-    H_hourly: array of H for every hour between startHour and endHour
-
-    '''
-      
-    # Translate startHour und endHour in timeindexes
-    dtStart = datetime.datetime(simulationDict['startHour'][0], simulationDict['startHour'][1], simulationDict['startHour'][2], simulationDict['startHour'][3], tzinfo=dateutil.tz.tzoffset(None, simulationDict['utcOffset']*60*60))
-    beginning_of_year = datetime.datetime(dtStart.year, 1, 1, tzinfo=dtStart.tzinfo)
-    startHour = int((dtStart - beginning_of_year).total_seconds() // 3600) # gives the hour in the year
-                
-    dtEnd = datetime.datetime(simulationDict['endHour'][0], simulationDict['endHour'][1], simulationDict['endHour'][2], simulationDict['endHour'][3], tzinfo=dateutil.tz.tzoffset(None, simulationDict['utcOffset']*60*60))
-    beginning_of_year = datetime.datetime(dtEnd.year, 1, 1, tzinfo=dtEnd.tzinfo)
-    endHour = int((dtEnd - beginning_of_year).total_seconds() // 3600) # gives the hour in the year
-    
-    H_hourly = []     # array to hold H value
-    
-    '''
-    Loop to calculate R for each hour. Start value is the starthour of the calculation period. 
-    End value is the endhour of the calculation period. The start- and endhour for the desired 
-    calculation period must match the weather file. The increment is one hour.
-    '''
-    
-    for time in range(startHour, endHour+1):
+        
+        # Calculates H value
+        
         # TODO: DNI, DHI und theta müssen immer für die aktuelle Stunde des Schleifendurchlaufs 
         # aus dem dataframe der Wetterdatei gezogen werden.
         
@@ -227,20 +199,9 @@ def CalculateH(simulationDict):
         H = (DNI/DHI) * cos(theta)
     
         H_hourly.append(H)
-     
         
-    return H_hourly
+        # Calculate Albedo
+        
+    return 
     
-def CalculateAlbedo():
-    '''
-    Parameters
-    ----------
-    H
-    R
-    Viewfactors
 
-    Returns
-    -------
-    None.
-
-    '''

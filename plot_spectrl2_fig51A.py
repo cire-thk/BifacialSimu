@@ -97,3 +97,4 @@ plt.show()
 # to not materially change the spectra.
 
 print(spectra['wavelength'][1])
+print(spectra['poa_global'][1])
