@@ -10,19 +10,19 @@ import pandas
 
 # Information about weather data file
 
-path ="C:/Users/Sebastian Nows/OneDrive - th-koeln.de/Masterprojekt/50_Wetterdaten/NREL best field/"
-name= "NREL_Test_wetter.csv"
+path ="C:/Users/Sebastian Nows/OneDrive - th-koeln.de/Masterprojekt/50_Wetterdaten/71_Strahlungsdaten DWD/Göttingen/"
+name= "Goettingen_Temperatur_Strahlung_stündlich_bearbeitet.csv"
 
 separator = ";"
 headline = 0
 
-nrMeasuringStation = '0'
-nameMeasuringStation = 'Golden'
-longitude = '-105.172'
-latitude = '39.739' 
-height = '0'
-offset = '0'
-state = 'Colorado'
+nrMeasuringStation = '1691'
+nameMeasuringStation = 'Goettingen'
+longitude = '9.9507'
+latitude = '51.5002' 
+height = '167'
+offset = '-1'
+state = 'Germany'
 # names of relevant coloumns in weather file, each of them have to be in seperated columns
 Date = 'date'
 Time = 'time'
@@ -49,7 +49,7 @@ def csvToTMY3(path, name, separator, headline, nrMeasuringStation,
     #df = df.assign(Alb=Albedo)
     df = df.rename(columns = {Date: 'Date (MM/DD/YYYY)'})
     df = df.rename(columns = {Time: 'Time (HH:MM)'})
-    df = df.rename(columns = {Albedo: 'Alb'})
+    #df = df.rename(columns = {Albedo: 'Alb'})
     df = df.rename(columns = {GHI: 'GHI (W/m^2)'})
     df = df.rename(columns = {DHI: 'DHI (W/m^2)'})
     df = df.rename(columns = {DNI: 'DNI (W/m^2)'})
@@ -59,7 +59,7 @@ def csvToTMY3(path, name, separator, headline, nrMeasuringStation,
     #df = df.drop(Date, axis = 1)
     
     with open(path+'out.csv', 'w') as fp:
-        fp.write(nrMeasuringStation+','+nameMeasuringStation+','+state+','+ offset+','+longitude+','+ latitude+','+height+'\n'+'\n')
+        fp.write(nrMeasuringStation+','+nameMeasuringStation+','+state+','+ offset+','+latitude+','+longitude+','+height+'\n'+'\n')
         df.to_csv(fp, index=False)
     print(df)
 

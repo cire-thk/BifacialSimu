@@ -826,6 +826,7 @@ class RadianceObj:
         ground = self.ground
         
         locName = metdata.city
+        print(timeindex)
         dni = metdata.dni[timeindex]
         dhi = metdata.dhi[timeindex]
         ghi = metdata.ghi[timeindex]

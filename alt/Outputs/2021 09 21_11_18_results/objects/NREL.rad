@@ -1,0 +1,1 @@
+! genbox black NREL 0.992 1.98 0.02 | xform -t -0.496 -0.99 0 -a 1 -t 0 1.98 0

@@ -3,12 +3,13 @@
 Created on Mon Jun  7 11:39:16 2021
 @author:        
     CIRE TH Cologne
+    Eva-Maria Grommes
     Felix Schemann
     Frederik Klag
     Sebastian Nows
 
 name:
-    BiSim - radiationHandler
+    BifacialSimu - radiationHandler
 
 overview:
     Manages the calculation of the radiation over the extern modules
@@ -29,10 +30,7 @@ get_ipython().magic('reset -sf')
 import pandas as pd #pandas = can read .csv as input
 import matplotlib.pyplot as plt #display shadows
 import numpy as np
-import os #to import directories
 import warnings
-import math
-import pvlib #for electrical output simulation
 import bifacial_radiance
 from bifacial_radiance import *
 import datetime
@@ -41,20 +39,16 @@ from pvfactors.engine import PVEngine
 from pvfactors.irradiance import HybridPerezOrdered
 from pvfactors.geometry import OrderedPVArray
 from pvfactors.viewfactors import VFCalculator
-from pvlib.location import Location
-from tqdm import tqdm
 import numpy
+import dateutil.tz
+import sys
+#import os #to import directories
+#from pvlib.location import Location
+#from tqdm import tqdm
+#import BiSim_dataHandler
+#import math
+#import pvlib #for electrical output simulation
 
-
-# Path handling
-#rootPath = os.path.dirname(os.path.dirname(os.path.realpath(".")))
-
-# Include paths
-
-#sys.path.append(rootPath + "/BiSim/Handler")
-
-import BiSim_dataHandler
-import datetime
 
 
 
@@ -62,28 +56,73 @@ import datetime
     
 class RayTrace:
     
+    """
+    Raytracing class that uses the bifacial_radiance library to simulate front and rear irradiance of the PVarray.
+    Uses parameters passed into BiSimu.main's simulationDict.
+ 
+    Methods
+    -------
+    createDemo : create a bifacial_radiance RadianceObj that calculates sun parameters and sky values
+    simulateRaytrace: Function to perform raytracing simulation. Uses RadianceObj and simulation parameters 
+                      for fixed tilt or single axis tracking simulation.  
+
+    """
+    
     def createDemo(simulationDict, resultsPath):
+        # Create a RadianceObj 'object'
         simulationName = simulationDict['simulationName']
         demo = bifacial_radiance.RadianceObj(name = simulationName, path = resultsPath) # Create a RadianceObj 'object'
         
         return demo
 
-    def simulateRayTrace(simulationDict,demo,metdata, resultsPath, onlyBackscan):
-        # Create a RadianceObj 'object'
+    def simulateRayTrace(simulationDict,demo,metdata, resultsPath, dataFrame, onlyBackscan):
+        """
+        Function to calculate singleAxisTracking or fixed tilt with the bifacial_radiance library.
+        Uses cumulativeSky or gendayLit functions to calculate the irradiance, depending on input parameters in BiSimu_main.py
+        Returns df_reportRT for further use in the calculationHandler.
         
-        demo.setGround(simulationDict['albedo'])
+        Note: For cumulativeSky, no report will be created, since a  file containing the relevant data is already created by bifacial_radiance.
+        Additionally, a cumulativeSky approach is not compatible with Viewfactors calculation, since it averages the sky over 1 year, while VF uses hourly calculations.
+        
+        Parameters
+        ----------
+        simulationDict: simulation Dictionary, which can be found in BiSimu_main.py
+        demo: Bifacial_Radiance's RadianceObj created in "createDemo" fucntion
+        metdata: Object containing meteorological data and sun parameters
+        resultsPath: output filepath
+        dataFrame: helper DataFrame 
+        onlyBackscan: option to only calculate rear side of the modules
+        """
+        
+        
+        # Set albedo from sim parameters
+        if simulationDict['hourlyMeasuredAlbedo'] ==False:
+            # Measured Albedo average value
+            demo.setGround(simulationDict['albedo'])
+        else:
+            if simulationDict['singleAxisTracking'] == True:
+                demo.setGround(material = None)
+            else:
+                sys.exit("The use of hourly Measured Albedo Values is not possible with fixed tilts at the moment")
+            
+        
+            
 
         # DEFINE a Module type
-
-        demo.makeModule(name=simulationDict['module_type'],x=simulationDict['modulex'], y=simulationDict['moduley'])
+        moduley = simulationDict['moduley']*simulationDict['nModsy']
+        demo.makeModule(name=simulationDict['module_type'],x=simulationDict['modulex'], y=moduley)
      
         # Make the Scene
-        sceneDict = {'tilt': simulationDict['tilt'],'gcr': simulationDict['gcr'],'clearance_height':simulationDict['clearance_height'],'azimuth':simulationDict['azimuth'], 'nMods': simulationDict['nMods'], 'nRows': simulationDict['nRows']} 
+        
+        sceneDict = {'tilt': simulationDict['tilt'],'gcr': simulationDict['gcr'],'clearance_height':simulationDict['clearance_height'],'hub_height':simulationDict['hub_height'], 'azimuth':simulationDict['azimuth'], 'nModsx': simulationDict['nModsx'], 'nRows': simulationDict['nRows']} 
+        
+        #################
+        # Cumulativ Sky
         
         if simulationDict['cumulativeSky'] == True:
             if simulationDict['singleAxisTracking'] == True:
                 # get SingleAxisTracking Data
-                trackerdict = demo.set1axis(metdata = metdata, limit_angle = simulationDict['limitAngle'], backtrack = False, 
+                trackerdict = demo.set1axis(metdata = metdata, limit_angle = simulationDict['limitAngle'], backtrack = simulationDict['backTracking'], 
                             gcr = simulationDict['gcr'], cumulativesky = True)
                # make the sky
                 trackerdict = demo.genCumSky1axis(trackerdict = trackerdict)
@@ -101,10 +140,15 @@ class RayTrace:
                 analysis = AnalysisObj(octfile, demo.basename)
                 frontscan, backscan = analysis.moduleAnalysis(scene)
                 results = analysis.analysis(octfile, demo.basename, frontscan, backscan, onlyBackscan = onlyBackscan)  
+        
+        #################
+        # gendayLit
+        # Single Axis Tracking
         else:
             if simulationDict['singleAxisTracking'] == True:
+
                 # get SingleAxisTracking Data
-                trackerdict = demo.set1axis(metdata = metdata, limit_angle = simulationDict['limitAngle'], backtrack = False, 
+                trackerdict = demo.set1axis(metdata = metdata, limit_angle = simulationDict['limitAngle'], backtrack = simulationDict['backTracking'], 
                             gcr = simulationDict['gcr'], cumulativesky = False)
                 # make the sky
                 startdate = str(simulationDict['startHour'][1]) +'_'+str(simulationDict['startHour'][2])+'_'+str(simulationDict['startHour'][3])
@@ -118,11 +162,13 @@ class RayTrace:
                 #results_rtrace = demo.analysis1axis(customname="row_" + str(j+1), rowWanted = rowWanted, sensorsy = simulationDict['sensorsy'], onlyBackscan = onlyBackscan) 
                 
                 
-                dtStart = datetime.datetime(simulationDict['startHour'][0], simulationDict['startHour'][1], simulationDict['startHour'][2], simulationDict['startHour'][3])
+                
+                dtStart = datetime.datetime(simulationDict['startHour'][0], simulationDict['startHour'][1], simulationDict['startHour'][2], simulationDict['startHour'][3], tzinfo=dateutil.tz.tzoffset(None, simulationDict['utcOffset']*60*60))
                 beginning_of_year = datetime.datetime(dtStart.year, 1, 1, tzinfo=dtStart.tzinfo)
                 startHour = int((dtStart - beginning_of_year).total_seconds() // 3600)
                 
-                dtEnd = datetime.datetime(simulationDict['endHour'][0], simulationDict['endHour'][1], simulationDict['endHour'][2], simulationDict['endHour'][3])
+                
+                dtEnd = datetime.datetime(simulationDict['endHour'][0], simulationDict['endHour'][1], simulationDict['endHour'][2], simulationDict['endHour'][3], tzinfo=dateutil.tz.tzoffset(None, simulationDict['utcOffset']*60*60))
                 beginning_of_year = datetime.datetime(dtEnd.year, 1, 1, tzinfo=dtEnd.tzinfo)
                 endHour = int((dtEnd - beginning_of_year).total_seconds() // 3600)
                 
@@ -137,116 +183,179 @@ class RayTrace:
                 
                 df_reportRT = pd.DataFrame()
                 i=0
+                demo.makeOct1axis()
                 
-                for time in range(startHour, endHour):
+                for time in range(startHour, endHour+1):
+                    
+                    x = time - startHour
+                    
+                    singleindex= dtStart + x*datetime.timedelta(hours=1) 
+                    print(singleindex)
+                    singleindex = singleindex.strftime('%m_%d_%H')
                     
                     df_rtraceFront = pd.DataFrame()
                     df_rtraceBack = pd.DataFrame()
                     df_rtrace = pd.DataFrame()
-
-                    demo.makeOct1axis()
                     
-                    print(time)
 
                     for j in range(0, simulationDict['nRows']):
         
-                        key_front = "row_" + str(j) + "_qabs_front"
-                        key_back = "row_" + str(j) + "_qabs_back"
+                        key_front = "row_" + str(j) + "_qinc_front"
+                        key_back = "row_" + str(j) + "_qinc_back"
                         
                         rowWanted = j
                         
-                        #if octfile is not None:
-                            
-                        results_rtrace = demo.analysis1axis(customname="row_" + str(j), rowWanted = rowWanted, sensorsy = simulationDict['sensorsy'], onlyBackscan = onlyBackscan) 
-                        print(demo.Wm2Back)
-                        if onlyBackscan == False:
-
-                            df_rtraceFront.insert(loc=j, column = key_front, value = demo.Wm2Front) 
-                            df_rtraceBack.insert(loc=j, column = key_back, value = demo.Wm2Back) 
+                        #try if there is data (day) at this time or not (night)
+                        try:    
+                            results_rtrace = demo.analysis1axis(customname="row_" + str(j), rowWanted = rowWanted, sensorsy = simulationDict['sensorsy'], onlyBackscan = onlyBackscan, singleindex = singleindex) 
+                            if onlyBackscan == False:
     
-                        else:
-                            df_rtraceBack.insert(loc=j, column = key_back, value = demo.Wm2Back) 
+                                df_rtraceFront.insert(loc=j, column = key_front, value = demo.Wm2Front) 
+                                df_rtraceBack.insert(loc=j, column = key_back, value = demo.Wm2Back) 
+                                df_rtrace = pd.concat([df_rtraceFront, df_rtraceBack], axis=1)
+    
+                            else:
+                                df_rtrace.insert(loc=j, column = key_back, value = demo.Wm2Back) 
+                            
+
+                        except:
+
                         
-                        df_rtrace = pd.concat([df_rtraceFront, df_rtraceBack], axis=1)
-                            
-                        # else:
-                            
-                        #     df_rtraceFront = pd.DataFrame({key_front: [np.NaN]})
-                        #     df_rtraceBack = pd.DataFrame({key_back: [np.NaN]})
-                            
-                        #     df_rtrace = pd.concat([df_rtraceFront, df_rtraceBack], axis=1)
-        
-                    #if octfile is not None:
+                            if onlyBackscan == False:
+                                df_rtraceFront = pd.DataFrame({key_front: [np.NaN]})
+                                df_rtraceBack = pd.DataFrame({key_back: [np.NaN]})
+                                df_rtrace_all = pd.concat([df_rtraceFront, df_rtraceBack], axis=1)
+                                df_rtrace = df_rtrace.append(df_rtrace_all)
+                            else:
+                                df_rtraceBack = pd.DataFrame({key_back: [np.NaN]})
+                                df_rtrace = df_rtrace.append(df_rtraceBack)
+                                
+
+            
+
                     for j in range(0, simulationDict['nRows']):
-                
-                        key_front = "row_" + str(j) + "_qabs_front"
-                        key_back = "row_" + str(j) + "_qabs_back"
-                        
-                        if onlyBackscan == False:
-                            df_rtrace[key_front] = np.mean(df_rtrace[key_front])       
-                            df_rtrace[key_back] = np.mean(df_rtrace[key_back])   
-                        else:
-                            df_rtrace[key_back] = np.mean(df_rtrace[key_back])
-                        
-                        #df_reportRT = df_reportRT.append(df_rtrace)
+                    
+                            key_front = "row_" + str(j) + "_qinc_front"
+                            key_back = "row_" + str(j) + "_qinc_back"
                             
+                            key_front_abs = "row_" + str(j) + "_qabs_front"
+                            key_back_abs = "row_" + str(j) + "_qabs_back"
+                            
+                            
+                            if onlyBackscan == False:
+                                df_rtrace[key_front] = np.mean(df_rtrace[key_front])       
+                                df_rtrace[key_back] = np.mean(df_rtrace[key_back])
+                                
+                                df_rtrace[key_front_abs] = df_rtrace[key_front] * (1-simulationDict['frontReflect'])   
+                                df_rtrace[key_back_abs] = df_rtrace[key_back] * (1-simulationDict['BackReflect'])
+                            else:
+                                df_rtrace[key_back] = np.mean(df_rtrace[key_back])
+                                df_rtrace[key_back_abs] = df_rtrace[key_back] * (1-simulationDict['BackReflect'])
+                        
+                        
+                        
+                        
+                    df_rtrace = df_rtrace.iloc[:1]        
                     df_reportRT = df_reportRT.append(df_rtrace)
-                    df_reportRT = df_reportRT.iloc[:1+i]
+                    
                     i = i+1
+
+                # print(df_rtraceFront)
+                # print(df_rtraceBack)
+                # print(df_rtrace)
+                # print(df_reportRT)
                 
-                
-                
-                
-                
-                
-                print(df_rtraceFront)
-                print(df_rtraceBack)
-                print(df_rtrace)
-                print(df_reportRT)
-                
+                # Set timeindex for report
+                    
                 df_reportRT.to_csv(resultsPath + "df_reportRT.csv")  
-                df_reportRT=df_reportRT.set_index(pd.date_range(start = dtStart, end = dtEnd, freq='H', closed='right'))
+                df_reportRT=df_reportRT.set_index(pd.date_range(start = dtStart - datetime.timedelta(hours=1), end = dtEnd, freq='H', closed='right'))
                 
                 
                 
                 #demo.exportTrackerDict(trackerdict = demo.trackerdict, savefile = 'results\\test_reindexTrue.csv', reindex = False)
-                                                
+            
+            
+            #################
+            # gendayLit
+            # Fixed tilt
+                                   
             else:
                 scene = demo.makeScene(simulationDict['module_type'],sceneDict)
                 # Translate startHour und endHour in timeindexes
-                dtStart = datetime.datetime(simulationDict['startHour'][0], simulationDict['startHour'][1], simulationDict['startHour'][2], simulationDict['startHour'][3])
+                dtStart = datetime.datetime(simulationDict['startHour'][0], simulationDict['startHour'][1], simulationDict['startHour'][2], simulationDict['startHour'][3], tzinfo=dateutil.tz.tzoffset(None, simulationDict['utcOffset']*60*60))
                 beginning_of_year = datetime.datetime(dtStart.year, 1, 1, tzinfo=dtStart.tzinfo)
                 startHour = int((dtStart - beginning_of_year).total_seconds() // 3600)
                 
-                dtEnd = datetime.datetime(simulationDict['endHour'][0], simulationDict['endHour'][1], simulationDict['endHour'][2], simulationDict['endHour'][3])
+                dtEnd = datetime.datetime(simulationDict['endHour'][0], simulationDict['endHour'][1], simulationDict['endHour'][2], simulationDict['endHour'][3], tzinfo=dateutil.tz.tzoffset(None, simulationDict['utcOffset']*60*60))
                 beginning_of_year = datetime.datetime(dtEnd.year, 1, 1, tzinfo=dtEnd.tzinfo)
                 endHour = int((dtEnd - beginning_of_year).total_seconds() // 3600)
-
-                  
+                
+                df = dataFrame
+                mask = (df.index >= dtStart) & (df.index <= dtEnd) 
+                df_gendaylit= df.loc[mask]
+                df_gendaylit = df_gendaylit.reset_index()
+                
+                
+                
+                
+                
+                solpos = metdata.solpos
+                #solpos.index[solpos['corrected_timestamp'] == dtStart].tolist()
+                
+                #mask = (solpos.index >= dtStart) & (solpos.index <= dtEnd)
+                
+                
+                solpos = solpos.loc[mask]
+                solpos = solpos.reset_index()
+                
+                
                 df_reportRT = pd.DataFrame()
                 i=0
                 
-                for time in range(startHour, endHour):
+                
+                
+                for time in range(startHour, endHour+1):
                     
+                    #dataframes to insert results
                     df_rtraceFront = pd.DataFrame()
                     df_rtraceBack = pd.DataFrame()
                     df_rtrace = pd.DataFrame()
                     
-                    demo.gendaylit(metdata=metdata, timeindex=time)
+                    # get solar position zenith and azimuth based on site metadata
+                    #solpos = pvlib.irradiance.solarposition.get_solarposition(datetimetz,lat,lon,elev)
+                    
+                    #solpos = solpos.iloc[i]
+                    
+                    sunalt = float(solpos.loc[i, 'elevation'])
+                    sunaz = float(solpos.loc[i, 'azimuth'])-180
+                    
+                    
+                    #sunalt = float(solpos.elevation)
+                    # Radiance expects azimuth South = 0, PVlib gives South = 180. Must substract 180 to match.
+                    #sunaz = float(solpos.azimuth)-180.0
+                    
+                    #get dhi and dni out of dataframe
+                    #position = time - startHour
+                    dni = df_gendaylit.loc[i, 'dni']
+                    dhi = df_gendaylit.loc[i, 'dhi']
+                    
+                    #simulate sky with gendaylit
+                    demo.gendaylit2manual(dni, dhi, sunalt, sunaz)
                     print(time)
-                    octfile = demo.makeOct(demo.getfilelist())  
                     demo.getfilelist()
+                    octfile = demo.makeOct(demo.getfilelist())  
+
                     
                     analysis = AnalysisObj(octfile, demo.basename)                   
                    
                     for j in range(0, simulationDict['nRows']):
         
-                        key_front = "row_" + str(j) + "_qabs_front"
-                        key_back = "row_" + str(j) + "_qabs_back"
+                        key_front = "row_" + str(j) + "_qinc_front"
+                        key_back = "row_" + str(j) + "_qinc_back"
                         
                         rowWanted = j
                         
-                        if octfile is not None:
+                        if octfile != None:
                             
                             frontscan, backscan = analysis.moduleAnalysis(scene, rowWanted=rowWanted, sensorsy=  simulationDict['sensorsy'])
                             results_rtrace = analysis.analysis(octfile, "row_" + str(j), frontscan, backscan, onlyBackscan = onlyBackscan)
@@ -273,15 +382,24 @@ class RayTrace:
                     if octfile is not None:
                         for j in range(0, simulationDict['nRows']):
                     
-                            key_front = "row_" + str(j) + "_qabs_front"
-                            key_back = "row_" + str(j) + "_qabs_back"
+                            key_front = "row_" + str(j) + "_qinc_front"
+                            key_back = "row_" + str(j) + "_qinc_back"
+                            
+                            key_front_abs = "row_" + str(j) + "_qabs_front"
+                            key_back_abs = "row_" + str(j) + "_qabs_back"
+                            
                             
                             if onlyBackscan == False:
                                 df_rtrace[key_front] = np.mean(df_rtrace[key_front])       
-                                df_rtrace[key_back] = np.mean(df_rtrace[key_back])   
+                                df_rtrace[key_back] = np.mean(df_rtrace[key_back])
+                                
+                                df_rtrace[key_front_abs] = df_rtrace[key_front] * (1-simulationDict['frontReflect'])   
+                                df_rtrace[key_back_abs] = df_rtrace[key_back] * (1-simulationDict['BackReflect'])
                             else:
                                 df_rtrace[key_back] = np.mean(df_rtrace[key_back])
-                        
+                                df_rtrace[key_back_abs] = df_rtrace[key_back] * (1-simulationDict['BackReflect'])
+                            
+                            
                         df_reportRT = df_reportRT.append(df_rtrace)
                             
                     df_reportRT = df_reportRT.append(df_rtrace)
@@ -289,14 +407,14 @@ class RayTrace:
                     i = i+1
                 
                 
+                # Set timeindex for report
                 
-                
-                df_reportRT=df_reportRT.set_index(pd.date_range(start = dtStart, end = dtEnd, freq='H', closed='right'))
+                df_reportRT=df_reportRT.set_index(pd.date_range(start = dtStart - datetime.timedelta(hours=1), end = dtEnd, freq='H', closed='right'))
                 df_reportRT.to_csv(resultsPath + "/df_reportRT.csv")  
                 #print(df_rtraceFront)
                 #print(df_rtraceBack)
                 #print(df_rtrace)
-                #print(df_reportRT)
+                print(df_reportRT)
                 
         return df_reportRT
 
@@ -304,18 +422,41 @@ class RayTrace:
 
 class ViewFactors:
     
-            
-    def simulateViewFactors(simulationDict, demo, metdata, moduleDict, dataFrame, resultsPath, onlyFrontscan):
+    """
+    View class that uses the pvfactors library to simulate front and rear irradiance of the PVarray.
+    Uses parameters passed into BiSimu.main's simulationDict.
+ 
+    Methods
+    -------
+    simulateViewFactors: Function to perform view factor simulation. Uses weather data and sun parameters from bifacial_radiance procedure, which are contained in df.
+
+    """        
+    def simulateViewFactors(simulationDict, demo, metdata, dataFrame, resultsPath, onlyFrontscan):
+        """
+        Function to perform hourly view factor simulation. Can simulate single axis tracking and fixed tilt.
+        Can simulate only frontscan or both front and backscan. 
+        
+        Parameters
+        ----------
+        simulationDict: simulation Dictionary, which can be found in BiSimu_main.py
+        demo: Bifacial_Radiance's RadianceObj created in "createDemo" fucntion
+        metdata: Object containing meteorological data and sun parameters
+        dataFrame: DataFrame containing irradiance data and sun parameters
+        resultsPath: output filepath
+        onylFrontscan: option to only calculate front side of the modules
+        """
+        
+        
         
         df = dataFrame
         print('view_factor dataframe at beginning of radiation handler:')
         print(df)
-        
-        
+        moduley = simulationDict['moduley']*simulationDict['nModsy']
+        # Pass simulation parameters over, so that pvfactors doesn't cause errors
         simulationParameter = {
         'n_pvrows': simulationDict['nRows'], #number of PV rows
         'number_of_segments': simulationDict['sensorsy'], #number of segments for each PVrow
-        'pvrow_height': simulationDict['clearance_height_mid'], #height of the PV rows, measured at their center [m]
+        'pvrow_height': simulationDict['hub_height'], #height of the PV rows, measured at their center [m]
         'pvrow_width': simulationDict['moduley'], #width of the PV panel in row, considered 2D plane [m]
         'pvmodule_width': simulationDict['modulex'], #length of the PV panel in row, considered 2D plane [m]
         'surface_azimuth': simulationDict['azimuth'], #azimuth of the PV surface [deg] 90°= East, 135° = South-East, 180°=South
@@ -338,7 +479,7 @@ class ViewFactors:
         
         
         # Settings for calculating ViewFactor
-        get_ipython().run_line_magic('matplotlib', 'inline')
+        get_ipython().run_line_magic('matplotlib', 'qt5')
         np.set_printoptions(precision=3, linewidth=300)
         warnings.filterwarnings('ignore')
         
@@ -378,15 +519,16 @@ class ViewFactors:
         ax1.locator_params(tight=True, nbins=6)
         ax1.set_ylabel('W/m2')
         f.savefig("Direct_Diffuse_irradiance.png", dpi = dpi)
-        plt.show(sns)
+        plt.show()
+        #not used to show Plot in own Window
+        #plt.show(sns)
         
-        
-        
+        # Calculate tracking angles if single axis tracking is enabled
         if simulationDict['singleAxisTracking'] == True:
             #create Single Axis Tracking dictionary with bifacialRadiance
             trackerdict = demo.set1axis(metdata = metdata, axis_azimuth = simulationDict['azimuth'],
                                         limit_angle = simulationDict['limitAngle'], 
-                                        backtrack = False,
+                                        backtrack = simulationDict['backTracking'],
                                         gcr = simulationDict['gcr'], 
                                         cumulativesky = False)
 
@@ -395,58 +537,73 @@ class ViewFactors:
                              orient='index',
                              columns=['dhi','ghi','theta','surf_tilt','surf_azm','ground_clearance'])
 
-            
-
             d['time'] = d.index
-            print('tracking dataframe at radiation handler:')
-            print(d)
+            # print('tracking dataframe at radiation handler:')
+            # print(d)
             d.to_csv(resultsPath + 'd.csv') 
             
+
             #append variable tilt to data Frame
             df = df.reset_index()
-            df['corrected_timestamp'] = pd.to_datetime(df['corrected_timestamp'])
-            df['corrected_timestamp'] = df['corrected_timestamp'] + datetime.timedelta(minutes=30)
+            
             df['time'] = df['corrected_timestamp'].dt.strftime('%m_%d_%H')
             df = df.set_index('time')
+            
             df = df.join(d['surf_tilt'])
+
             df['timestamp'] = df['corrected_timestamp'].dt.strftime('%m-%d %H:%M%')
             df['timestamp'] = pd.to_datetime(df['timestamp'])
-            df['timestamp'] = df['timestamp'].dt.tz_localize(None)
+            #df['timestamp'] = df['timestamp'].dt.tz_localize(None)
             df = df.set_index('timestamp')
-            #df.to_csv('C:/Users/Sebastian Nows/Desktop/df.csv') 
+
             surface_tilt = df['surf_tilt']
             print('view_factor dataframe at radiation handler:')
+            print(df.index)
             print(df)
+        
         else:
+
+            
             df = df.reset_index()
-            df['corrected_timestamp'] = pd.to_datetime(df['corrected_timestamp'])
-            df['corrected_timestamp'] = df['corrected_timestamp'] + datetime.timedelta(minutes=30)
+            
             df['time'] = df['corrected_timestamp'].dt.strftime('%m_%d_%H')
             df = df.set_index('time')
             df['timestamp'] = df['corrected_timestamp'].dt.strftime('%m-%d %H:%M%')
             df['timestamp'] = pd.to_datetime(df['timestamp'])  
-            df['timestamp'] = df['timestamp'].dt.tz_localize(None)
+            #df['timestamp'] = df['timestamp'].dt.tz_localize(None)
             df = df.set_index('timestamp')
             
             surface_tilt = simulationParameter['surface_tilt']
         
-        dtStart = datetime.datetime(simulationDict['startHour'][0], simulationDict['startHour'][1], simulationDict['startHour'][2], simulationDict['startHour'][3])
+        
+        dtStart = datetime.datetime(simulationDict['startHour'][0], simulationDict['startHour'][1], simulationDict['startHour'][2], simulationDict['startHour'][3], tzinfo=dateutil.tz.tzoffset(None, simulationDict['utcOffset']*60*60))
         #beginning_of_year = datetime.datetime(dtStart.year, 1, 1, tzinfo=dtStart.tzinfo)
         #startHour = int((dtStart - beginning_of_year).total_seconds() // 3600)
         
-        dtEnd = datetime.datetime(simulationDict['endHour'][0], simulationDict['endHour'][1], simulationDict['endHour'][2], simulationDict['endHour'][3])
+        
+        dtEnd = datetime.datetime(simulationDict['endHour'][0], simulationDict['endHour'][1], simulationDict['endHour'][2], simulationDict['endHour'][3], tzinfo=dateutil.tz.tzoffset(None, simulationDict['utcOffset']*60*60))
         #beginning_of_year = datetime.datetime(dtEnd.year, 1, 1, tzinfo=dtEnd.tzinfo)
         #endHour = int((dtEnd - beginning_of_year).total_seconds() // 3600)
 
+
+
         
+        ######### Cutting the dataframe to the required input timeframe
         if simulationDict['cumulativeSky'] == False:
             #df = df.iloc[startHour:endHour]
-            mask = (df.index > dtStart) & (df.index <= dtEnd) 
+            mask = (df.index >= dtStart) & (df.index <= dtEnd) 
             df = df.loc[mask]
             
-        # Measured Albedo average value
-        albedo = simulationParameter['albedo']
         
+        
+
+        if simulationDict['hourlyMeasuredAlbedo'] ==True :
+            albedo = df['albedo']
+            
+        else:   
+            # Measured Albedo average value
+            albedo = simulationParameter['albedo']
+
         #set sun parameters
         
         surface_azimuth = simulationParameter['surface_azimuth']
@@ -697,7 +854,7 @@ class ViewFactors:
             df_reportVF = pd.DataFrame(report, index=df.index)
             
             # Print results as .csv in directory
-            df_reportVF = pd.DataFrame(report, index=df.index)
+            
             df_reportVF.to_csv(resultsPath + "radiation_qabs_results.csv")
             """
             # Plot total qinc front and back for every row
@@ -736,9 +893,16 @@ class ViewFactors:
             f.savefig("row0-3_qinc.png", dpi = dpi)
             plt.show(sns)
             """
-        df_reportVF=df_reportVF.set_index(pd.date_range(start = dtStart, end = dtEnd, freq='H', closed='right'))
+            
+        df_reportVF=df_reportVF.set_index(pd.date_range(start = dtStart - datetime.timedelta(hours=1), end = dtEnd, freq='H', closed='right'))
+        
+        print("df_reportVF at end of RadiationHandler: ")
+        print(df_reportVF)
+
+            
         
             
+
         #df_reportVF.to_csv(resultsPath + "/radiation_qabs_results_" + datetime.now().strftime("%Y-%m-%d-%H-%M") + ".csv")
         
         #f.savefig(resultsPath +"/row0-3_qinc" + datetime.now().strftime("%Y-%m-%d-%H-%M") + ".png", dpi = dpi)

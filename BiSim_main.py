@@ -55,15 +55,17 @@ import BiSim_simulationController
 SimulationDict = {
 'simulationName' : 'Test',
 'simulationMode' : 1, 
-'localFile' : True, # Decide wether you want to use a  weather file or try to download one for the coordinates
-'weatherFile' : (rootPath +'/WeatherData/Golden_USA/NREL_field_weatherdata.csv'), #weather file in TMY3 format 
+'localFile' : False, # Decide wether you want to use a  weather file or try to download one for the coordinates
+'weatherFile' : (rootPath +'/WeatherData/Golden_USA/NREL_field_weatherdata_test.csv'), #weather file in TMY3 format 
 'cumulativeSky' : False, # Mode for RayTracing: CumulativeSky or hourly
-'startHour' : (2020, 1, 20, 10),  # Only for hourly simulation, yy, mm, dd, hh
-'endHour' : (2020, 1, 20, 12),  # Only for hourly simulation, yy, mm, dd, hh
+'startHour' : (2001, 1, 20, 11),  # yy, mm, dd, hh
+'endHour' : (2001, 1, 20, 13),  # yy, mm, dd, hh
+'utcOffset': 2,
 'tilt' : 25, #fixed tilt of the PV surface [deg]
 'singleAxisTracking' : True, # singleAxisTracking or not
+'ElectricalMode_simple': True, # simple electrical Simulation after PVSyst, use if rear module parameters are missing
 'limitAngle' : 60, # limit Angle for singleAxisTracking
-'clearance_height' : 0.2, #height of the PV rows, measured at the bottom [m]
+'hub_height' : 0.2, #height of the PV rows, measured at the bottom [m]
 'azimuth' : 180, #azimuth of the PV surface [deg] 90°: East, 135° : South-East, 180°:South
 'nMods' : 5, #number of modules in row
 'nRows' : 3, #number of rows
@@ -71,6 +73,7 @@ SimulationDict = {
 'moduley' : 1.98 ,#length of modules in y-axis
 'modulex' : 0.992, #length of modules in x-axis                       
 'albedo' : 0.259, # Measured Albedo average value
+'hourlyMeasuredAlbedo' : False,
 'frontReflect' : 0.03, #front surface reflectivity of PV rows
 'BackReflect' : 0.05, #back surface reflectivity of PV rows
 'longitude' : -105.172, 
@@ -79,7 +82,8 @@ SimulationDict = {
 'module_type' : 'NREL', #Name of Module
 }
 
-SimulationDict['clearance_height_mid'] = (SimulationDict['clearance_height'] + (math.sin(SimulationDict['tilt'])*SimulationDict['moduley']/2)) #height of the PV rows, measured at their center [m]
+# Calculate the height of the PV rows, measured at the bottom edge for the use in Viewfactors, PV*Sol and PVSyst
+SimulationDict['clearance_height']  = (SimulationDict['hub_height'] - (math.sin(SimulationDict['tilt'])*SimulationDict['moduley']/2)) #height of the PV rows, measured at their center [m]
 
 ModuleDict = {
     'I_sc_f': 9.5, #Short-circuit current measured for front side illumination of the module at STC [A]
