@@ -1493,7 +1493,7 @@ class Window(tk.Tk):
 
         #Loading the image in the program
         def logo():
-            self.logo = Image.open(rootPath+'\logo_BifacialSimu_transparentresized.png')
+            self.logo = Image.open(rootPath+'\Lib\logo_BifacialSimu_transparentresized.png')
             logo=self.logo
             #resizing the image
             self.resized=logo.resize((100, 100), Image.ANTIALIAS)
@@ -1509,7 +1509,7 @@ class Window(tk.Tk):
 
         #Loading the second image in the program
         def logo2():
-            self.logo2 = Image.open(rootPath+'\Excampel.png')
+            self.logo2 = Image.open(rootPath+'\Lib\Example_Config.png')
             logo2=self.logo2
             #resizing the image
             self.resized2=logo2.resize((400, 350), Image.ANTIALIAS)
