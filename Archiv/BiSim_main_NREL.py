@@ -53,42 +53,35 @@ import BiSim_simulationController
 
 # simulation parameters and variables
 SimulationDict = {
-'simulationName' : 'NREL_best_field_row_2',
+'simulationName' : 'Test',
 'simulationMode' : 1, 
 'localFile' : True, # Decide wether you want to use a  weather file or try to download one for the coordinates
-'weatherFile' : (rootPath +'/WeatherData/Golden_USA/SRRLWeatherdata Nov_Dez.csv'), #weather file in TMY format 
+'weatherFile' : (rootPath +'/WeatherData/Golden_USA/NREL_field_weatherdata_from_begin.csv'), #weather file in TMY format 
 'cumulativeSky' : False, # Mode for RayTracing: CumulativeSky or hourly
-'startHour' : (2019, 11, 1, 0),  # Only for hourly simulation, yy, mm, dd, hh
-'endHour' : (2019, 11, 2, 23),  # Only for hourly simulation, yy, mm, dd, hh
-'utcOffset': -7,
+'startHour' : (2020, 1, 20, 10),  # Only for hourly simulation, yy, mm, dd, hh
+'endHour' : (2020, 1, 20, 12),  # Only for hourly simulation, yy, mm, dd, hh
 'tilt' : 10, #tilt of the PV surface [deg]
 'singleAxisTracking' : True, # singleAxisTracking or not
-'backTracking' : False, # Solar backtracking is a tracking control program that aims to minimize PV panel-on-panel shading 
-'ElectricalMode_simple': False, # simple electrical Simulation after PVSyst, use if rear module parameters are missing
 'limitAngle' : 60, # limit Angle for singleAxisTracking
-'hub_height' : 1.3, # Height of the rotation axis of the tracker [m]
+'clearance_height' : 0.2, #height of the PV rows, measured at the bottom [m]
 'azimuth' : 180, #azimuth of the PV surface [deg] 90°: East, 135° : South-East, 180°:South
-'nModsx' : 1, #number of modules in x-axis
-'nModsy' : 1, #number of modules in y-axis
+'nMods' : 20, #number of modules
 'nRows' : 3, #number of rows
 'sensorsy' : 5, #number of sensors
-'moduley' : 2 ,#length of modules in y-axis
-'modulex' : 1, #length of modules in x-axis  
-'hourlyMeasuredAlbedo' : True, # True if measured albedo values in weather file
-'albedo' : 0.26, # Measured Albedo average value, if hourly isn't available
+'moduley' : 1.98 ,#length of modules in y-axis
+'modulex' : 0.992, #length of modules in x-axis                       
+'albedo' : 0.259, # Measured Albedo average value
 'frontReflect' : 0.03, #front surface reflectivity of PV rows
 'BackReflect' : 0.05, #back surface reflectivity of PV rows
 'longitude' : -105.172, 
 'latitude' : 39.739,
 'gcr' : 0.35, #ground coverage ratio (module area / land use)
-'module_type' : 'NREL row 2', #Name of Module
+'module_type' : 'NREL', #Name of Module
 }
-# Calculate the height of the PV rows, measured at the bottom edge for the use in Viewfactors, PV*Sol and PVSyst
-SimulationDict['clearance_height']  = (SimulationDict['hub_height'] - (math.sin(SimulationDict['tilt'])*SimulationDict['moduley']/2)) #height of the PV rows, measured at their center [m]
+
+SimulationDict['clearance_height_mid'] = (SimulationDict['clearance_height'] + (math.sin(SimulationDict['tilt'])*SimulationDict['moduley']/2)) #height of the PV rows, measured at their center [m]
 
 ModuleDict = {
-    'bi_factor': 0.694, #bifacial factor
-    'n_front': 0.19, #module efficiency
     'I_sc_f': 9.5, #Short-circuit current measured for front side illumination of the module at STC [A]
     'I_sc_r': 6.56, #Short-circuit current measured for rear side illumination of the module at STC [A]
     'V_oc_f': 48, #Open-circuit voltage measured for front side illumination of module at STC [V]
