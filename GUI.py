@@ -3,11 +3,10 @@
 Created on Mon Jun  7 11:39:16 2021
 @author:        
     CIRE TH Cologne
-    Felix Schemann
-    Frederik Klag
-    Sebastian Nows
+    Eva-Maria Grommes
+    Jan Schmitt
 name:
-    BiSim - GUI
+    Bifacial Simu - GUI
 overview:
     Import of needed modules and paths.
     Input of variables and settings for the bifacial simulation of PV-Modules 

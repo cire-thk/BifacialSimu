@@ -3,12 +3,13 @@
 Created on Mon Jun  7 11:39:16 2021
 @author:        
     CIRE TH Cologne
+    Eva-Maria Grommes
     Felix Schemann
     Frederik Klag
     Sebastian Nows
 
 name:
-    BiSim - radiationHandler
+    BifacialSimu - radiationHandler
 
 overview:
     Manages the calculation of the radiation over the extern modules
