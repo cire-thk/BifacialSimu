@@ -1312,7 +1312,7 @@ class Window(tk.Tk):
 # =============================================================================
          
         parser = ConfigParser()
-        parser.read("default.ini")
+        parser.read(rootPath + '\Lib\default\default.ini')
         simulationName_configfile=parser.get('default', 'simulationName')
        # simulationMode_configfile=parser.get('default', 'simulationMode')
         weatherFile_configfile=parser.get('default', "weatherFile")
@@ -1352,7 +1352,7 @@ class Window(tk.Tk):
             """
             
            # jsonfile = ('module2.json')
-            with open("Albedo.json") as file:          #Laden des Json FIle aus dem Ordner
+            with open(rootPath + '\Lib\input_albedo\Albedo.json') as file:          #Laden des Json FIle aus dem Ordner
                 jsondata_albedo = json.load(file)
             
             systemtuple = ('',)                     #Ohne können die Module nicht ausgewählt werden
@@ -1409,7 +1409,7 @@ class Window(tk.Tk):
             """
             
            # jsonfile = ('module.json')
-            with open("module.json") as file:          #Laden des Json FIle aus dem Ordner
+            with open(rootPath + '\Lib\input_module\module.json') as file:          #Laden des Json FIle aus dem Ordner
                 jsondata = json.load(file)
             
             systemtuple = ('',)                     
@@ -1492,7 +1492,7 @@ class Window(tk.Tk):
 
         #Loading the image in the program
         def logo():
-            self.logo = Image.open(rootPath+'\Lib\logo_BifacialSimu_transparentresized.png')
+            self.logo = Image.open(rootPath+'\Lib\logos\logo_BifacialSimu_transparentresized.png')
             logo=self.logo
             #resizing the image
             self.resized=logo.resize((100, 100), Image.ANTIALIAS)
@@ -1508,7 +1508,7 @@ class Window(tk.Tk):
 
         #Loading the second image in the program
         def logo2():
-            self.logo2 = Image.open(rootPath+'\Lib\Example_Config.png')
+            self.logo2 = Image.open(rootPath+'\Lib\default\Example_Config.png')
             logo2=self.logo2
             #resizing the image
             self.resized2=logo2.resize((400, 350), Image.ANTIALIAS)
