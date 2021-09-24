@@ -9,7 +9,7 @@ Created on Mon Jun  7 11:39:16 2021
     Sebastian Nows
 
 name:
-    BiSim - dataHandler
+    BifacialSimu - dataHandler
 
 overview:
     Handles the import and export of data 
@@ -50,7 +50,7 @@ import numpy as np
 # Path handling
 rootPath = os.path.dirname(os.path.dirname(os.path.realpath(".")))
 
-import BiSim_radiationHandler
+import BifacialSimu_radiationHandler
 
 class DataHandler:
     def __init__(self):
@@ -82,11 +82,11 @@ class DataHandler:
         
         Parameters
         ----------
-        simulationDict: simulation Dictionary, which can be found in BiSimu_main.py
+        simulationDict: simulation Dictionary, which can be found in BifacialSimuu_main.py
         resultsPath: output filepath
         """
         
-        demo = BiSim_radiationHandler.RayTrace.createDemo(simulationDict, resultsPath)
+        demo = BifacialSimu_radiationHandler.RayTrace.createDemo(simulationDict, resultsPath)
         if simulationDict['localFile'] == False:
             try:
                 longitude = simulationDict['longitude']
@@ -111,7 +111,7 @@ class DataHandler:
         
         Parameters
         ----------
-        simulationDict: simulation Dictionary, which can be found in BiSimu_main.py
+        simulationDict: simulation Dictionary, which can be found in BifacialSimu_main.py
         metdata: Object containing meteorological data and sun parameters        
         resultsPath: output filepath       
         """

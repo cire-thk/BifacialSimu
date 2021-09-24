@@ -4,7 +4,7 @@ Created on Wed Sep 15 17:53:38 2021
 
 @author: Sarah Glaubitz
 
-name: BiSim - spectralAlbedoHandler
+name: BifacialSimu - spectralAlbedoHandler
 
 overview:
     Calculation of spectral Albedo regarding the paper 
@@ -24,8 +24,8 @@ import math
 import dateutil.tz
 import datetime
 
-import BiSim_dataHandler
-import BiSim_radiationHandler
+import BifacialSimu_dataHandler
+import BifacialSimu_radiationHandler
 
 def getReflectanceData(simulationDict):
     '''
@@ -56,8 +56,7 @@ def modelingSpectralIrradiance(simulationDict, currentDate):
     
     Parameters
     ----------
-    simulationDict: simulation Dictionary, which can be found in BiSimu_main_spectralAlbedo.py
-
+    simulationDict: simulation Dictionary, which can be found in GUI.py
     Returns
     -------
     spectra: dict of arrays
@@ -133,7 +132,7 @@ def CalculateAlbedo(simulationDict, dataframe):
         
     Parameters
     ----------
-    simulationDict: simulation Dictionary, which can be found in BiSimu_main_spectralAlbedo.py
+    simulationDict: simulation Dictionary, which can be found in GUI.py
     TODO: Muss den dataframe 'df' aus der Funktion 'startSimulation' aus simualtionController.pv irgendwie übergeben bekommen.
     TODO: Eventuell über den radiationHandler möglich, da der df an die Funktion simulateRaytrace und simulateViewFactors übergeben wird
     

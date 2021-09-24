@@ -8,10 +8,10 @@ Created on Mon Jun  7 11:39:16 2021
     Sebastian Nows
 
 name:
-    BiSim - calculationHandler
+    BifacialSimu - calculationHandler
 
 overview:
-    Contains all own calculations of BiSim which are needed for 
+    Contains all own calculations of BifacialSimu which are needed for 
     the bifacial simulation of PV-Modules
 
 last changes:
@@ -48,10 +48,10 @@ except ImportError:
 
 # Include paths
 
-#sys.path.append(rootPath + "/BiSim/Handler")
+#sys.path.append(rootPath + "/BifacialSimu/Handler")
 
 
-import BiSim_radiationHandler 
+import BifacialSimu_radiationHandler 
 
 
 # electric-calculation Klasse
@@ -93,7 +93,7 @@ class Electrical_simulation:
         Parameters
         ----------
         moduleDict: module Dictionary containing module data
-        simulationDict: simulation Dictionary, which can be found in BiSimu_main.py
+        simulationDict: simulation Dictionary, which can be found in BifacialSimuu_main.py
         df_reportVF: Viewfactor simulation report
         df_reportRT: Raytracing simulation report
         df_report: Final simulation report, containing VF and RT data
@@ -387,7 +387,7 @@ class Electrical_simulation:
         Parameters
         ----------
         moduleDict: module Dictionary containing module data
-        simulationDict: simulation Dictionary, which can be found in BiSimu_main.py
+        simulationDict: simulation Dictionary, which can be found in BifacialSimu_main.py
         df_reportVF: Viewfactor simulation report
         df_reportRT: Raytracing simulation report
         df_report: Final simulation report, containing VF and RT data

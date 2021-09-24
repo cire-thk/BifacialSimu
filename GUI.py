@@ -5,6 +5,7 @@ Created on Mon Jun  7 11:39:16 2021
     CIRE TH Cologne
     Eva-Maria Grommes
     Jan Schmitt
+    Sarah Glaubitz
 name:
     Bifacial Simu - GUI
 overview:
@@ -70,12 +71,12 @@ PhotoImage = tk.PhotoImage
 rootPath = os.path.realpath(".")
 print(rootPath)
 # Include paths
-sys.path.append(rootPath + "/BiSim/Controller")
-sys.path.append(rootPath + "/BiSim/Handler")
+sys.path.append(rootPath + "/BifacialSimu/Controller")
+sys.path.append(rootPath + "/BifacialSimu/Handler")
 
 # Include modules
-import BiSim_simulationController
-import BiSim_dataHandler
+import BifacialSimu_simulationController
+import BifacialSimu_dataHandler
 
 
 
@@ -96,6 +97,7 @@ SimulationDict = {
 'simulationMode' : 1, 
 'localFile' : True, # Decide wether you want to use a  weather file or try to download one for the coordinates
 'weatherFile' : (rootPath +'/WeatherData/Golden_USA/SRRLWeatherdata Nov_Dez.csv'), #weather file in TMY format 
+'spectralReflectancefile' : (rootPath + 'splib07a_Quartz_GDS74_Sand_Ottawa_NIC4cb_AREF.txt'),
 'cumulativeSky' : False, # Mode for RayTracing: CumulativeSky or hourly
 'startHour' : (2019, 11, 1, 0),  # Only for hourly simulation, yy, mm, dd, hh
 'endHour' : (2019, 11, 2, 23),  # Only for hourly simulation, yy, mm, dd, hh
@@ -114,6 +116,7 @@ SimulationDict = {
 'moduley' : 2 ,#length of modules in y-axis
 'modulex' : 1, #length of modules in x-axis  
 'hourlyMeasuredAlbedo' : True, # True if measured albedo values in weather file
+'spectralAlbedo' : True, #Option to calculate a spectral Albedo 
 'albedo' : 0.26, # Measured Albedo average value, if hourly isn't available
 'frontReflect' : 0.03, #front surface reflectivity of PV rows
 'BackReflect' : 0.05, #back surface reflectivity of PV rows
@@ -395,7 +398,7 @@ class Window(tk.Tk):
 #             Defining the Path for the Results    
 # =============================================================================
                 
-            resultsPath = BiSim_dataHandler.DataHandler().setDirectories()
+            resultsPath = BifacialSimu_dataHandler.DataHandler().setDirectories()
             print('created resultsPath at: ' + resultsPath)     
             
             
@@ -403,7 +406,7 @@ class Window(tk.Tk):
 #             Starting the Simulation with the defined Dictionaries
 # =============================================================================
             
-            BiSim_simulationController.startSimulation(SimulationDict, ModuleDict, resultsPath)
+            BifacialSimu_simulationController.startSimulation(SimulationDict, ModuleDict, resultsPath)
 
 
 # =============================================================================

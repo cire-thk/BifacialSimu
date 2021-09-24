@@ -3,13 +3,11 @@
 Created on Mon Jun  7 11:39:16 2021
 @author:        
     CIRE TH Cologne
-    Eva-Maria Grommes
     Felix Schemann
     Frederik Klag
     Sebastian Nows
-    Sarah Glaubitz
 name:
-    BiSim - main - spectralAlbedo
+    BifacialSimu - main
 overview:
     Import of needed modules and paths.
     Input of variables and settings for the bifacial simulation of PV-Modules 
@@ -35,11 +33,11 @@ import math
 rootPath = os.path.realpath(".")
 print(rootPath)
 # Include paths
-sys.path.append(rootPath + "/BiSim/Controller")
-sys.path.append(rootPath + "/BiSim/Handler")
+sys.path.append(rootPath + "/BifacialSimu/Controller")
+sys.path.append(rootPath + "/BifacialSimu/Handler")
 
 # Include modules
-import BiSim_simulationController
+import BifacialSimu_simulationController
 
 
 # Eingabe von Simulationsvariablen und Einstellungen für die Simulationsmethode
@@ -59,7 +57,6 @@ SimulationDict = {
 'simulationMode' : 1, 
 'localFile' : False, # Decide wether you want to use a  weather file or try to download one for the coordinates
 'weatherFile' : (rootPath +'/WeatherData/Golden_USA/NREL_field_weatherdata_test.csv'), #weather file in TMY3 format 
-'spectralReflectancefile' : (rootPath + 'splib07a_Quartz_GDS74_Sand_Ottawa_NIC4cb_AREF.txt'),
 'cumulativeSky' : False, # Mode for RayTracing: CumulativeSky or hourly
 'startHour' : (2001, 1, 20, 11),  # yy, mm, dd, hh
 'endHour' : (2001, 1, 20, 13),  # yy, mm, dd, hh
@@ -77,7 +74,6 @@ SimulationDict = {
 'modulex' : 0.992, #length of modules in x-axis                       
 'albedo' : 0.259, # Measured Albedo average value
 'hourlyMeasuredAlbedo' : False,
-'spectralAlbedo' : True, #Option to calculate a spectral Albedo 
 'frontReflect' : 0.03, #front surface reflectivity of PV rows
 'BackReflect' : 0.05, #back surface reflectivity of PV rows
 'longitude' : -105.172, 
@@ -113,4 +109,4 @@ ModuleDict = {
 
 
 # start simulation
-BiSim_simulationController.startSimulation(SimulationDict, ModuleDict)
+BifacialSimu_simulationController.startSimulation(SimulationDict, ModuleDict)

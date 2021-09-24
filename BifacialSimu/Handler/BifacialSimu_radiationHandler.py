@@ -14,7 +14,7 @@ name:
 overview:
     Manages the calculation of the radiation over the extern modules
     bifacial Radiance and/or PVfactors and delivers the radiation data for the 
-    further simulation of BiSim
+    further simulation of BifacialSimu
 
 
 last changes:
@@ -45,7 +45,7 @@ import sys
 #import os #to import directories
 #from pvlib.location import Location
 #from tqdm import tqdm
-#import BiSim_dataHandler
+#import BifacialSimu_dataHandler
 #import math
 #import pvlib #for electrical output simulation
 
@@ -58,7 +58,7 @@ class RayTrace:
     
     """
     Raytracing class that uses the bifacial_radiance library to simulate front and rear irradiance of the PVarray.
-    Uses parameters passed into BiSimu.main's simulationDict.
+    Uses parameters passed into BifacialSimuu.main's simulationDict.
  
     Methods
     -------
@@ -78,7 +78,7 @@ class RayTrace:
     def simulateRayTrace(simulationDict,demo,metdata, resultsPath, dataFrame, onlyBackscan):
         """
         Function to calculate singleAxisTracking or fixed tilt with the bifacial_radiance library.
-        Uses cumulativeSky or gendayLit functions to calculate the irradiance, depending on input parameters in BiSimu_main.py
+        Uses cumulativeSky or gendayLit functions to calculate the irradiance, depending on input parameters in BifacialSimuu_main.py
         Returns df_reportRT for further use in the calculationHandler.
         
         Note: For cumulativeSky, no report will be created, since a  file containing the relevant data is already created by bifacial_radiance.
@@ -86,7 +86,7 @@ class RayTrace:
         
         Parameters
         ----------
-        simulationDict: simulation Dictionary, which can be found in BiSimu_main.py
+        simulationDict: simulation Dictionary, which can be found in BifacialSimuu_main.py
         demo: Bifacial_Radiance's RadianceObj created in "createDemo" fucntion
         metdata: Object containing meteorological data and sun parameters
         resultsPath: output filepath
@@ -424,7 +424,7 @@ class ViewFactors:
     
     """
     View class that uses the pvfactors library to simulate front and rear irradiance of the PVarray.
-    Uses parameters passed into BiSimu.main's simulationDict.
+    Uses parameters passed into BifacialSimuu.main's simulationDict.
  
     Methods
     -------
@@ -438,7 +438,7 @@ class ViewFactors:
         
         Parameters
         ----------
-        simulationDict: simulation Dictionary, which can be found in BiSimu_main.py
+        simulationDict: simulation Dictionary, which can be found in BifacialSimu_main.py
         demo: Bifacial_Radiance's RadianceObj created in "createDemo" fucntion
         metdata: Object containing meteorological data and sun parameters
         dataFrame: DataFrame containing irradiance data and sun parameters
