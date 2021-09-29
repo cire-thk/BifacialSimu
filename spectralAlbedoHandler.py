@@ -36,10 +36,10 @@ def getReflectanceData(simulationDict):
     None.
 
     '''
-     
+    # array with reflectivity values, only colume 2 of the csv is read
+    R_lamda = numpy.genfromtxt(simulationDict['spectralReflectancefile'], delimiter=';', skip_header = 1, usecols=(1))
     
-    
-    R_lamda=numpy.loadtxt(simulationDict['spectralReflectancefile']) 
+    return R_lamda
     
 def modelingSpectralIrradiance(simulationDict, currentDate):
     '''
@@ -124,7 +124,7 @@ def modelingSpectralIrradiance(simulationDict, currentDate):
     return spectra
     
     
-def CalculateAlbedo(simulationDict, dataframe):
+def CalculateAlbedo(simulationDict, dataFrame):
     '''
     Calculates R value for every hour in the time period between startHour and endHour
     Calculates H value for every hour in the time period between startHour and endHour
@@ -155,7 +155,7 @@ def CalculateAlbedo(simulationDict, dataframe):
     # Intialise arrays
     R_hourly = []     # array to hold R value
     H_hourly = []     # array to hold H value
-    a_hourly = []     # array to hold a value
+    a_hourly = []     # array to hold albedo
     
     '''
     Loop to calculate R for each hour. Start value is the starthour of the calculation period. 
@@ -170,19 +170,22 @@ def CalculateAlbedo(simulationDict, dataframe):
         # TODO: aktuelle Stunde muss wieder in Datumsformat konvertiert werden, damit dieses der 
         # modelingSpectralIrrandiance Funktion übergeben wird
         
-        spectrum = modelingSpectralIrradiance(simulationDict, currentDate)
-                
-        for i in range(112): # 112 loops, because of 112 wavelenghts in spectra, which are used for calculation
-            
-            # in jeder Zeile müssen Wellenlänge, R und G stehen (aktuell R und G noch in zwei verschiedenen Listen)
-            # TODO: R für die aktuelle Wellenlänge ziehen
-            # Problem: R Werte sind für andere Wellenlängen als G Werte
-            
-            G_lamda = spectrum['poa_global'][i] # G for current wavelength lamda [W/m²/nm]
-            R_lamda =  # R for current wavelength lamda [-]
-            lamda = spectrum ['wavelength'][i]  # current wavelength lamda [nm]
+        pressure = df[time, 'pressure'] # Luftdruck aus der Wetterdatei bzw dem df, aber steht der da überhaupt drinnen
+        # TODO: Prüfen, ob Luftdruck in Wetterdatei        
         
-            sum_R_G += (G_lamda * R_lamda * lamda) # sum up the Multiplication of R and G for every wavelength [W/m²]
+        spectrum = modelingSpectralIrradiance(simulationDict, currentDate) # 8D array from the function modelingSpectralIrradiance is created
+        R_lamda_array = getReflectanceData(simulationDict) # 1D array from the function getReflectanceData is created
+        
+        sum_R_G = 0
+        sum_G = 0
+                
+        for i in range(112): # 112 loops, because of 112 wavelenghts in spectra, which are used for calculation (only to 3000 nm)
+                        
+            G_lamda = spectrum['poa_global'][i] # G for current number of wavelength i [W/m²/nm]
+            R_lamda = R_lamda_array[i]         # R for current number of wavelength i [-]
+            lamda = spectrum['wavelength'][i]   # current wavelength i [nm]
+        
+            sum_R_G += (G_lamda * R_lamda * lamda) # sum up the multiplication of R and G for every wavelength [W/m²]
             sum_G += (G_lamda * lamda)  # sum up G for every wavelength [W/m²]
       
         # Calcualte R value

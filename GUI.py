@@ -97,7 +97,7 @@ SimulationDict = {
 'simulationMode' : 1, 
 'localFile' : True, # Decide wether you want to use a  weather file or try to download one for the coordinates
 'weatherFile' : (rootPath +'/WeatherData/Golden_USA/SRRLWeatherdata Nov_Dez.csv'), #weather file in TMY format 
-'spectralReflectancefile' : (rootPath + 'splib07a_Quartz_GDS74_Sand_Ottawa_NIC4cb_AREF.txt'),
+'spectralReflectancefile' : (rootPath + '/ReflectivityData/interpolated_reflectivity.csv'),
 'cumulativeSky' : False, # Mode for RayTracing: CumulativeSky or hourly
 'startHour' : (2019, 11, 1, 0),  # Only for hourly simulation, yy, mm, dd, hh
 'endHour' : (2019, 11, 2, 23),  # Only for hourly simulation, yy, mm, dd, hh
