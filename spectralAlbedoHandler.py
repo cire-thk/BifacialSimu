@@ -27,7 +27,7 @@ import datetime
 import BifacialSimu_dataHandler
 import BifacialSimu_radiationHandler
 
-def getReflectanceData(simulationDict):
+def getReflectanceData(self, simulationDict):
     '''
     Read the spectral reflectance data of the material (sand); R(lamda)
 
@@ -41,7 +41,7 @@ def getReflectanceData(simulationDict):
     
     return R_lamda
     
-def modelingSpectralIrradiance(simulationDict, currentDate):
+def modelingSpectralIrradiance(self, simulationDict, currentDate):
     '''
     Model the spectral distribution of irradiance based on atmospheric conditions. 
     The spectral distribution of irradiance is the power content at each wavelength 
@@ -57,6 +57,7 @@ def modelingSpectralIrradiance(simulationDict, currentDate):
     Parameters
     ----------
     simulationDict: simulation Dictionary, which can be found in GUI.py
+    currentDate: date and time in datetime format for solarposition calculation
     Returns
     -------
     spectra: dict of arrays
@@ -72,7 +73,8 @@ def modelingSpectralIrradiance(simulationDict, currentDate):
     ozone = 0.314                       # [atm-cm] Atmospheric ozone content; data from WOUDC for Aug 2021 for Hohenpeissenberg
     albedo = simulationDict('albedo')   # [-] fix albedo value
     
-    times = pd.date_range(currentDate, freq='h', periods=1, tz='Etc/GMT+' + simulationDict('utcOffset')) # posibility to calculate several spectras for diffrent times, when period >1 
+    cd = currentDate
+    times = pd.date_range(start=cd, freq='h', periods=1, tz='Etc/GMT+' + str(simulationDict('utcOffset')) # posibility to calculate several spectras for diffrent times, when period >1 
     solpos = solarposition.get_solarposition(times, lat, lon, pressure = pressure) #pressure selber hinzugefügt
     aoi = irradiance.aoi(tilt, azimuth, solpos.apparent_zenith, solpos.azimuth)
 
@@ -133,7 +135,7 @@ def CalculateAlbedo(simulationDict, dataFrame):
     Parameters
     ----------
     simulationDict: simulation Dictionary, which can be found in GUI.py
-    TODO: Muss den dataframe 'df' aus der Funktion 'startSimulation' aus simualtionController.pv irgendwie übergeben bekommen.
+    TODO: Ich muss den dataframe 'df' aus der Funktion 'startSimulation' aus simualtionController.py irgendwie übergeben bekommen.
     TODO: Eventuell über den radiationHandler möglich, da der df an die Funktion simulateRaytrace und simulateViewFactors übergeben wird
     
     Returns
@@ -166,15 +168,14 @@ def CalculateAlbedo(simulationDict, dataFrame):
     for time in range(startHour, endHour+1):
         
               
-        currentDate = time # ? ... hier noch weiter programmieren # yyyy-mm-dd hh:mm
-        # TODO: aktuelle Stunde muss wieder in Datumsformat konvertiert werden, damit dieses der 
-        # modelingSpectralIrrandiance Funktion übergeben wird
+        currentDate = datetime.datetime(simulationDict['startHour'][0], simulationDict['startHour'][1], simulationDict['startHour'][2], simulationDict['startHour'][3]) + pd.to_timedelta(time, unit='H') # ? ... hier noch weiter programmieren # yyyy-mm-dd hh:mm
+                
+        # pressure = metdata.pressure # Luftdruck aus der metdata Objekt,falls dieser da überhaupt drinnen steht ?
+        # TODO: Luftdruck dem metdata Objekt hinzufügen in main.py
+        # pressure muss der Funktion modelingSpectralIrradiance dann als Argument übergeben werden        
         
-        pressure = df[time, 'pressure'] # Luftdruck aus der Wetterdatei bzw dem df, aber steht der da überhaupt drinnen
-        # TODO: Prüfen, ob Luftdruck in Wetterdatei        
-        
-        spectrum = modelingSpectralIrradiance(simulationDict, currentDate) # 8D array from the function modelingSpectralIrradiance is created
-        R_lamda_array = getReflectanceData(simulationDict) # 1D array from the function getReflectanceData is created
+        spectrum = self.modelingSpectralIrradiance(simulationDict, currentDate) # 8D array from the function modelingSpectralIrradiance is created
+        R_lamda_array = self.getReflectanceData(simulationDict) # 1D array from the function getReflectanceData is created
         
         sum_R_G = 0
         sum_G = 0
@@ -197,18 +198,18 @@ def CalculateAlbedo(simulationDict, dataFrame):
                
         DNI = df[i, 'dni']          # direct normal irradiation out of weatherfile [W/m²]
         DHI = df[i, 'dhi']          # diffuse horizontal irradation out of weatherfile [W/m²]
-        theta = df[i, 'zenith']     # sun zenith angle [deg]
+        theta = math.radians(df[i, 'zenith'])     # sun zenith angle [rad]
     
-        H = (DNI/DHI) * cos(theta)
+        H = (DNI/DHI) * math.cos(theta)
     
         H_hourly.append(H)
         
         # Calculate Albedo
         # TODO: Viewfactor übergeben
-        vf_s_a1 # Viewfactor from surface S (Albedo measurement) to surface A1 (unshaded ground)
-        vf_s_a2 # Viewfactor from surface S (Albedo measurement) to surface A2 (shaded ground)
+        VF_s_a1 # Viewfactor from surface S (Albedo measurement) to surface A1 (unshaded ground)
+        VF_s_a2 # Viewfactor from surface S (Albedo measurement) to surface A2 (shaded ground)
         
-        a = R * (vf_s_a1 + (1/(H+1)) * vf_s_a2) # Albedo [-]
+        a = R * (VF_s_a1 + (1/(H+1)) * VF_s_a2) # Albedo [-]
         
         a_hourly.append(a)
         
