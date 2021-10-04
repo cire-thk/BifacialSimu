@@ -213,7 +213,7 @@ def calculateAlbedo(simulationDict, dataFrame):
         # Calcualte R value
         
         # Check, if sum_G is 0 or Nan, so that sum_R_G is not divided by 0 or NaN
-         if sum_G == 0 or pd.isna(sum_G): # NaN values only for night time (see comment above)
+        if sum_G == 0 or pd.isna(sum_G): # NaN values only for night time (see comment above)
             R = 0       
         else:
             R = sum_R_G / sum_G

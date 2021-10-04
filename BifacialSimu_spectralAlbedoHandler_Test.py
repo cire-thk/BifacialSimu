@@ -35,12 +35,12 @@ SimulationDict = {
 'simulationName' : 'NREL_best_field_row_2',
 'simulationMode' : 1, 
 'localFile' : True, # Decide wether you want to use a  weather file or try to download one for the coordinates
-'weatherFile' : (rootPath +'/WeatherData/Golden_USA/SRRLWeatherdata Nov_Dez.csv'), #weather file in TMY format 
+'weatherFile' : (rootPath +'/WeatherData/Cologne_Germany/Cologne_Bibdach_50.935_6.992_TMY_2007_2016'), # weather file in TMY format 
 'spectralReflectancefile' : (rootPath + '/ReflectivityData/interpolated_reflectivity.csv'),
 'cumulativeSky' : False, # Mode for RayTracing: CumulativeSky or hourly
-'startHour' : (2019, 11, 1, 12),  # Only for hourly simulation, yy, mm, dd, hh
-'endHour' : (2019, 11, 1, 13),  # Only for hourly simulation, yy, mm, dd, hh
-'utcOffset': +2,
+'startHour' : (2009, 1, 1, 0),  # Only for hourly simulation, yy, mm, dd, hh
+'endHour' : (2009, 1, 6, 23),  # Only for hourly simulation, yy, mm, dd, hh
+'utcOffset': 0,
 'tilt' : 10, #tilt of the PV surface [deg]
 'singleAxisTracking' : True, # singleAxisTracking or not
 'backTracking' : False, # Solar backtracking is a tracking control program that aims to minimize PV panel-on-panel shading 
@@ -55,8 +55,8 @@ SimulationDict = {
 'moduley' : 2 ,#length of modules in y-axis
 'modulex' : 1, #length of modules in x-axis  
 'hourlyMeasuredAlbedo' : True, # True if measured albedo values in weather file
-'spectralAlbedo' : True, #Option to calculate a spectral Albedo 
-'albedo' : 0.26, # Measured Albedo average value, if hourly isn't available
+'spectralAlbedo' : True, # Option to calculate a spectral Albedo 
+'albedo' : 0.282, # Measured Albedo average value, if hourly isn't available
 'frontReflect' : 0.03, #front surface reflectivity of PV rows
 'BackReflect' : 0.05, #back surface reflectivity of PV rows
 'longitude' : 6.992, 
@@ -77,6 +77,7 @@ def getReflectanceData(simulationDict):
     -------
     R_lamda: array of reflectvity values
     '''
+    
     # array with reflectivity values, only colume 2 of the csv is read
     R_lamda = numpy.genfromtxt(simulationDict['spectralReflectancefile'], delimiter=';', skip_header = 1, usecols=(1))
    
@@ -99,10 +100,10 @@ def modelingSpectralIrradiance(simulationDict, currentDate):
     ----------
     simulationDict: simulation Dictionary, which can be found in GUI.py
     currentDate: date and time in datetime format for solarposition calculation
+    
     Returns
     -------
-    spectra: dict of arrays
-
+    spectra: dict of arrays with wavelength; dni_extra; dhi; dni; poa_sky_diffuse; poa_ground_diffuse; poa_direct; poa_global
     '''
     #simulationDict = simulationDict
     
@@ -117,29 +118,26 @@ def modelingSpectralIrradiance(simulationDict, currentDate):
     albedo = simulationDict['albedo']   # [-] fix albedo value
     
     cd = currentDate
-    #print(cd)
-    
+    print(cd)
+    # Attention: Works only with positiv utcOffset values of simulationDict; Workaround: use only positiv utcOffset
     times = pd.date_range(start=cd, freq='h', periods=1, tz='Etc/GMT+' + str(simulationDict['utcOffset'])) # posibility to calculate several spectras for diffrent times, when period >1
-    #print(times)
-    
+    print(times)
+    # Attention: solpos.apparent_zenith is greater than 90 deg for night time
     solpos = solarposition.get_solarposition(times, lat, lon)
     print(solpos.apparent_zenith)
-    '''print(solpos.zenith)
-    print(solpos.apparent_elevation)
-    print(solpos.elevation)'''
-    aoi = irradiance.aoi(tilt, azimuth, solpos.apparent_zenith, solpos.azimuth) # always equal to solpos_apparent_zenith, because tilt = 0° # oder solpos.zenith?
-    #print(aoi)
-
+    print(solpos.elevation)
+    aoi = irradiance.aoi(tilt, azimuth, solpos.apparent_zenith, solpos.azimuth) # always equal to solpos_apparent_zenith, because tilt = 0° 
+    
     # The technical report uses the 'kasten1966' airmass model, but later versions of SPECTRL2 use 'kastenyoung1989'.
+    # Attention: returns NaN values, if solpos.apparent_zenith is greater than 90 deg
     relative_airmass = atmosphere.get_relative_airmass(solpos.apparent_zenith, model='kastenyoung1989')
     print(relative_airmass)
     '''
     modeling spectral irradiance using `pvlib.spectrum.spectrl2`
-    Returns: A dict of arrays with wavelength; dni_extra; dhi; dni; poa_sky_diffuse; poa_ground_diffuse; poa_direct; poa_global
     The poa_global array represents the total spectral irradiance on the ground surface
-    Note: because calculating the spectra for more than one set of conditions, 2-D arrays is given back (one dimension for wavelength, one for time).
+    Note: With the exception of wavelength, which has length 122, each array has shape (122, N)
+          where N is the length of the input apparent_zenith
     '''
-    
     spectra = spectrum.spectrl2(
         apparent_zenith=solpos.apparent_zenith,
         aoi=aoi,
@@ -151,24 +149,23 @@ def modelingSpectralIrradiance(simulationDict, currentDate):
         ozone=ozone,
         aerosol_turbidity_500nm=tau500,
     )
-    #print(spectra['poa_global'])
-    '''
+   
     # plot: modeled poa_global against wavelength (like Figure 5-1A from the SPECTRL2 NREL Technical Report)
-    plt.figure()
-    plt.plot(spectra['wavelength'], spectra['poa_global'])
-    plt.xlim(200, 2700)
-    plt.ylim(0, 1.8)
-    plt.title(r"Day 80 1984, $\tau=0.1$, Wv=0.5 cm")
-    plt.ylabel(r"Irradiance ($W m^{-2} nm^{-1}$)")
-    plt.xlabel(r"Wavelength ($nm$)")
-    time_labels = times.strftime("%H:%M %p")
-    labels = [
-        "AM {:0.02f}, Z{:0.02f}, {}".format(*vals)
-        for vals in zip(relative_airmass, solpos.apparent_zenith, time_labels)
-        ]
-    plt.legend(labels)
-    plt.show()
-    '''
+    #plt.figure()
+    #plt.plot(spectra['wavelength'], spectra['poa_global'])
+    #plt.xlim(200, 2700)
+    #plt.ylim(0, 1.8)
+    #plt.title(r"Day 80 1984, $\tau=0.1$, Wv=0.5 cm")
+    #plt.ylabel(r"Irradiance ($W m^{-2} nm^{-1}$)")
+    #plt.xlabel(r"Wavelength ($nm$)")
+    #time_labels = times.strftime("%H:%M %p")
+    #labels = [
+    #    "AM {:0.02f}, Z{:0.02f}, {}".format(*vals)
+    #    for vals in zip(relative_airmass, solpos.apparent_zenith, time_labels)
+    #    ]
+    #plt.legend(labels)
+    #plt.show()
+    
     '''
     Note that the airmass and zenith values do not exactly match the values in
     the technical report; this is because airmass is estimated from solar
@@ -176,7 +173,6 @@ def modelingSpectralIrradiance(simulationDict, currentDate):
     exactly match the one used here.  However, the differences are minor enough
     to not materially change the spectra.
     '''
-    #print(spectra)
     return spectra
     
     
@@ -189,17 +185,17 @@ def calculateAlbedo(simulationDict, dataFrame):
     Parameters
     ----------
     simulationDict: simulation Dictionary, which can be found in GUI.py
+    dataFrame: pandas dataframe, which contains the weather data
+    
     TODO: Ich muss den dataframe 'df' aus der Funktion 'startSimulation' aus simualtionController.py irgendwie übergeben bekommen.
     TODO: Eventuell über den radiationHandler möglich, da der df an die Funktion simulateRaytrace und simulateViewFactors übergeben wird
     
     Returns
     -------
-    None.
-
+    a_hourly: array with Albedo value for every hour in the time period between startHour and endHour
     '''
     df = dataFrame
-    #simulationDict = simulationDict
-    
+        
     # Translate startHour und endHour in timeindexes
     dtStart = datetime.datetime(simulationDict['startHour'][0], simulationDict['startHour'][1], simulationDict['startHour'][2], simulationDict['startHour'][3], tzinfo=dateutil.tz.tzoffset(None, simulationDict['utcOffset']*60*60))
     #beginning_of_year = datetime.datetime(dtStart.year, 1, 1, tzinfo=dtStart.tzinfo)
@@ -209,19 +205,17 @@ def calculateAlbedo(simulationDict, dataFrame):
     #beginning_of_year = datetime.datetime(dtEnd.year, 1, 1, tzinfo=dtEnd.tzinfo)
     #endHour = int((dtEnd - beginning_of_year).total_seconds() // 3600) # gives the hour in the year
     
-    timedelta = int((dtEnd - dtStart).total_seconds() //3600) + 1 # +1, so that endHour also runs through the loop
-    #print(timedelta)
+    timedelta = int((dtEnd - dtStart).total_seconds() //3600) + 1       # +1, so that endHour also runs through the loop
+    
     # Intialise arrays
     R_hourly = []     # array to hold R value
     H_hourly = []     # array to hold H value
     a_hourly = []     # array to hold albedo
-    R_G_hourly = []
-    G_hourly = []
-    
+       
     '''
-    Loop to calculate R for each hour. Start value is the starthour of the calculation period. 
-    End value is the endhour of the calculation period. The start- and endhour for the desired 
-    calculation period must match the weather file. The increment is one hour.
+    Loop to calculate R, H and Albdeo for each hour. 
+    Start value is 0, end value is the number of hours between starthour and endhour of the calculation period. 
+    The starthour has to be the same as in the dataFrame. The increment is one hour.
     '''
     
     for j in range(timedelta):
@@ -234,48 +228,53 @@ def calculateAlbedo(simulationDict, dataFrame):
         # pressure muss der Funktion modelingSpectralIrradiance dann als Argument übergeben werden        
         
         spectrum = modelingSpectralIrradiance(simulationDict, currentDate) # 8D array from the function modelingSpectralIrradiance is created
-        
         R_lamda_array = getReflectanceData(simulationDict) # 1D array from the function getReflectanceData is created
         
         sum_R_G = 0
         sum_G = 0
                 
-        for i in range(1): # 112 loops (0<=i<=111), because of 112 wavelenghts in spectra, which are used for calculation (only to 3000 nm, because R values reaches only to 3000 nm)
-                        
-            G_lamda = spectrum['poa_global'][i] # G for current number of wavelength i [W/m²/nm] # nan value when night time
+        for i in range(112): # 112 loops (0<=i<=111), because of 112 wavelenghts in spectra, which are used for calculation (only to 3000 nm, because R values reaches only to 3000 nm)
+            
+            '''
+            Attention: 
+            - G_lamda is an array (no problem, but not nice)
+            - G_lamda (= 'poa_global' colume of the array 'spectrum') gives NaN values for nigth time instead of 0,
+              because the input parameter 'relative_airmass' of 'spectra' in the funtion 'modelingSpectralIrradiance' 
+              is a NaN value for night time, because apperent_zenith is greater than 90 deg
+            '''
+            G_lamda = spectrum['poa_global'][i] # G for current number of wavelength i [W/m²/nm]  
             R_lamda = R_lamda_array[i]          # R for current number of wavelength i [-]
             lamda = spectrum['wavelength'][i]   # current wavelength i [nm]
-                    
+                              
             sum_R_G += (G_lamda * R_lamda * lamda) # sum up the multiplication of R, G and lamda for every wavelength [W/m²]
-            sum_G += (G_lamda * lamda)  # sum up multiplication of G and lamda for every wavelength [W/m²]
-            
+            sum_G += (G_lamda * lamda)             # sum up multiplication of G and lamda for every wavelength [W/m²]
+        
         
         # Calcualte R value
         
-        # If condiction, so that sum_R_G is not divided by 0 or nan
-        if sum_G == 0 or pd.isna(sum_G):
+        # Check, if sum_G is 0 or Nan, so that sum_R_G is not divided by 0 or NaN
+        if sum_G == 0 or pd.isna(sum_G): # NaN values only for night time (see comment above)
             R = 0       
         else:
             R = sum_R_G / sum_G
     
-        R_G_hourly.append(sum_R_G)
-        G_hourly.append(sum_G)
-        
         R_hourly.append(R)
+        
         
         # Calculates H value
                
-        DNI = df.iloc[j]['dni']                     # direct normal irradiation out of dataframe (which comes frome weatherfile) [W/m²]
-        DHI = df.iloc[j]['dhi']                     # diffuse horizontal irradation out of dataframe (which comes frome weatherfile) [W/m²]
+        DNI = df.iloc[j]['dni']                     # direct normal irradiation out of dataframe (which comes from weatherfile) [W/m²]
+        DHI = df.iloc[j]['dhi']                     # diffuse horizontal irradation out of dataframe (which comes from weatherfile) [W/m²]
         theta = math.radians(df.iloc[j]['zenith'])  # sun zenith angle out of dataframe[rad]
         
-        # If condiction, so that DNI is not divided by 0
+        # Check, if DHI is 0, so that DNI is not divided by 0
         if DHI == 0:
             H = 0
         else:
             H = (DNI/DHI) * math.cos(theta)
     
         H_hourly.append(H)
+        
         '''
         # Calculate Albedo
         # TODO: Viewfactor übergeben
@@ -286,12 +285,11 @@ def calculateAlbedo(simulationDict, dataFrame):
         
         a_hourly.append(a)
         '''
-    #print(R_hourly)
-    #print(H_hourly)
-    #print(R_G_hourly)
-    #print(G_hourly)
+    print(R_hourly)
+    print(H_hourly)
+  
     
-df = pd.read_csv('Dataframe_df.csv')
+df = pd.read_csv('Dataframe_df_Cologne.csv')
 #print (df['ghi'])
 #print (df['dhi'])
 #print (df['dni'])
