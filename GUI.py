@@ -96,11 +96,11 @@ SimulationDict = {
 'simulationName' : 'NREL_best_field_row_2',
 'simulationMode' : 1, 
 'localFile' : True, # Decide wether you want to use a  weather file or try to download one for the coordinates
-'weatherFile' : (rootPath +'/WeatherData/Golden_USA/SRRLWeatherdata Nov_Dez.csv'), # TODO: Wetterdaten aus Köln verlinken # weather file in TMY format 
+'weatherFile' : (rootPath +'/WeatherData/Cologne_Germany/Cologne_Bibdach_50.935_6.992_TMY_2007_2016'), # weather file in TMY format 
 'spectralReflectancefile' : (rootPath + '/ReflectivityData/interpolated_reflectivity.csv'),
 'cumulativeSky' : False, # Mode for RayTracing: CumulativeSky or hourly
-'startHour' : (2019, 11, 1, 0),  # Only for hourly simulation, yy, mm, dd, hh
-'endHour' : (2019, 11, 2, 23),  # Only for hourly simulation, yy, mm, dd, hh
+'startHour' : (2009, 1, 1, 0),  # Only for hourly simulation, yy, mm, dd, hh
+'endHour' : (2009, 1, 6, 23),  # Only for hourly simulation, yy, mm, dd, hh
 'utcOffset': +2,
 'tilt' : 10, #tilt of the PV surface [deg]
 'singleAxisTracking' : True, # singleAxisTracking or not
@@ -116,8 +116,8 @@ SimulationDict = {
 'moduley' : 2 ,#length of modules in y-axis
 'modulex' : 1, #length of modules in x-axis  
 'hourlyMeasuredAlbedo' : True, # True if measured albedo values in weather file
-'spectralAlbedo' : True, #Option to calculate a spectral Albedo 
-'albedo' : 0.26, # TODO: Albedo Wert für Quartzsand # Measured Albedo average value, if hourly isn't available
+'spectralAlbedo' : True, # Option to calculate a spectral Albedo 
+'albedo' : 0.282, # Measured Albedo average value, if hourly isn't available
 'frontReflect' : 0.03, #front surface reflectivity of PV rows
 'BackReflect' : 0.05, #back surface reflectivity of PV rows
 'longitude' : 6.992, 
