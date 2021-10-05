@@ -39,7 +39,7 @@ SimulationDict = {
 'spectralReflectancefile' : (rootPath + '/ReflectivityData/interpolated_reflectivity.csv'),
 'cumulativeSky' : False, # Mode for RayTracing: CumulativeSky or hourly
 'startHour' : (2009, 1, 1, 0),  # Only for hourly simulation, yy, mm, dd, hh
-'endHour' : (2009, 1, 6, 23),  # Only for hourly simulation, yy, mm, dd, hh
+'endHour' : (2009, 1, 2, 23),  # Only for hourly simulation, yy, mm, dd, hh
 'utcOffset': 0,
 'tilt' : 10, #tilt of the PV surface [deg]
 'singleAxisTracking' : True, # singleAxisTracking or not
@@ -83,7 +83,7 @@ def getReflectanceData(simulationDict):
    
     return R_lamda
     
-def modelingSpectralIrradiance(simulationDict, currentDate):
+def modelingSpectralIrradiance(simulationDict, currentDate, dataFrame, j):
     '''
     Model the spectral distribution of irradiance based on atmospheric conditions. 
     The spectral distribution of irradiance is the power content at each wavelength 
@@ -100,15 +100,18 @@ def modelingSpectralIrradiance(simulationDict, currentDate):
     ----------
     simulationDict: simulation Dictionary, which can be found in GUI.py
     currentDate: date and time in datetime format for solarposition calculation
+    dataFrame: pandas dataframe, which contains the weather data
+    j: current loop number, which represent the hour after starthour
     
     Returns
     -------
     spectra: dict of arrays with wavelength; dni_extra; dhi; dni; poa_sky_diffuse; poa_ground_diffuse; poa_direct; poa_global
     '''
-    #simulationDict = simulationDict
-    
-    lat = simulationDict['latitude']    # [deg] latitude of ground surface to calculate spectral albedo
-    lon = simulationDict['longitude']   # [deg] longitude of ground surface to calculate spectral albedo
+       
+    df = dataFrame
+     
+    #lat = simulationDict['latitude']   # [deg] latitude of ground surface to calculate spectral albedo
+    #lon = simulationDict['longitude']  # [deg] longitude of ground surface to calculate spectral albedo
     tilt = 0                            # [deg] always 0, because the ground is never tilted
     azimuth = simulationDict['azimuth'] # [deg] same azimuth for ground surface as for PV panel
     pressure = 100498                   # [Pa] air pressure; average of yearly values from 1958 to 2020 for airport Cologne/Bonn, taken from DWD
@@ -117,21 +120,30 @@ def modelingSpectralIrradiance(simulationDict, currentDate):
     ozone = 0.314                       # [atm-cm] Atmospheric ozone content; data from WOUDC for Aug 2021 for Hohenpeissenberg
     albedo = simulationDict['albedo']   # [-] fix albedo value
     
-    cd = currentDate
+    # Attention: apparent_zenith is greater than 90 deg for night time
+    apparent_zenith = df.iloc[j]['apparent_zenith']  # [deg] zenith angle of solar radiation
+    print('zenit', apparent_zenith)
+    sun_azimuth = df.iloc[j]['azimuth'] # [deg] azimith angle of solar radiation
+    print('azimuth', sun_azimuth)
+    cd = currentDate                    # current date and time to calculate spectrum for
     print(cd)
+    doy = int(cd.strftime('%j'))        # getting day of year out of the current date
+
+    
     # Attention: Works only with positiv utcOffset values of simulationDict; Workaround: use only positiv utcOffset
-    times = pd.date_range(start=cd, freq='h', periods=1, tz='Etc/GMT+' + str(simulationDict['utcOffset'])) # posibility to calculate several spectras for diffrent times, when period >1
-    print(times)
+    #times = pd.date_range(start=cd, freq='h', periods=1, tz='Etc/GMT+' + str(simulationDict['utcOffset'])) # posibility to calculate several spectras for diffrent times, when period >1
+    #print(times)
     # Attention: solpos.apparent_zenith is greater than 90 deg for night time
-    solpos = solarposition.get_solarposition(times, lat, lon)
-    print(solpos.apparent_zenith)
-    print(solpos.elevation)
-    aoi = irradiance.aoi(tilt, azimuth, solpos.apparent_zenith, solpos.azimuth) # always equal to solpos_apparent_zenith, because tilt = 0° 
+    #solpos = solarposition.get_solarposition(times, lat, lon)
+    #print(solpos.apparent_zenith)
+    #print(solpos.elevation)
+    
+    aoi = irradiance.aoi(tilt, azimuth, apparent_zenith, sun_azimuth) # always equal to solpos_apparent_zenith, because tilt = 0° 
     
     # The technical report uses the 'kasten1966' airmass model, but later versions of SPECTRL2 use 'kastenyoung1989'.
-    # Attention: returns NaN values, if solpos.apparent_zenith is greater than 90 deg
-    relative_airmass = atmosphere.get_relative_airmass(solpos.apparent_zenith, model='kastenyoung1989')
-    print(relative_airmass)
+    # Attention: returns NaN values, if apparent_zenith is greater than 90 deg
+    relative_airmass = atmosphere.get_relative_airmass(apparent_zenith, model='kastenyoung1989')
+    print('airmass', relative_airmass)
     '''
     modeling spectral irradiance using `pvlib.spectrum.spectrl2`
     The poa_global array represents the total spectral irradiance on the ground surface
@@ -139,7 +151,7 @@ def modelingSpectralIrradiance(simulationDict, currentDate):
           where N is the length of the input apparent_zenith
     '''
     spectra = spectrum.spectrl2(
-        apparent_zenith=solpos.apparent_zenith,
+        apparent_zenith=apparent_zenith,
         aoi=aoi,
         surface_tilt=tilt,
         ground_albedo=albedo,
@@ -148,6 +160,7 @@ def modelingSpectralIrradiance(simulationDict, currentDate):
         precipitable_water=water_vapor_content,
         ozone=ozone,
         aerosol_turbidity_500nm=tau500,
+        dayofyear=doy,                        # is needed, if apparent_zenith isn't a pandas series
     )
    
     # plot: modeled poa_global against wavelength (like Figure 5-1A from the SPECTRL2 NREL Technical Report)
@@ -213,7 +226,7 @@ def calculateAlbedo(simulationDict, dataFrame):
     a_hourly = []     # array to hold albedo
        
     '''
-    Loop to calculate R, H and Albdeo for each hour. 
+    Loop to calculate R, H and Albdeo for every hour. 
     Start value is 0, end value is the number of hours between starthour and endhour of the calculation period. 
     The starthour has to be the same as in the dataFrame. The increment is one hour.
     '''
@@ -221,13 +234,13 @@ def calculateAlbedo(simulationDict, dataFrame):
     for j in range(timedelta):
         
               
-        currentDate = datetime.datetime(simulationDict['startHour'][0], simulationDict['startHour'][1], simulationDict['startHour'][2], simulationDict['startHour'][3]) + pd.to_timedelta(j, unit='H') # ? ... hier noch weiter programmieren # yyyy-mm-dd hh:mm
+        currentDate = datetime.datetime(simulationDict['startHour'][0], simulationDict['startHour'][1], simulationDict['startHour'][2], simulationDict['startHour'][3]) + pd.to_timedelta(j, unit='H') 
                 
         # pressure = metdata.pressure # Luftdruck aus der metdata Objekt,falls dieser da überhaupt drinnen steht ?
         # TODO: Luftdruck dem metdata Objekt hinzufügen in main.py
         # pressure muss der Funktion modelingSpectralIrradiance dann als Argument übergeben werden        
         
-        spectrum = modelingSpectralIrradiance(simulationDict, currentDate) # 8D array from the function modelingSpectralIrradiance is created
+        spectrum = modelingSpectralIrradiance(simulationDict, currentDate, dataFrame, j) # 8D array from the function modelingSpectralIrradiance is created
         R_lamda_array = getReflectanceData(simulationDict) # 1D array from the function getReflectanceData is created
         
         sum_R_G = 0
@@ -239,15 +252,16 @@ def calculateAlbedo(simulationDict, dataFrame):
             Attention: 
             - G_lamda is an array (no problem, but not nice)
             - G_lamda (= 'poa_global' colume of the array 'spectrum') gives NaN values for nigth time instead of 0,
-              because the input parameter 'relative_airmass' of 'spectra' in the funtion 'modelingSpectralIrradiance' 
+              because the input parameter 'relative_airmass' of 'spectra' in the function 'modelingSpectralIrradiance' 
               is a NaN value for night time, because apperent_zenith is greater than 90 deg
             '''
             G_lamda = spectrum['poa_global'][i] # G for current number of wavelength i [W/m²/nm]  
+            G_lamda2 = G_lamda[0]               # gets G out of the array (with contains only one value)
             R_lamda = R_lamda_array[i]          # R for current number of wavelength i [-]
             lamda = spectrum['wavelength'][i]   # current wavelength i [nm]
                               
-            sum_R_G += (G_lamda * R_lamda * lamda) # sum up the multiplication of R, G and lamda for every wavelength [W/m²]
-            sum_G += (G_lamda * lamda)             # sum up multiplication of G and lamda for every wavelength [W/m²]
+            sum_R_G += (G_lamda2 * R_lamda * lamda) # sum up the multiplication of R, G and lamda for every wavelength [W/m²]
+            sum_G += (G_lamda2 * lamda)             # sum up multiplication of G and lamda for every wavelength [W/m²]
         
         
         # Calcualte R value
@@ -257,22 +271,26 @@ def calculateAlbedo(simulationDict, dataFrame):
             R = 0       
         else:
             R = sum_R_G / sum_G
-    
+        print('R', R)
         R_hourly.append(R)
         
         
         # Calculates H value
                
         DNI = df.iloc[j]['dni']                     # direct normal irradiation out of dataframe (which comes from weatherfile) [W/m²]
+        print('DNI', DNI)
         DHI = df.iloc[j]['dhi']                     # diffuse horizontal irradation out of dataframe (which comes from weatherfile) [W/m²]
+        print('DHI', DHI)
         theta = math.radians(df.iloc[j]['zenith'])  # sun zenith angle out of dataframe[rad]
-        
+        print('theta', theta)
         # Check, if DHI is 0, so that DNI is not divided by 0
         if DHI == 0:
             H = 0
+        elif theta > (0.5*math.pi):   # 0.5*pi rad = 90 deg
+            H = 0
         else:
             H = (DNI/DHI) * math.cos(theta)
-    
+        print('H', H)
         H_hourly.append(H)
         
         '''
