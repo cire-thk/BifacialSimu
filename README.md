@@ -3,7 +3,7 @@
 
 BifacialSimu contains a series of python wrapper functions to simulate the energy density of a bifacial PV system. It is using libaries such as [bifacial_radiance](https://github.com/NREL/bifacial_radiance) (Ray Traying) and [pvfactors](https://github.com/SunPower/pvfactors) (View Factors).
 
-<img src="docs/Logo/logo_BifacialSimu_transparent.png" width="500">
+<img src="Lib/Logos/logo_BifacialSimu_transparent.png" width="500">
 
 ## Getting Started
 
