@@ -25,8 +25,8 @@ last changes:
 # -*- coding: utf-8 -*-
 
 # Import modules
-import matplotlib
-matplotlib.use("Qt5Agg")
+#import matplotlib
+#matplotlib.use("TkAgg")
 import sys
 import math
 
@@ -96,12 +96,12 @@ SimulationDict = {
 'simulationName' : 'NREL_best_field_row_2',
 'simulationMode' : 1, 
 'localFile' : True, # Decide wether you want to use a  weather file or try to download one for the coordinates
-'weatherFile' : (rootPath +'/WeatherData/Golden_USA/SRRLWeatherdata Nov_Dez.csv'), # weather file in TMY format 
+'weatherFile' : (rootPath +'/WeatherData/Cologne_Germany/Cologne_Bibdach_50.935_6.992_TMY_2007_2016'), # weather file in TMY format 
 'spectralReflectancefile' : (rootPath + '/ReflectivityData/interpolated_reflectivity.csv'),
 'cumulativeSky' : False, # Mode for RayTracing: CumulativeSky or hourly
-'startHour' : (2019, 11, 1, 0),  # Only for hourly simulation, yy, mm, dd, hh
-'endHour' : (2019, 11, 1, 0),  # Only for hourly simulation, yy, mm, dd, hh
-'utcOffset': -7,
+'startHour' : (2009, 1, 1, 0),  # Only for hourly simulation, yy, mm, dd, hh
+'endHour' : (2009, 1, 6, 23),  # Only for hourly simulation, yy, mm, dd, hh
+'utcOffset': +2,
 'tilt' : 10, #tilt of the PV surface [deg]
 'singleAxisTracking' : True, # singleAxisTracking or not
 'backTracking' : False, # Solar backtracking is a tracking control program that aims to minimize PV panel-on-panel shading 
@@ -117,11 +117,11 @@ SimulationDict = {
 'modulex' : 1, #length of modules in x-axis  
 'hourlyMeasuredAlbedo' : True, # True if measured albedo values in weather file
 'spectralAlbedo' : True, # Option to calculate a spectral Albedo 
-'albedo' : 0.247, # Measured Albedo average value, if hourly isn't available
+'albedo' : 0.282, # Measured Albedo average value, if hourly isn't available
 'frontReflect' : 0.03, #front surface reflectivity of PV rows
 'BackReflect' : 0.05, #back surface reflectivity of PV rows
-'longitude' : -105.172, 
-'latitude' : 39.739,
+'longitude' : 6.992, 
+'latitude' : 50.935,
 'gcr' : 0.35, #ground coverage ratio (module area / land use)
 'module_type' : 'NREL row 2', #Name of Module
 }
