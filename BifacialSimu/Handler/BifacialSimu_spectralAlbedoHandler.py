@@ -45,7 +45,7 @@ def getReflectanceData(simulationDict):
    
     return R_lamda
     
-def modelingSpectralIrradiance(simulationDict, currentDate, dataFrame, j):
+def modelingSpectralIrradiance(simulationDict, dataFrame, j):
     '''
     Model the spectral distribution of irradiance based on atmospheric conditions. 
     The spectral distribution of irradiance is the power content at each wavelength 
@@ -72,22 +72,23 @@ def modelingSpectralIrradiance(simulationDict, currentDate, dataFrame, j):
        
     df = dataFrame
      
-    #lat = simulationDict['latitude']   # [deg] latitude of ground surface to calculate spectral albedo
-    #lon = simulationDict['longitude']  # [deg] longitude of ground surface to calculate spectral albedo
-    tilt = 0                            # [deg] always 0, because the ground is never tilted
-    azimuth = simulationDict['azimuth'] # [deg] same azimuth for ground surface as for PV panel
-    pressure = 100498                   # [Pa] air pressure; average of yearly values from 1958 to 2020 for airport Cologne/Bonn, taken from DWD
-    water_vapor_content = 1.551         # [cm] Atmospheric water vapor content; data from AERONET for FZ Juelich for Sep 2021; Level 2 Quality
-    tau500 = 0.221                      # [-] aerosol optical depth at wavelength 500 nm; data from AERONET for FZ Juelich for Sep 2021; Level 2 Quality
-    ozone = 0.314                       # [atm-cm] Atmospheric ozone content; data from WOUDC for Aug 2021 for Hohenpeissenberg
-    albedo = simulationDict['albedo']   # [-] fix albedo value
+    #lat = simulationDict['latitude']       # [deg] latitude of ground surface to calculate spectral albedo
+    #lon = simulationDict['longitude']      # [deg] longitude of ground surface to calculate spectral albedo
+    tilt = 0                                # [deg] always 0, because the ground is never tilted
+    azimuth = simulationDict['azimuth']     # [deg] same azimuth for ground surface as for PV panel
+    pressure = (df.iloc[j]['pressure']*100) # [Pa] air pressure; df value is in mbar so multiplied by 100 to Pa
+    water_vapor_content = 1.551             # [cm] Atmospheric water vapor content; data from AERONET for FZ Juelich for Sep 2021; Level 2 Quality
+    tau500 = 0.221                          # [-] aerosol optical depth at wavelength 500 nm; data from AERONET for FZ Juelich for Sep 2021; Level 2 Quality
+    ozone = 0.314                           # [atm-cm] Atmospheric ozone content; data from WOUDC for Aug 2021 for Hohenpeissenberg
+    albedo = simulationDict['albedo']       # [-] fix albedo value
     
     # Attention: apparent_zenith is greater than 90 deg for night time
     apparent_zenith = df.iloc[j]['apparent_zenith']  # [deg] zenith angle of solar radiation
     sun_azimuth = df.iloc[j]['azimuth'] # [deg] azimith angle of solar radiation
 
-    cd = currentDate                    # current date and time to calculate spectrum for
-    doy = int(cd.strftime('%j'))        # getting day of year out of the current date
+    currentDate = datetime.datetime(simulationDict['startHour'][0], simulationDict['startHour'][1], simulationDict['startHour'][2], simulationDict['startHour'][3]) + pd.to_timedelta(j, unit='H')  # current date and time to calculate spectrum for           
+    print(currentDate)
+    doy = int(currentDate.strftime('%j'))        # getting day of year out of the current date
 
     
     # Attention: Works only with positiv utcOffset values of simulationDict; Workaround: use only positiv utcOffset
@@ -189,15 +190,8 @@ def calculateAlbedo(simulationDict, dataFrame):
     '''
     
     for j in range(timedelta):
-        
-              
-        currentDate = datetime.datetime(simulationDict['startHour'][0], simulationDict['startHour'][1], simulationDict['startHour'][2], simulationDict['startHour'][3]) + pd.to_timedelta(j, unit='H') 
-                
-        # pressure = metdata.pressure # Luftdruck aus der metdata Objekt,falls dieser da überhaupt drinnen steht ?
-        # TODO: Luftdruck dem metdata Objekt hinzufügen in main.py
-        # pressure muss der Funktion modelingSpectralIrradiance dann als Argument übergeben werden        
-        
-        spectrum = modelingSpectralIrradiance(simulationDict, currentDate, dataFrame, j) # 8D array from the function modelingSpectralIrradiance is created
+                       
+        spectrum = modelingSpectralIrradiance(simulationDict, dataFrame, j) # 8D array from the function modelingSpectralIrradiance is created
         R_lamda_array = getReflectanceData(simulationDict) # 1D array from the function getReflectanceData is created
         
         sum_R_G = 0

@@ -98,7 +98,6 @@ class DataHandler:
             metdata = demo.readEPW(epwfile) # read in the EPW weather data from above
         else:
             metdata = demo.readTMY(simulationDict['weatherFile'])
-
         
         return metdata, demo
     
@@ -122,6 +121,7 @@ class DataHandler:
         df['dni'] = metdata.dni
 
         df['temperature'] = metdata.temp_air
+        df['pressure'] = metdata.pressure
         df['albedo'] = metdata.albedo
         
         #define start and end Date for dataframe
