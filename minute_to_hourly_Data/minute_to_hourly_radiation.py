@@ -16,8 +16,8 @@ import datetime
 'Input parameters'
 Dictionary = {
 'startHour' : (2021, 9, 23, 0),                     # yy, mm, dd, hh
-'number_of_days' : 2,                             # number of days to calculate hourly data for
-'input_file' : 'Measurement_GHI_DNI_DHI.csv',       # inset name of input file
+'number_of_days' : 16,                              # number of days to calculate hourly data for
+'input_file' : 'Measurement_GHI_DHI_DNI.csv',       # inset name of input file
 }
 #------------------------------------------------------------------------------
 
@@ -29,7 +29,7 @@ loop_number = Dictionary['number_of_days'] * 24      # 24 hours per day
 GHI_hourly = []     # array to hold hourly GHI values
 DHI_hourly = []     # array to hold hourly DHI values
 DNI_hourly = []     # array to hold hourly DNI values
-cd = []       # array to hold hourly datetime
+cd = []             # array to hold hourly datetime
 
 for i in range(loop_number):
     
@@ -60,7 +60,8 @@ for i in range(loop_number):
     GHI_hourly.append(GHI_h)        # append the hourly GHI value to GHI array
     DHI_hourly.append(DHI_h)        # append the hourly DHI value to GHI array
     DNI_hourly.append(DNI_h)        # append the hourly DNI value to GHI array
-    cd.append(currentDate)
+    cd.append(currentDate)          # append the currentDate to cd array
+
     
 # create pandas dataframe to save the four arrays and give them headers
 df2 = pd.DataFrame({'datetime':cd, 'GHI':GHI_hourly, 'DHI':DHI_hourly, 'DNI':DNI_hourly})

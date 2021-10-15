@@ -2956,6 +2956,7 @@ class MetObj:
         self.dhi = np.array(tmydata.DHI)
         self.dni = np.array(tmydata.DNI)
         self.albedo = np.array(tmydata.Alb)
+        self.pressure = np.array(tmydata.Pressure) # changed by THKoeln
         try:
             self.temp_air = np.array(tmydata.DryBulb) #changed by THKoeln
         except:
