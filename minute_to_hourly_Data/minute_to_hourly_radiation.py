@@ -17,7 +17,7 @@ import datetime
 Dictionary = {
 'startHour' : (2021, 9, 23, 0),                     # yy, mm, dd, hh
 'number_of_days' : 16,                              # number of days to calculate hourly data for
-'input_file' : 'Measurement_GHI_DHI_DNI.csv',       # inset name of input file
+'input_file' : 'Measurement_GHI_DHI_DNI.csv',       # inset name of input file (utf8 file is needed)
 }
 #------------------------------------------------------------------------------
 
@@ -53,9 +53,9 @@ for i in range(loop_number):
         
         k = k + 1
         
-    GHI_h = np.mean(GHI_minute)     # mean value of 24 GHI minute values
-    DHI_h = np.mean(DHI_minute)     # mean value of 24 DHI minute values
-    DNI_h = np.mean(DNI_minute)     # mean value of 24 DNI minute values
+    GHI_h = np.mean(GHI_minute)     # mean value of 60 GHI minute values
+    DHI_h = np.mean(DHI_minute)     # mean value of 60 DHI minute values
+    DNI_h = np.mean(DNI_minute)     # mean value of 60 DNI minute values
     
     GHI_hourly.append(GHI_h)        # append the hourly GHI value to GHI array
     DHI_hourly.append(DHI_h)        # append the hourly DHI value to GHI array
