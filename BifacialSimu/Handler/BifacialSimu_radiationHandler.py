@@ -86,8 +86,8 @@ class RayTrace:
         
         Parameters
         ----------
-        simulationDict: simulation Dictionary, which can be found in BifacialSimuu_main.py
-        demo: Bifacial_Radiance's RadianceObj created in "createDemo" fucntion
+        simulationDict: simulation Dictionary, which can be found in BifacialSimu_main.py
+        demo: Bifacial_Radiance's RadianceObj created in "createDemo" function
         metdata: Object containing meteorological data and sun parameters
         resultsPath: output filepath
         dataFrame: helper DataFrame 
@@ -99,6 +99,12 @@ class RayTrace:
         if simulationDict['hourlyMeasuredAlbedo'] ==False:
             # Measured Albedo average value
             demo.setGround(simulationDict['albedo'])
+        #elif simulationDict['spectralAlbedo'] == True:
+        #    albedo = #call spectralAlbedoHandler
+        #    demo.setGround(albedo)  # funktioniert so nicht, da setGround ein Material benötigt
+        # Möglihckeit: material = None, da dann albedo aus metdata gelesen wird und metdata ist RadianceObj mit Daten aus Wetterdatei
+        # spectral Albedo müsste dann in spectralAlbedoHandler in die Wetterdatei geschrieben werden
+        # Problem: Wetterdatei wird zuerst eingelesen und dann wird hier spectralAlbedoHandler aufgerufen
         else:
             if simulationDict['singleAxisTracking'] == True:
                 demo.setGround(material = None)
@@ -439,7 +445,7 @@ class ViewFactors:
         Parameters
         ----------
         simulationDict: simulation Dictionary, which can be found in BifacialSimu_main.py
-        demo: Bifacial_Radiance's RadianceObj created in "createDemo" fucntion
+        demo: Bifacial_Radiance's RadianceObj created in "createDemo" function
         metdata: Object containing meteorological data and sun parameters
         dataFrame: DataFrame containing irradiance data and sun parameters
         resultsPath: output filepath
@@ -503,7 +509,6 @@ class ViewFactors:
             
         discretization = {'cut':rowSegments}
         simulationParameter.update(discretization)
-        
 
                         
         #Pick a specific day for closer data consideration
@@ -598,10 +603,12 @@ class ViewFactors:
         
 
         if simulationDict['hourlyMeasuredAlbedo'] ==True :
-            albedo = df['albedo']
-            
+            albedo = df['albedo']        # hourly variable albedo out of weatherfile
+        
+        #elif simulationDict['spectralAlbedo'] == True :
+        #    albedo = #call spectralAlbedoHandler für dtStart bis dtEnd als dataframe
         else:   
-            # Measured Albedo average value
+            # Measured Albedo average value, fix value
             albedo = simulationParameter['albedo']
 
         #set sun parameters
@@ -625,7 +632,7 @@ class ViewFactors:
         
         # Create ordered PV array and fit engine
         pvarray = OrderedPVArray.init_from_dict(simulationParameter)
-        
+        print(pvarray)
         engine = PVEngine(pvarray)
 
         engine.fit(df.index, df.dni, df.dhi,
@@ -915,7 +922,7 @@ class ViewFactors:
         
         # Calculate view factor matrix of the pv array
         vf_matrix = vf_calculator.build_ts_vf_matrix(pvarray)
-        
+               
         # Create ViewFactor matrix 
         def save_view_factor(i, j, vf_matrix, timestamps):
             

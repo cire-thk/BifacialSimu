@@ -18,7 +18,7 @@ last changes:
 import pandas as pd
 from pvlib import spectrum, solarposition, irradiance, atmosphere
 import os
-import numpy
+import numpy as np
 import matplotlib.pyplot as plt
 import math
 import dateutil.tz
@@ -41,7 +41,7 @@ def getReflectanceData(simulationDict):
     '''
     
     # array with reflectivity values, only colume 2 of the csv is read
-    R_lamda = numpy.genfromtxt(simulationDict['spectralReflectancefile'], delimiter=';', skip_header = 1, usecols=(1))
+    R_lamda = np.genfromtxt(simulationDict['spectralReflectancefile'], delimiter=';', skip_header = 1, usecols=(1))
    
     return R_lamda
     
@@ -86,7 +86,7 @@ def modelingSpectralIrradiance(simulationDict, dataFrame, j):
     apparent_zenith = df.iloc[j]['apparent_zenith']  # [deg] zenith angle of solar radiation
     sun_azimuth = df.iloc[j]['azimuth'] # [deg] azimith angle of solar radiation
 
-    currentDate = datetime.datetime(simulationDict['startHour'][0], simulationDict['startHour'][1], simulationDict['startHour'][2], simulationDict['startHour'][3]) + pd.to_timedelta(j, unit='H')  # current date and time to calculate spectrum for           
+    currentDate = datetime.datetime(simulationDict['startHour'][0], simulationDict['startHour'][1], simulationDict['startHour'][2], simulationDict['startHour'][3]) + pd.to_timedelta(j, unit='H')  # current date and time to calculate spectrum          
     print(currentDate)
     doy = int(currentDate.strftime('%j'))        # getting day of year out of the current date
 
@@ -201,13 +201,13 @@ def calculateAlbedo(simulationDict, dataFrame):
             
             '''
             Attention: 
-            - G_lamda is an array (no problem, but not nice)
             - G_lamda (= 'poa_global' colume of the array 'spectrum') gives NaN values for nigth time instead of 0,
               because the input parameter 'relative_airmass' of 'spectra' in the function 'modelingSpectralIrradiance' 
               is a NaN value for night time, because apperent_zenith is greater than 90 deg
+            - sum_R_G and sum_G are NaN values for nighttime, in consequence
             '''
             G_lamda = spectrum['poa_global'][i] # G for current number of wavelength i [W/m²/nm]
-            G_lamda2 = G_lamda[0]               # gets G out of the array (with contains only one value)
+            G_lamda2 = G_lamda[0]               # gets G out of the array (which contains only one value)
             R_lamda = R_lamda_array[i]          # R for current number of wavelength i [-]
             lamda = spectrum['wavelength'][i]   # current wavelength i [nm]
                               
