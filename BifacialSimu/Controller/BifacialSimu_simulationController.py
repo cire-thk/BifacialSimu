@@ -34,6 +34,7 @@ import pandas as pd
 import BifacialSimu_calculationHandler
 import BifacialSimu_radiationHandler
 import BifacialSimu_dataHandler
+# import BifacialSimu_spectralAlbedoHandler
 
 # Overarching procedure to perform bifacial irrdiance and electrical simulations  
 def startSimulation(simulationDict, moduleDict, resultsPath):
@@ -53,6 +54,22 @@ def startSimulation(simulationDict, moduleDict, resultsPath):
     df_reportRT = pd.DataFrame()
     df_reportVF = pd.DataFrame()
     df_report = pd.DataFrame()
+    
+    ####################################################
+    '''
+    # optional spectralAlbedo calculation
+    if simulationDict['spectralAlebdo'] == True:
+        # spectralAlbedoHandler calculate the spectralAlbedo and write it in the weatherfile in colume 'albedo'
+        BifacialSimu_spectralAlbedoHandler.calculateAlbedo(simulationDict, df, resultspath)
+    
+        # weatherfile is read in again with updated albedo values as metdata
+        metdata, demo = BifacialSimu_dataHandler.DataHandler().getWeatherData(simulationDict, resultsPath) 
+    
+        # metdata is converted to df
+        df = BifacialSimu_dataHandler.DataHandler().passEPWtoDF(metdata, simulationDict, resultsPath)
+        print('succsessfully updated metdata, demo and df with spectralAlbedo')
+    '''
+    ####################################################
     
     # choose simulation mode and perform raytracing, viewfactor and electrical simulation
     if simulationDict['simulationMode'] == 3:

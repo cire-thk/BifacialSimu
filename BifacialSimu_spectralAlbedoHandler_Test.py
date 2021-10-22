@@ -28,6 +28,7 @@ import matplotlib.pyplot as plt
 import math
 import dateutil.tz
 import datetime
+import numpy as np
 
 rootPath = os.path.realpath(".")
 
@@ -224,8 +225,8 @@ def calculateAlbedo(simulationDict, dataFrame):
     # Intialise arrays
     R_hourly = []     # array to hold R value
     H_hourly = []     # array to hold H value
-    a_hourly = []     # array to hold albedo
-       
+    a_hourly = np.array()     # array to hold albedo
+    print('a_hourly',a_hourly)
     '''
     Loop to calculate R, H and Albdeo for every hour. 
     Start value is 0, end value is the number of hours between starthour and endhour of the calculation period. 

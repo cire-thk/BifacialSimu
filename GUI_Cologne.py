@@ -829,7 +829,7 @@ class Window(tk.Tk):
             self.albedo = key1
             Entry_albedo.delete(0,END)
             #Entry_albedo.insert(0,str(a['Albedo']))
-            Entry_albedo.insert(0,0.2384)
+            Entry_albedo.insert(0,0.2169)   # average measured albedo of quartz sand
 
             
         def clearall():

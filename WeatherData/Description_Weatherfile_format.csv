@@ -1,4 +1,4 @@
 Number_of_station,City,State,UTC_Offset,Latitude,Longitude,Ground_Height
 0,Golden,Colorado,-7,39.739,-105.172,1829
 Date (MM/DD/YYYY),Time (HH:MM),GHI (W/m^2),DNI (W/m^2),DHI (W/m^2),Dry-bulb (C), Pressure (mbar), Alb
-10/01/2019,01:00:00,0,0,0,8.79,0,0
+

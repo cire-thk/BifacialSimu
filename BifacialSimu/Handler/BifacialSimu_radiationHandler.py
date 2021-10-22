@@ -94,23 +94,27 @@ class RayTrace:
         onlyBackscan: option to only calculate rear side of the modules
         """
         
+        ####################################################
         
         # Set albedo from sim parameters
         if simulationDict['hourlyMeasuredAlbedo'] ==False:
             # Measured Albedo average value
             demo.setGround(simulationDict['albedo'])
+            
         #elif simulationDict['spectralAlbedo'] == True:
-        #    albedo = #call spectralAlbedoHandler
-        #    demo.setGround(albedo)  # funktioniert so nicht, da setGround ein Material benötigt
-        # Möglihckeit: material = None, da dann albedo aus metdata gelesen wird und metdata ist RadianceObj mit Daten aus Wetterdatei
-        # spectral Albedo müsste dann in spectralAlbedoHandler in die Wetterdatei geschrieben werden
-        # Problem: Wetterdatei wird zuerst eingelesen und dann wird hier spectralAlbedoHandler aufgerufen
+            # calculated spectral albedo
+        #    demo.setGround(material = None)
+        
+        # if matrerial=None, then material = self.metdata.albedo 
+        # metdata.albedo is colume of metdata weatherfile with albedo
+       
         else:
             if simulationDict['singleAxisTracking'] == True:
                 demo.setGround(material = None)
             else:
                 sys.exit("The use of hourly Measured Albedo Values is not possible with fixed tilts at the moment")
-            
+        
+        ####################################################    
         
             
 
@@ -601,16 +605,20 @@ class ViewFactors:
             
         
         
-
+        ####################################################
+        
+        # set Albedo calcualtion mode
         if simulationDict['hourlyMeasuredAlbedo'] ==True :
             albedo = df['albedo']        # hourly variable albedo out of weatherfile
         
         #elif simulationDict['spectralAlbedo'] == True :
-        #    albedo = #call spectralAlbedoHandler für dtStart bis dtEnd als dataframe
+        #    albedo = df['albedo']  # spectral Albedo is in df, because spectralAlbedoHandler write the calculated spectral albedo in weatherfile
+                                    # weatherfile is read in simulationController again as df, spectralAlbedo is in df
         else:   
             # Measured Albedo average value, fix value
             albedo = simulationParameter['albedo']
-
+        ####################################################
+        
         #set sun parameters
         
         surface_azimuth = simulationParameter['surface_azimuth']
