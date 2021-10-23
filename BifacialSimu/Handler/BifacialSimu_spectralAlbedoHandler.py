@@ -23,6 +23,8 @@ import matplotlib.pyplot as plt
 import math
 import dateutil.tz
 import datetime
+import pvfactors
+import csv
 
 import BifacialSimu_dataHandler
 import BifacialSimu_radiationHandler
@@ -139,7 +141,7 @@ def modelingSpectralIrradiance(simulationDict, dataFrame, j):
     return spectra
     
 
-def calcuateViewFactor():
+def calcuateViewFactor(simulationDict, dataFrame):
     '''
     Calculates timeseries view factors with pvfactors between albedo meter and ground
         
@@ -151,6 +153,33 @@ def calcuateViewFactor():
     -------
     
     '''
+    df = dataFrame
+    
+    # parameters for PV array, which contains the albedometer as a horizontal PVrow
+    pvarray_parameters = {
+    'n_pvrows': 1,            # number of pv rows, 1 because albedometer has only 1 surface
+    'pvrow_height': 1,        # height of pvrows (measured at center / torque tube)
+    'pvrow_width': 0.05,      # width of glasdome of albedometer
+    'axis_azimuth': 0.,       # azimuth angle of rotation axis
+    'gcr': 0.5,               # ground coverage ratio, irrelevant because only 1 row
+    'surface_tilt': 0.,       # tilt of albedometer, 0 = horizintal
+    'surface_azimuth': simulationDict['azimuth'],   # azimuth of same to azimuth of pv rows front surface
+    'solar_zenith': df.apparent_zenith,    # solar zenith as dataframe
+    'solar_azimuth': df.azimuth,           # solar azimuth as dataframe
+    }
+    
+    # creat a OrderedPVArray with pvarray_parameters
+    pvarray = OrderedPVArray.init_from_dict(pvarray_parameters)
+       
+    # fit the zenith and azimuth angles of albedometer and sun to pvarrray as array-like arguments
+    pvarray.fit(pvarra_parameters['solar_zenith'], pvarra_parameters['solar_azimuth'], pvarra_parameters['surface_tilt'], pvarra_parameters['surface_azimuth'])
+    
+    # Plot pvarray shapely geometries at timestep 0
+    f, ax = plt.subplots(figsize=(10, 3))
+    pvarray.plot_at_idx(0, ax)
+    plt.show()
+    
+    
     
     return 
     
@@ -274,13 +303,45 @@ def calculateAlbedo(simulationDict, dataFrame, resultspath):
     albedo_results = pd.DataFrame({'datetime':cd, 'spectral Albedo':a})
     albedo_results.to_csv(resultspath + 'spectral_Albedo.csv', sep=';', index=False)
     
-    
+    #########################################################################
+     
     # weatherfile gets updated with a_hourly
-    weatherfile = pd.read_csv(simulationDict['weatherFile'], header = 1)
-    weatherfile.loc['Alb'] = a_hourly
-    weatherfile.to_csv(simulationDict['weatherFile'], header = True)
+    
+    # read in first and second row separat
+    with open(simulationDict['weatherFile'], newline='') as f:
+        reader = csv.reader(f)
+        row1 = next(reader)  # gets the first line
+        row2 = next(reader)  # gets the second line
 
+    # read in weatherfile as pandas dataframe
+    weatherfile = pd.read_csv(simulationDict['weatherFile'], sep=',', header = 1)
+   
+    # weatherfile and a_hourly must have the same length 
+    # check, if length of a_hourly is shorten than weatherfile
+    # if a_hourly is shorter, nan values gets added, so both list have same length
+    length_w= len(weatherfile.index)
+    length_a= len(a_hourly)
+    
+    if length_a < length_w: 
+        dif_length = length_w - length_a
+        for i in range(dif_length):
+            a_hourly.append(math.nan)
+    
+    # values in column Alb are displaced with values from a_hourly
+    weatherfile['Alb'] = a_hourly  # a_hourly must have same length as weatherfile
 
+    # convert pandas dataframe into a list
+    weatherfile_list = weatherfile.values.tolist()
+    
+    # save row 1 and 2 and the weatherfile list into csv
+    file = open(simulationDict['weatherFile'], 'w+', newline ='') 
+    with file:     
+        write = csv.writer(file) 
+        write.writerow(row1)
+        write.writerow(row2)
+        write.writerows(weatherfile_list) 
+    
+    #########################################################################
 
     
     # return a_hourly
