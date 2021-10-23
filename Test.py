@@ -6,6 +6,8 @@ Created on Thu Oct 21 22:20:54 2021
 """
 import os
 import pandas as pd
+import csv 
+import math
 
 rootPath = os.path.realpath(".")
 
@@ -44,9 +46,35 @@ simulationDict = {
 }
 
 a_hourly = []
-for i in range(384):
+for i in range(380):
     a_hourly.append(i)
 
-weatherfile = pd.read_csv(simulationDict['weatherFile'], sep=',', header = 1)
-weatherfile.loc['Alb'] = a_hourly
-weatherfile.to_csv(simulationDict['weatherFile'], header = True)
+
+with open(rootPath +'/WeatherData/Cologne_Germany/Cologne_Bibdach_50.935_6.992_Measurement_Sept_Okt_2021.csv', newline='') as f:
+  reader = csv.reader(f)
+  row1 = next(reader)  # gets the first line
+  row2 = next(reader)  # gets the second line
+
+weatherfile = pd.read_csv(rootPath +'/WeatherData/Cologne_Germany/Cologne_Bibdach_50.935_6.992_Measurement_Sept_Okt_2021.csv', sep=',', header = 1)
+
+length_w= len(weatherfile.index)
+print(len(weatherfile.index))
+length_a= len(a_hourly)
+print(len(a_hourly))
+
+if length_a < length_w: 
+    dif_length = length_w - length_a
+    for i in range(dif_length):
+        a_hourly.append(math.nan)
+
+weatherfile['Alb'] = a_hourly
+print(weatherfile)
+
+weatherfile_list = weatherfile.values.tolist()
+
+file = open(simulationDict['weatherFile'], 'w+', newline ='') 
+with file:     
+    write = csv.writer(file) 
+    write.writerow(row1)
+    write.writerow(row2)
+    write.writerows(weatherfile_list) 
