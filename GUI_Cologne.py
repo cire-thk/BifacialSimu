@@ -107,7 +107,7 @@ SimulationDict = {
 'backTracking' : False, # Solar backtracking is a tracking control program that aims to minimize PV panel-on-panel shading 
 'ElectricalMode_simple': False, # simple electrical Simulation after PVSyst, use if rear module parameters are missing
 'limitAngle' : 60, # limit Angle for singleAxisTracking
-'hub_height' : 1.3, # Height of the rotation axis of the tracker [m]
+'hub_height' : 0.4, # Height of the rotation axis of the tracker [m]
 'azimuth' : 180, #azimuth of the PV surface [deg] 90°: East, 135° : South-East, 180°:South
 'nModsx' : 1, #number of modules in x-axis
 'nModsy' : 1, #number of modules in y-axis
@@ -767,15 +767,16 @@ class Window(tk.Tk):
             Entry_ClearanceHeight.config(state="normal")
             clearall()
             Combo_Module.current(0)
-            Combo_Albedo.current(0)
+            Combo_Albedo.current(31)
             rad1_weatherfile.invoke()
-            rad1_simulationMode.invoke()
+            rad2_simulationMode.invoke()
             rad1_rb_SingleAxisTracking.invoke()
-            rad1_Albedo.invoke()
+            rad3_Albedo.invoke()
             rad1_ElectricalMode.invoke()
             rad1_BacktrackingMode.invoke()
             Entry_Name.insert(0, simulationName_configfile_C)
             Entry_weatherfile.insert(0, weatherFile_configfile_C) #zu überarbeiten
+            Entry_reflectivityfile.insert(0, reflectivityFile_configfile_C)
             Entry_Tilt.insert(0, tilt_configfile_C)
             Entry_LimitAngle.insert(0, limitAngle_configfile_C)
             Entry_ClearanceHeight.insert(0, ClearanceHeight_configfile_C)
@@ -828,8 +829,8 @@ class Window(tk.Tk):
             a = self.jsondata_albedo[key1]
             self.albedo = key1
             Entry_albedo.delete(0,END)
-            #Entry_albedo.insert(0,str(a['Albedo']))
-            Entry_albedo.insert(0,0.2169)   # average measured albedo of quartz sand
+            Entry_albedo.insert(0,str(a['Albedo']))
+            #Entry_albedo.insert(0,0.2169)   # average measured albedo of quartz sand
 
             
         def clearall():
@@ -941,7 +942,17 @@ class Window(tk.Tk):
             Entry_weatherfile.delete(0, END)
             Entry_weatherfile.insert(0, filename)   
             SimulationDict["weatherFile"]=Entry_weatherfile.get()
+         
+        def InsertReflectivityfile():    
             
+            """ select local reflectivityfile
+            """
+          
+            filename = tk.filedialog.askopenfilename(title="Select .csv file", filetypes = ((".csv files", "*.csv")))
+
+            Entry_reflectivityfile.delete(0, END)
+            Entry_reflectivityfile.insert(0, filename)   
+            SimulationDict["spectralReflectancefile"]=Entry_reflectivityfile.get()
         
         #Changing the weatherfile
         Lab_weatherfile=ttk.Label(namecontrol_frame, text="Add Path of weatherfile:")
@@ -950,16 +961,24 @@ class Window(tk.Tk):
         Entry_weatherfile.grid(row=4, column=1)
         Button_weatherfile=ttk.Button(namecontrol_frame, text="Insert Weatherfile!", command=InsertWeatherfile)
         Button_weatherfile.grid(row=4, column=2)
+       
+        #Changing the reflectivityfile
+        Lab_reflectivityfile=ttk.Label(namecontrol_frame, text="Add Path of reflectivityfile:")
+        Lab_reflectivityfile.grid(row=5, column=0)
+        Entry_reflectivityfile=ttk.Entry(namecontrol_frame, background="white", width=25)
+        Entry_reflectivityfile.grid(row=5, column=1)
+        Button_reflectivityfile=ttk.Button(namecontrol_frame, text="Insert Reflectivityfile!", command=InsertReflectivityfile)
+        Button_reflectivityfile.grid(row=5, column=2)
         
         #Change Longitude and Latitude
         Label_longitude=ttk.Label(namecontrol_frame, text="Enter Longitude:")
         Label_latitude=ttk.Label(namecontrol_frame, text="Enter Latitude:")
-        Label_longitude.grid(column=0, row=5, sticky=W)
-        Label_latitude.grid(column=0, row=6, sticky=W)
+        Label_longitude.grid(column=0, row=6, sticky=W)
+        Label_latitude.grid(column=0, row=7, sticky=W)
         Entry_longitude=ttk.Entry(namecontrol_frame, background="white", width=10)
         Entry_latitude=ttk.Entry(namecontrol_frame, background="white", width=10)
-        Entry_longitude.grid(column=1, row=5, sticky=W)
-        Entry_latitude.grid(column=1, row=6, sticky=W)        
+        Entry_longitude.grid(column=1, row=6, sticky=W)
+        Entry_latitude.grid(column=1, row=7, sticky=W)        
         
         
   
@@ -1087,13 +1106,20 @@ class Window(tk.Tk):
         def Measuredalbedo():
             if rb_Albedo.get()==0:
                 SimulationDict["hourlyMeasuredAlbedo"]=False
+                SimulationDict["spectralAlbedo"]=False
                 Label_albedo.config(state="normal")
                 Entry_albedo.config(state="normal")
                 Combo_Albedo.config(state="normal")
 
-               
+            elif rb_Albedo.get()==2:
+                SimulationDict["hourlyMeasuredAlbedo"]=False
+                SimulationDict["spectralAlbedo"]=True
+                Label_albedo.config(state="normal")
+                Entry_albedo.config(state="normal")
+                Combo_Albedo.config(state="normal")
             else:
                 SimulationDict["hourlyMeasuredAlbedo"]=True
+                SimulationDict["spectralAlbedo"]=False
                 Label_albedo.config(state="disabled")
                 Entry_albedo.config(state="disabled")
                 Combo_Albedo.config(state="disabled")
@@ -1103,9 +1129,11 @@ class Window(tk.Tk):
         rb_Albedo=IntVar()
         rb_Albedo.set("0")
         rad1_Albedo= Radiobutton(simulationParameter_frame, variable=rb_Albedo, width=23, text="Average measured Albedo!", value=0, command=lambda:Measuredalbedo())
-        rad2_Albedo= Radiobutton(simulationParameter_frame, variable=rb_Albedo,  width=20, text="Hourly measured Albedo!", value=1, command=lambda:Measuredalbedo())
+        rad2_Albedo= Radiobutton(simulationParameter_frame, variable=rb_Albedo,  width=23, text="Hourly measured Albedo!", value=1, command=lambda:Measuredalbedo())
+        rad3_Albedo= Radiobutton(simulationParameter_frame, variable=rb_Albedo,  width=20, text="Hourly spectral Albedo!", value=2, command=lambda:Measuredalbedo())
         rad1_Albedo.grid(column=0,row=17, sticky=W)
         rad2_Albedo.grid(column=1,row=17, columnspan=2, sticky=W)
+        rad3_Albedo.grid(column=0,row=18, sticky=W)
   
     
  
@@ -1241,8 +1269,8 @@ class Window(tk.Tk):
         Label_backReflect=ttk.Label(simulationParameter_frame, text="Back surface reflectivity of PV rows:")
         Label_frontReflect.grid(column=0, row=14, sticky=W)
         Label_backReflect.grid(column=0, row=15, sticky=W)
-        Label_frontReflectPar=ttk.Label(simulationParameter_frame, text="[%]")
-        Label_backReflectPar=ttk.Label(simulationParameter_frame, text="[%]")
+        Label_frontReflectPar=ttk.Label(simulationParameter_frame, text="[-]")
+        Label_backReflectPar=ttk.Label(simulationParameter_frame, text="[-]")
         Label_frontReflectPar.grid(column=2, row=14, sticky=W)
         Label_backReflectPar.grid(column=2, row=15, sticky=W)
         Entry_frontReflect=ttk.Entry(simulationParameter_frame, background="white", width=10)
@@ -1423,6 +1451,7 @@ class Window(tk.Tk):
         simulationName_configfile_C=parser.get('default', 'simulationName')
        # simulationMode_configfile=parser.get('default', 'simulationMode')
         weatherFile_configfile_C=parser.get('default', "weatherFile")
+        reflectivityFile_configfile_C=parser.get('default', "reflectivityFile")
         tilt_configfile_C=parser.get('default', 'tilt')
         limitAngle_configfile_C=parser.getfloat('default', 'limitAngle')
         ClearanceHeight_configfile_C=parser.getfloat('default', 'clearance_height')
@@ -1495,13 +1524,13 @@ class Window(tk.Tk):
      
         
         Label_albedo=ttk.Label(simulationParameter_frame, text= "Albedo:")
-        Label_albedo.grid(column=0, row=18, sticky="w")
+        Label_albedo.grid(column=0, row=19, sticky="w")
         Entry_albedo=ttk.Entry(simulationParameter_frame, background="white", width=10)
-        Entry_albedo.grid(column=1, row=18, sticky="w")
+        Entry_albedo.grid(column=1, row=19, sticky="w")
         entry_albedo_value = tk.StringVar()
         Combo_Albedo=ttk.Combobox(simulationParameter_frame, textvariable=entry_albedo_value)
         
-        Combo_Albedo.grid(column=2, row=18, ipadx=50)
+        Combo_Albedo.grid(column=2, row=19, ipadx=50)
         getAlbedoJSONlist()                                     #set the module name values
         Combo_Albedo.bind("<<ComboboxSelected>>", comboclick_albedo)
 
@@ -1625,7 +1654,7 @@ class Window(tk.Tk):
             #pack the image in the frame
             Label2_logo=ttk.Label(namecontrol_frame, image=self.logo2)
             Label2_logo.image=logo2
-            Label2_logo.grid(row=7,column=0, columnspan=3)
+            Label2_logo.grid(row=8,column=0, columnspan=3)
         
         logo2()
         
