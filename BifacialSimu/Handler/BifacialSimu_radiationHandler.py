@@ -101,11 +101,11 @@ class RayTrace:
             # Measured Albedo average value
             demo.setGround(simulationDict['albedo'])
             
-        #elif simulationDict['spectralAlbedo'] == True:
+        elif simulationDict['spectralAlbedo'] == True:
             # calculated spectral albedo
-        #    demo.setGround(material = None)
+            demo.setGround(material = None)
         
-        # if matrerial=None, then material = self.metdata.albedo 
+        # if matrerial=None, then material = metdata.albedo 
         # metdata.albedo is colume of metdata weatherfile with albedo
        
         else:
@@ -611,9 +611,9 @@ class ViewFactors:
         if simulationDict['hourlyMeasuredAlbedo'] ==True :
             albedo = df['albedo']        # hourly variable albedo out of weatherfile
         
-        #elif simulationDict['spectralAlbedo'] == True :
-        #    albedo = df['albedo']  # spectral Albedo is in df, because spectralAlbedoHandler write the calculated spectral albedo in weatherfile
-                                    # weatherfile is read in again in simulationController as df, spectralAlbedo is in df
+        elif simulationDict['spectralAlbedo'] == True :
+            albedo = df['albedo']  # spectral Albedo is in df, because spectralAlbedoHandler write the calculated spectral albedo in weatherfile
+            # weatherfile is read in again in simulationController as df, spectralAlbedo is in df
         else:   
             # Measured Albedo average value, fix value
             albedo = simulationParameter['albedo']
@@ -737,10 +737,14 @@ class ViewFactors:
             
         # Create a function that will build a simulation report      
         def fn_report(pvarray):
-            reportAOI = {'qinc_back': pvarray.ts_pvrows[0].back.get_param_weighted('qinc'),
-                      'qabs_back': pvarray.ts_pvrows[0].back.get_param_weighted('qabs'),
-                      'qinc_front': pvarray.ts_pvrows[0].front.get_param_weighted('qinc'),
-                      'qabs_front': pvarray.ts_pvrows[0].front.get_param_weighted('qabs')}
+            if simulationDict['nRows']==1:
+                n = 0
+            else:
+                n = 1        
+            reportAOI = {'qinc_back': pvarray.ts_pvrows[n].back.get_param_weighted('qinc'),
+                      'qabs_back': pvarray.ts_pvrows[n].back.get_param_weighted('qabs'),
+                      'qinc_front': pvarray.ts_pvrows[n].front.get_param_weighted('qinc'),
+                      'qabs_front': pvarray.ts_pvrows[n].front.get_param_weighted('qabs')}
             
             # Calculate AOI losses
             reportAOI['aoi_losses_back_%'] = (reportAOI['qinc_back'] - reportAOI['qabs_back']) / reportAOI['qinc_back'] * 100.
@@ -751,10 +755,13 @@ class ViewFactors:
         ##### Without backscan #####
         def fn_report_front(pvarray):
             # Get irradiance values
-            
+            if simulationDict['nRows']==1:
+                n = 0
+            else:
+                n = 1
             reportAOI = {
-                      'qinc_front': pvarray.ts_pvrows[0].front.get_param_weighted('qinc'),
-                      'qabs_front': pvarray.ts_pvrows[0].front.get_param_weighted('qabs')}
+                      'qinc_front': pvarray.ts_pvrows[n].front.get_param_weighted('qinc'),
+                      'qabs_front': pvarray.ts_pvrows[n].front.get_param_weighted('qabs')}
             
             # Calculate AOI losses
             
@@ -950,7 +957,7 @@ class ViewFactors:
             #print("\n View Factors:")
             #print('View factor from surface {} to surface {}: {}'.format(i, j, np.around(vf, decimals=2))) # in case the matrix should be printed in the console
         
-        save_view_factor(4, 15, vf_matrix, df.index)
+        save_view_factor(4, 12, vf_matrix, df.index)
         
             
         f, ax = plt.subplots(figsize=(10, 3))

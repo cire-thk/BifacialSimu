@@ -21,18 +21,15 @@ last changes:
 """
 
 import pandas as pd
-from pvlib import spectrum, solarposition, irradiance, atmosphere
 import os
 import numpy
-import matplotlib.pyplot as plt
 import math
 import dateutil.tz
 import datetime
 import numpy as np
 import csv
+from pvlib import spectrum, irradiance, atmosphere
 from pvfactors.geometry import OrderedPVArray
-from pvfactors.viewfactors import VFCalculator
-from pvfactors.geometry.pvground import TsGround
 from pvfactors.viewfactors.vfmethods import VFTsMethods
 from pvfactors.config import DISTANCE_TOLERANCE
 
@@ -43,7 +40,7 @@ simulationDict = {
 'simulationName' : 'NREL_best_field_row_2',
 'simulationMode' : 1, 
 'localFile' : True, # Decide wether you want to use a  weather file or try to download one for the coordinates
-'weatherFile' : (rootPath +'/WeatherData/Cologne_Germany/Cologne_Bibdach_50.935_6.992_TMY_2007_2016'), # weather file in TMY format 
+'weatherFile' : (rootPath +'/WeatherData/Cologne_Germany/Cologne_Bibdach_50.935_6.992_Measurement_Sept_Okt_2021.csv'), # weather file in TMY format 
 'spectralReflectancefile' : (rootPath + '/ReflectivityData/interpolated_reflectivity.csv'),
 'cumulativeSky' : False, # Mode for RayTracing: CumulativeSky or hourly
 'startHour' : (2021, 9, 23, 0),  # Only for hourly simulation, yy, mm, dd, hh
@@ -392,7 +389,7 @@ def calculateAlbedo(simulationDict, dataFrame, resultpath):
     #endHour = int((dtEnd - beginning_of_year).total_seconds() // 3600) # gives the hour in the year
     
     timedelta = int((dtEnd - dtStart).total_seconds() //3600) + 1       # +1, so that endHour also runs through the loop
-    print(timedelta)
+    
     # Intialise arrays
     R_hourly = []     # array to hold R value
     H_hourly = []     # array to hold H value
@@ -503,7 +500,7 @@ def calculateAlbedo(simulationDict, dataFrame, resultpath):
     #########################################################################
     
     
-    ''' 
+    
     # weatherfile gets updated with a_hourly
     
     # read in first and second row separat
@@ -541,7 +538,7 @@ def calculateAlbedo(simulationDict, dataFrame, resultpath):
         write.writerows(weatherfile_list) 
     
     #########################################################################
-'''
+
     
     return a_hourly
     

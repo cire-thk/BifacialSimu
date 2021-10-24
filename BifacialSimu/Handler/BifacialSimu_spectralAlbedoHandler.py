@@ -16,19 +16,15 @@ last changes:
 """
 
 import pandas as pd
-from pvlib import spectrum, solarposition, irradiance, atmosphere
-import os
 import numpy as np
-import matplotlib.pyplot as plt
 import math
 import dateutil.tz
 import datetime
-import pvfactors
 import csv
-
-import BifacialSimu_dataHandler
-import BifacialSimu_radiationHandler
-
+from pvlib import spectrum, irradiance, atmosphere
+from pvfactors.geometry import OrderedPVArray
+from pvfactors.viewfactors.vfmethods import VFTsMethods
+from pvfactors.config import DISTANCE_TOLERANCE
 
 
 def getReflectivityData(simulationDict):
@@ -139,49 +135,105 @@ def modelingSpectralIrradiance(simulationDict, dataFrame, j):
     to not materially change the spectra.
     '''
     return spectra
-    
 
-def calcuateViewFactor(simulationDict, dataFrame):
+def build_ts_vf_matrix_albedo(pvarray_pv, pvarray_albedo):
+    """
+    Calculate timeseries view factor matrix for the two given ordered pv arrays
+    copied from pvfactors.viewfactors.calculator.VFCalculator.build_ts_vf_matrix with little change
+    
+    Parameters
+    ----------
+    pvarray_pv: OrderedPVArray which contains the paramters of PVrows like in radiationHandler
+    pvarra_albedo: OrderedPVArray which contains the paramters of an albedometer as horizontal PVrow
+
+    Returns
+    -------
+    vf_matric: np.ndarray, Timeseries view factor matrix, with 3 dimensions:[n_surfaces, n_surfaces, n_timesteps]
+    """
+    
+    vf_ts_methods = VFTsMethods()
+    
+    # Initialize matrix
+    rotation_vec = pvarray_pv.rotation_vec
+    tilted_to_left = rotation_vec > 0
+    n_steps = len(rotation_vec)
+    n_ts_surfaces = pvarray_pv.n_ts_surfaces
+    vf_matrix = np.zeros((n_ts_surfaces + 1, n_ts_surfaces + 1, n_steps), dtype=float)  # don't forget to include the sky
+
+    # Get timeseries objects
+    ts_ground = pvarray_pv.ts_ground        # ground surfaces like the geometry of PVrows
+    ts_pvrows = pvarray_albedo.ts_pvrows    # PVrows surfaces for the albedometer
+
+    # Calculate ts view factors between pvrow and ground surfaces
+    vf_ts_methods.vf_pvrow_gnd_surf(ts_pvrows, ts_ground, tilted_to_left, vf_matrix)
+    
+    # Calculate view factors between pv rows
+    vf_ts_methods.vf_pvrow_to_pvrow(ts_pvrows, tilted_to_left, vf_matrix)
+    
+    # Calculate view factors to sky
+    vf_matrix[:-1, -1, :] = 1. - np.sum(vf_matrix[:-1, :-1, :], axis=1)
+    # This is not completely accurate yet, we need to set the sky vf to zero when the surfaces have zero length
+    for i, ts_surf in enumerate(pvarray_pv.all_ts_surfaces):
+        vf_matrix[i, -1, :] = np.where(ts_surf.length > DISTANCE_TOLERANCE, vf_matrix[i, -1, :], 0.)
+
+    return vf_matrix
+
+def calculateViewFactor(simulationDict, dataFrame, j):
     '''
-    Calculates timeseries view factors with pvfactors between albedo meter and ground
+    Calculates timeseries view factors with pvfactors between albedometer and ground
         
     Parameters
     ----------
-    
+    simulationDict: simulation Dictionary, which can be found in GUI.py
+    dataFrame: pandas dataframe, which contains the weather data
+    j: current loop number, which represent the hour after starthour
       
     Returns
     -------
+    vf_matrix: Timeseries view factor matrix, with 3 dimensions: [n_surfaces, n_surfaces, n_timesteps]
+                n_timesteps = 1
     
     '''
     df = dataFrame
-    
-    # parameters for PV array, which contains the albedometer as a horizontal PVrow
+        
+    # parameters of pvarrray, which contains the albedometer as a horizontal PVrow
     pvarray_parameters = {
-    'n_pvrows': 1,            # number of pv rows, 1 because albedometer has only 1 surface
-    'pvrow_height': 1,        # height of pvrows (measured at center / torque tube)
-    'pvrow_width': 0.05,      # width of glasdome of albedometer
-    'axis_azimuth': 0.,       # azimuth angle of rotation axis
-    'gcr': 0.5,               # ground coverage ratio, irrelevant because only 1 row
-    'surface_tilt': 0.,       # tilt of albedometer, 0 = horizintal
+    'n_pvrows': 1,                                  # number of pv rows, 1 because albedometer has only 1 surface
+    'pvrow_height': 1,                              # height of pvrows (measured at center / torque tube)
+    'pvrow_width': 0.05,                            # width of glasdome of albedometer
+    'axis_azimuth': 0.,                             # azimuth angle of rotation axis
+    'gcr': 0.5,                                     # ground coverage ratio, irrelevant because only 1 row
+    'surface_tilt': 0.,                             # tilt of albedometer, 0 = horizintal
     'surface_azimuth': simulationDict['azimuth'],   # azimuth of same to azimuth of pv rows front surface
-    'solar_zenith': df.apparent_zenith,    # solar zenith as dataframe
-    'solar_azimuth': df.azimuth,           # solar azimuth as dataframe
+    'solar_zenith': df.iloc[j]['apparent_zenith'],  # solar zenith as dataframe
+    'solar_azimuth': df.iloc[j]['azimuth'],         # solar azimuth as dataframe
     }
     
-    # creat a OrderedPVArray with pvarray_parameters
-    pvarray = OrderedPVArray.init_from_dict(pvarray_parameters)
-       
-    # fit the zenith and azimuth angles of albedometer and sun to pvarrray as array-like arguments
-    pvarray.fit(pvarra_parameters['solar_zenith'], pvarra_parameters['solar_azimuth'], pvarra_parameters['surface_tilt'], pvarra_parameters['surface_azimuth'])
+    # creat an OrderedPVArray with pvarray_parameters for albedometer
+    pvarray_albedo = OrderedPVArray.fit_from_dict_of_scalars(pvarray_parameters)
+        
     
-    # Plot pvarray shapely geometries at timestep 0
-    f, ax = plt.subplots(figsize=(10, 3))
-    pvarray.plot_at_idx(0, ax)
-    plt.show()
+    # parameters of pvarrray, which contains parameters like in radiationHandler
+    simulationParameter = {
+    'n_pvrows': simulationDict['nRows'],            # number of pv rows, 1 because albedometer has only 1 surface
+    'pvrow_height': simulationDict['clearance_height'],   # height of pvrows (measured at center / torque tube)
+    'pvrow_width': simulationDict['moduley'],       # width of glasdome of albedometer
+    'axis_azimuth': 0.,                             # azimuth angle of rotation axis
+    'gcr': simulationDict['gcr'],                   # ground coverage ratio, irrelevant because only 1 row
+    'surface_tilt': simulationDict['tilt'],         # tilt of albedometer, 0 = horizontal
+    'surface_azimuth': simulationDict['azimuth'],   # azimuth of same to azimuth of pv rows front surface
+    'solar_zenith': df.iloc[j]['apparent_zenith'],  # solar zenith as dataframe
+    'solar_azimuth': df.iloc[j]['azimuth'],         # solar azimuth as dataframe
+    }
+    
+    # creat an OrderedPVArray with simulationParemeters for the PVrowy like in radiationHandler
+    pvarray_pv = OrderedPVArray.fit_from_dict_of_scalars(simulationParameter)
+     
+    # create vf_matrix out of pvarray_albedo and pv_array_pv with selfmade function
+    vf_matrix = build_ts_vf_matrix_albedo(pvarray_pv, pvarray_albedo)
     
     
-    
-    return 
+    return vf_matrix
     
 def calculateAlbedo(simulationDict, dataFrame, resultspath):
     '''
@@ -215,6 +267,8 @@ def calculateAlbedo(simulationDict, dataFrame, resultspath):
     # Intialise arrays
     R_hourly = []     # array to hold R value
     H_hourly = []     # array to hold H value
+    VF_S_A1 = []      # array to hold view factors from surface s to surface A1
+    VF_S_A2 = []      # array to hold view factors from surface s to surface A2
     a_hourly = []     # array to hold albedo
     cd = []           # array to hold hourly datetime  
     
@@ -227,7 +281,7 @@ def calculateAlbedo(simulationDict, dataFrame, resultspath):
     
     for j in range(timedelta):
                        
-        spectrum = modelingSpectralIrradiance(simulationDict, dataFrame, j) # 8D array from the function modelingSpectralIrradiance is created
+        spectrum = modelingSpectralIrradiance(simulationDict, df, j) # 8D array from the function modelingSpectralIrradiance is created
         R_lamda_array = getReflectivityData(simulationDict) # 1D array from the function getReflectanceData is created
         
         sum_R_G = 0
@@ -252,6 +306,7 @@ def calculateAlbedo(simulationDict, dataFrame, resultspath):
         
         
         #########################################################################
+        
         # Calculate R value
         
         # Check, if sum_G is 0 or Nan, so that sum_R_G is not divided by 0 or NaN
@@ -283,12 +338,24 @@ def calculateAlbedo(simulationDict, dataFrame, resultspath):
         #########################################################################
         
         # Calculate Albedo
-        # TODO: Viewfactor übergeben
-        VF_s_a1 = # Viewfactor from surface S (Albedo measurement) to surface A1 (unshaded ground)
-        VF_s_a2 = # Viewfactor from surface S (Albedo measurement) to surface A2 (shaded ground)
         
-        a = R * (VF_s_a1 + (1/(H+1)) * VF_s_a2) # Albedo [-]
+        # vf_maritx is created with timestep eqaul to current loop number, which represents the hour after starthour
+        vf_matrix = calculateViewFactor(simulationDict, df, j)
         
+        # Check if GHI is 0, then viewfactors are also 0 because there is no radiation
+        if df.iloc[j]['ghi'] == 0:
+            VF_s_a1 = 0
+            VF_s_a2 = 0
+        else:
+            VF_s_a1_array = vf_matrix[8, 0, :] # Viewfactor from surface S (Albedo measurement) to surface A1 (unshaded ground)
+            VF_s_a1 = VF_s_a1_array[0]         # to convert array into number
+            VF_s_a2_array = vf_matrix[8, 4, :] # Viewfactor from surface S (Albedo measurement) to surface A2 (shaded ground)
+            VF_s_a2 = VF_s_a2_array[0]         # to convert array into number
+            
+        a = R * (VF_s_a1 + (1/(H+1)) * VF_s_a2)     # spectral Albedo [-]
+        
+        VF_S_A1.append(VF_s_a1)
+        VF_S_A2.append(VF_s_a2)
         a_hourly.append(a)
         
         #########################################################################
@@ -297,14 +364,15 @@ def calculateAlbedo(simulationDict, dataFrame, resultspath):
         currentDate = datetime.datetime(simulationDict['startHour'][0], simulationDict['startHour'][1], simulationDict['startHour'][2], simulationDict['startHour'][3]) + pd.to_timedelta(j, unit='H') 
         cd.append(currentDate)      # append the currentDate to cd array
    
-    #########################################################################
-    
-    # a_hourly is saved to new csv
-    albedo_results = pd.DataFrame({'datetime':cd, 'spectral Albedo':a})
-    albedo_results.to_csv(resultspath + 'spectral_Albedo.csv', sep=';', index=False)
     
     #########################################################################
-     
+    
+    # calculted values are saved to new csv
+    albedo_results = pd.DataFrame({'datetime':cd, 'spectral Albedo':a_hourly, 'R': R_hourly, 'H': H_hourly, 'VF_s_a1': VF_S_A1, 'VF_s_a2': VF_S_A2})
+    albedo_results.to_csv(resultspath + '/spectral_Albedo.csv', sep=';', index=False)
+    
+    #########################################################################
+        
     # weatherfile gets updated with a_hourly
     
     # read in first and second row separat
@@ -342,8 +410,7 @@ def calculateAlbedo(simulationDict, dataFrame, resultspath):
         write.writerows(weatherfile_list) 
     
     #########################################################################
-
     
-    # return a_hourly
+    
     
 
