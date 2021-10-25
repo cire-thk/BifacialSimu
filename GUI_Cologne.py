@@ -94,7 +94,7 @@ import BifacialSimu_dataHandler
 # simulation parameters and variables
 SimulationDict = {
 'simulationName' : 'NREL_best_field_row_2',
-'simulationMode' : 1, 
+'simulationMode' : 2, 
 'localFile' : True, # Decide wether you want to use a  weather file or try to download one for the coordinates
 'weatherFile' : (rootPath +'/WeatherData/Cologne_Germany/Cologne_Bibdach_50.935_6.992_Measurement_Sept_Okt_2021.csv'), # weather file in TMY format 
 'spectralReflectancefile' : (rootPath + '/ReflectivityData/interpolated_reflectivity.csv'),
@@ -102,28 +102,29 @@ SimulationDict = {
 'startHour' : (2021, 9, 23, 0),  # Only for hourly simulation, yy, mm, dd, hh
 'endHour' : (2021, 9, 24, 0),  # Only for hourly simulation, yy, mm, dd, hh
 'utcOffset': +2,
-'tilt' : 10, #tilt of the PV surface [deg]
+'tilt' : 25, #tilt of the PV surface [deg]
 'singleAxisTracking' : True, # singleAxisTracking or not
 'backTracking' : False, # Solar backtracking is a tracking control program that aims to minimize PV panel-on-panel shading 
 'ElectricalMode_simple': False, # simple electrical Simulation after PVSyst, use if rear module parameters are missing
 'limitAngle' : 60, # limit Angle for singleAxisTracking
-'hub_height' : 0.4, # Height of the rotation axis of the tracker [m]
+'hub_height' : 1.5, # Height of the rotation axis of the tracker [m], distance between ground and center of PVrows
 'azimuth' : 180, #azimuth of the PV surface [deg] 90°: East, 135° : South-East, 180°:South
 'nModsx' : 1, #number of modules in x-axis
 'nModsy' : 1, #number of modules in y-axis
-'nRows' : 3, #number of rows
+'nRows' : 1, #number of rows
 'sensorsy' : 5, #number of sensors
-'moduley' : 2 ,#length of modules in y-axis
-'modulex' : 1, #length of modules in x-axis  
+'moduley' : 2.036 ,#length of modules in y-axis
+'modulex' : 1.002, #length of modules in x-axis  
+'fixAlbedo': False, # Option to use the fix variable 'albedo'
 'hourlyMeasuredAlbedo' : False, # True if measured albedo values in weather file
-'spectralAlbedo' : True, # Option to calculate a spectral Albedo 
-'albedo' : 0.2384, # Measured Albedo average value, if hourly isn't available
+'hourlyspectralAlbedo' : True, # Option to calculate a spectral Albedo 
+'albedo' : 0.2169, # Measured Albedo average value, if hourly isn't available
 'frontReflect' : 0.03, #front surface reflectivity of PV rows
 'BackReflect' : 0.05, #back surface reflectivity of PV rows
 'longitude' : 6.992, 
 'latitude' : 50.935,
-'gcr' : 0.35, #ground coverage ratio (module area / land use)
-'module_type' : 'NREL row 2', #Name of Module
+'gcr' : 0.45, #ground coverage ratio (module area / land use)
+'module_type' : 'GCL-M3/72GDF-420W', #Name of Module
 }
 
 # is in Function StartSimulation()
@@ -294,7 +295,9 @@ class Window(tk.Tk):
                 SimulationDict["limitAngle"]=float(Entry_LimitAngle.get())
         
             if len(Entry_ClearanceHeight.get()) !=0:
-                SimulationDict["clearance_height"]=float(Entry_ClearanceHeight.get())      
+                SimulationDict["clearance_height"]=float(Entry_ClearanceHeight.get())
+                # Calculate the hub height of the PV rows, measured at the bottom edge
+                SimulationDict['hub_height']  = (SimulationDict['clearance_height'] + (math.sin(SimulationDict['tilt'])*SimulationDict['moduley']/2))
                 
             if len(Entry_Azimuth.get()) !=0:
                 SimulationDict["azimuth"]=float(Entry_Azimuth.get()) 
@@ -337,8 +340,8 @@ class Window(tk.Tk):
                 
             if len(Entry_HubHeight.get()) !=0:
                 SimulationDict["hub_height"]=float(Entry_HubHeight.get()) 
-                # Calculate the height of the PV rows, measured at the bottom edge for the use in Viewfactors, PV*Sol and PVSyst
-                SimulationDict['clearance_height']  = (SimulationDict['hub_height'] - (math.sin(SimulationDict['tilt'])*SimulationDict['moduley']/2)) #height of the PV rows, measured at their center [m]
+                # Calculate the clearance height of the PV rows, measured at the bottom edge
+                SimulationDict['clearance_height']  = (SimulationDict['hub_height'] - (math.sin(SimulationDict['tilt'])*SimulationDict['moduley']/2))
 
 
 # =============================================================================
@@ -764,9 +767,9 @@ class Window(tk.Tk):
             
         def setdefault_Cologne():
             Entry_Tilt.config(state="normal")
-            Entry_ClearanceHeight.config(state="normal")
+            Entry_HubHeight.config(state="normal")
             clearall()
-            Combo_Module.current(0)
+            Combo_Module.current(2)
             Combo_Albedo.current(31)
             rad1_weatherfile.invoke()
             rad2_simulationMode.invoke()
@@ -779,7 +782,7 @@ class Window(tk.Tk):
             Entry_reflectivityfile.insert(0, reflectivityFile_configfile_C)
             Entry_Tilt.insert(0, tilt_configfile_C)
             Entry_LimitAngle.insert(0, limitAngle_configfile_C)
-            Entry_ClearanceHeight.insert(0, ClearanceHeight_configfile_C)
+            Entry_HubHeight.insert(0, HubHeight_configfile_C)
             Entry_Azimuth.insert(0, azimuth_configfile_C)
             Entry_nModsx.insert(0, nModsx_configfile_C)
             Entry_nModsy.insert(0, nModsy_configfile_C)
@@ -802,7 +805,7 @@ class Window(tk.Tk):
             Entry_gcr.insert(0, gcr_configfile_C)
             Entry_utcoffset.insert(0, utcoffset_configfile_C)
 
-            key = entry_modulename_value.get()
+            key = Module_name_configfile_C
             d = self.jsondata[key]
             self.module_type = key
             SimulationDict["module_type"]=self.module_type
@@ -1069,12 +1072,12 @@ class Window(tk.Tk):
                 Label_LimitAngle.config(state="disabled")
                 Entry_LimitAngle.config(state="disabled")
                 Label_LimitAnglePar.config(state="disabled")
-                Label_HubHeight.config(state="disabled")
-                Entry_HubHeight.config(state="disabled")
-                Label_HubHeightPar.config(state="disabled")
-                Label_ClearanceHeight.config(state="normal")
-                Entry_ClearanceHeight.config(state="normal")
-                Label_ClearanceHeightPar.config(state="normal")
+                Label_HubHeight.config(state="normal")
+                Entry_HubHeight.config(state="normal")
+                Label_HubHeightPar.config(state="normal")
+                Label_ClearanceHeight.config(state="disabled")
+                Entry_ClearanceHeight.config(state="disabled")
+                Label_ClearanceHeightPar.config(state="disabled")
                  
                  
             else:
@@ -1102,24 +1105,27 @@ class Window(tk.Tk):
         rad1_rb_SingleAxisTracking.grid(column=0,row=1, sticky=W)
         rad2_rb_SingleAxisTracking.grid(column=1,row=1, columnspan=2, sticky=W)
         
-        # Choosing between hourly and average albedo
+        # Choosing between hourly and average and spectral albedo
         def Measuredalbedo():
             if rb_Albedo.get()==0:
                 SimulationDict["hourlyMeasuredAlbedo"]=False
-                SimulationDict["spectralAlbedo"]=False
+                SimulationDict["hourlyspectralAlbedo"]=False
+                SimulationDict["fixAlbedo"]=True
                 Label_albedo.config(state="normal")
                 Entry_albedo.config(state="normal")
                 Combo_Albedo.config(state="normal")
 
             elif rb_Albedo.get()==2:
                 SimulationDict["hourlyMeasuredAlbedo"]=False
-                SimulationDict["spectralAlbedo"]=True
+                SimulationDict["hourlyspectralAlbedo"]=True
+                SimulationDict["fixAlbedo"]=False
                 Label_albedo.config(state="normal")
                 Entry_albedo.config(state="normal")
                 Combo_Albedo.config(state="normal")
             else:
                 SimulationDict["hourlyMeasuredAlbedo"]=True
-                SimulationDict["spectralAlbedo"]=False
+                SimulationDict["hourlyspectralAlbedo"]=False
+                SimulationDict["fixAlbedo"]=False
                 Label_albedo.config(state="disabled")
                 Entry_albedo.config(state="disabled")
                 Combo_Albedo.config(state="disabled")
@@ -1454,7 +1460,7 @@ class Window(tk.Tk):
         reflectivityFile_configfile_C=parser.get('default', "reflectivityFile")
         tilt_configfile_C=parser.get('default', 'tilt')
         limitAngle_configfile_C=parser.getfloat('default', 'limitAngle')
-        ClearanceHeight_configfile_C=parser.getfloat('default', 'clearance_height')
+        HubHeight_configfile_C=parser.getfloat('default', 'hub_height')
         azimuth_configfile_C=parser.getfloat('default', 'azimuth')
         nModsx_configfile_C=parser.getint('default', 'nModsx')
         nModsy_configfile_C=parser.getint('default', 'nModsy')
@@ -1476,6 +1482,7 @@ class Window(tk.Tk):
         latitude_configfile_C=parser.get('default', 'latitude')
         gcr_configfile_C=parser.get('default', 'gcr')
         utcoffset_configfile_C=parser.get('default', 'utcoffset')
+        Module_name_configfile_C=parser.get('default','module_name')
         
         
         
