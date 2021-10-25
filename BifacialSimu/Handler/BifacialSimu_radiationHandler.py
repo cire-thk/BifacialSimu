@@ -97,22 +97,22 @@ class RayTrace:
         ####################################################
         
         # Set albedo from sim parameters
-        if simulationDict['hourlyMeasuredAlbedo'] ==False:
-            # Measured Albedo average value
+        if simulationDict['fixAlbedo'] ==True:
+            # Measured Albedo average fix value
             demo.setGround(simulationDict['albedo'])
             
-        elif simulationDict['spectralAlbedo'] == True:
-            # calculated spectral albedo
-            demo.setGround(material = None)
-        
-        # if matrerial=None, then material = metdata.albedo 
-        # metdata.albedo is colume of metdata weatherfile with albedo
-       
         else:
+            # hourly spectral albedo or hourly measured albedo
             if simulationDict['singleAxisTracking'] == True:
                 demo.setGround(material = None)
             else:
                 sys.exit("The use of hourly Measured Albedo Values is not possible with fixed tilts at the moment")
+            
+            # if material=None, then material = metdata.albedo 
+            # metdata.albedo (datatype: np.ndarray) is colume of metdata = RadianceObj out of weatherfile with albedo values
+            # weatherfile must contain hourly measured albedo, if simulationDict['hourlymeasuredAlbedo'] = True
+            # weatherfile contains spectral albedo, if simulationDict['hourlyspectralAlbedo'] = True
+            # because spectralAlbedoHandler calcutlate spectral albedo and write the calculated spectral albedo in weatherfile
         
         ####################################################    
         
@@ -350,9 +350,13 @@ class RayTrace:
                     dhi = df_gendaylit.loc[i, 'dhi']
                     
                     #simulate sky with gendaylit
+                    print("sunalt", sunalt)
+                    print("dhi", dhi)
                     demo.gendaylit2manual(dni, dhi, sunalt, sunaz)
                     print(time)
                     demo.getfilelist()
+                    print(demo.skyfiles)
+                    #print(demo.ground.ReflAvg.shape[0])
                     octfile = demo.makeOct(demo.getfilelist())  
 
                     
@@ -377,7 +381,7 @@ class RayTrace:
         
                             else:
                                 df_rtraceBack.insert(loc=j, column = key_back, value = analysis.Wm2Back) 
-                            
+                                                           
                             df_rtrace = pd.concat([df_rtraceFront, df_rtraceBack], axis=1)
                             
                         else:
@@ -607,16 +611,18 @@ class ViewFactors:
         
         ####################################################
         
-        # set Albedo calcualtion mode
-        if simulationDict['hourlyMeasuredAlbedo'] ==True :
-            albedo = df['albedo']        # hourly variable albedo out of weatherfile
-        
-        elif simulationDict['spectralAlbedo'] == True :
-            albedo = df['albedo']  # spectral Albedo is in df, because spectralAlbedoHandler write the calculated spectral albedo in weatherfile
-            # weatherfile is read in again in simulationController as df, spectralAlbedo is in df
-        else:   
+        # set Albedo calculation mode
+        if simulationDict['fixAlbedo'] ==True :
             # Measured Albedo average value, fix value
             albedo = simulationParameter['albedo']
+           
+        else:
+            # hourly measured albedo or hourly spectral albedo
+            albedo = df['albedo']  
+            # weatherfile must contain hourly measured albedo, if simulationDict['hourlymeasuredAlbedo'] = True
+            # weatherfile contains spectral albedo, if simulationDict['hourlyspectralAlbedo'] = True
+            # because spectralAlbedoHandler calculate spectral albedo and write the calculated spectral albedo in weatherfile
+            # weatherfile is read in again in simulationController as df, spectralAlbedo is in df
         ####################################################
         
         #set sun parameters
@@ -640,7 +646,6 @@ class ViewFactors:
         
         # Create ordered PV array and fit engine
         pvarray = OrderedPVArray.init_from_dict(simulationParameter)
-        print(pvarray)
         engine = PVEngine(pvarray)
 
         engine.fit(df.index, df.dni, df.dhi,

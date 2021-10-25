@@ -28,6 +28,7 @@ import dateutil.tz
 import datetime
 import numpy as np
 import csv
+import matplotlib.pyplot as plt
 from pvlib import spectrum, irradiance, atmosphere
 from pvfactors.geometry import OrderedPVArray
 from pvfactors.viewfactors.vfmethods import VFTsMethods
@@ -106,7 +107,7 @@ def modelingSpectralIrradiance(simulationDict, dataFrame, j):
     ----------
     simulationDict: simulation Dictionary, which can be found in GUI.py
     dataFrame: pandas dataframe, which contains the weather data
-    j: current loop number, which represent the hour after starthour
+    j: current loop number, which represent the hour after starthour = index of df
     
     Returns
     -------
@@ -198,10 +199,10 @@ def build_ts_vf_matrix_albedo(pvarray_pv, pvarray_albedo):
     vf_ts_methods = VFTsMethods()
     
     # Initialize matrix
-    rotation_vec = pvarray_pv.rotation_vec
+    rotation_vec = pvarray_albedo.rotation_vec
     tilted_to_left = rotation_vec > 0
     n_steps = len(rotation_vec)
-    n_ts_surfaces = pvarray_pv.n_ts_surfaces
+    n_ts_surfaces = pvarray_albedo.n_ts_surfaces
     vf_matrix = np.zeros((n_ts_surfaces + 1, n_ts_surfaces + 1, n_steps), dtype=float)  # don't forget to include the sky
 
     # Get timeseries objects
@@ -230,7 +231,7 @@ def calculateViewFactor(simulationDict, dataFrame, j):
     ----------
     simulationDict: simulation Dictionary, which can be found in GUI.py
     dataFrame: pandas dataframe, which contains the weather data
-    j: current loop number, which represent the hour after starthour
+    j: current loop number, which represent the hour after starthour = index of df
       
     Returns
     -------
