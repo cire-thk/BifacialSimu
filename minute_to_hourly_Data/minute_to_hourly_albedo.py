@@ -40,14 +40,19 @@ for i in range(loop_number):
     for j in range(60):
         
         A = df1.iloc[k]['Albedo'] 
-        
+        if A == 0:
+            A = np.nan
+            
         A_minute.append(A)
         
 
         k = k + 1
         
-    A_h = np.mean(A_minute)     # mean value of 60 Albedo minute values
-       
+    A_h = np.nanmean(A_minute)  # mean value of 60 Albedo minute values without nan values
+    
+    if pd.isna(A_h):
+        A_h = 0
+        
     A_hourly.append(A_h)        # append the hourly Albedo value to Albedo array
     cd.append(currentDate)      # append the currentDate to cd array
 
