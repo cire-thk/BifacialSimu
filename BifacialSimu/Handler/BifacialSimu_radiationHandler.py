@@ -488,6 +488,8 @@ class ViewFactors:
         'Latitude_Position': simulationDict['latitude'], #Latitude of measurement position [deg]
         'axis_azimuth': 0.0, #Axis Azimuth angle [deg]
         'gcr': simulationDict['gcr'], #ground coverage ratio (module area / land use)
+        'x_min': -100,
+        'x_max': 100,
         }
         dpi = 150 #Quality for plot export
         
@@ -964,9 +966,9 @@ class ViewFactors:
         
         save_view_factor(4, 12, vf_matrix, df.index)
         
-            
+        
         f, ax = plt.subplots(figsize=(10, 3))
-        pvarray.plot_at_idx(12, ax, with_surface_index=True)
+        pvarray.plot_at_idx(0, ax, with_surface_index=True)
         plt.show()
         
         return df_reportVF, df

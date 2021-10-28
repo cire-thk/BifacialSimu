@@ -117,7 +117,7 @@ SimulationDict = {
 'modulex' : 1.002, #length of modules in x-axis  
 'fixAlbedo': False, # Option to use the fix variable 'albedo'
 'hourlyMeasuredAlbedo' : False, # True if measured albedo values in weather file
-'hourlyspectralAlbedo' : True, # Option to calculate a spectral Albedo 
+'hourlySpectralAlbedo' : True, # Option to calculate a spectral Albedo 
 'albedo' : 0.2169, # Measured Albedo average value, if hourly isn't available
 'frontReflect' : 0.03, #front surface reflectivity of PV rows
 'BackReflect' : 0.05, #back surface reflectivity of PV rows
@@ -1109,7 +1109,7 @@ class Window(tk.Tk):
         def Measuredalbedo():
             if rb_Albedo.get()==0:
                 SimulationDict["hourlyMeasuredAlbedo"]=False
-                SimulationDict["hourlyspectralAlbedo"]=False
+                SimulationDict["hourlySpectralAlbedo"]=False
                 SimulationDict["fixAlbedo"]=True
                 Label_albedo.config(state="normal")
                 Entry_albedo.config(state="normal")
@@ -1117,14 +1117,14 @@ class Window(tk.Tk):
 
             elif rb_Albedo.get()==2:
                 SimulationDict["hourlyMeasuredAlbedo"]=False
-                SimulationDict["hourlyspectralAlbedo"]=True
+                SimulationDict["hourlySpectralAlbedo"]=True
                 SimulationDict["fixAlbedo"]=False
                 Label_albedo.config(state="normal")
                 Entry_albedo.config(state="normal")
                 Combo_Albedo.config(state="normal")
             else:
                 SimulationDict["hourlyMeasuredAlbedo"]=True
-                SimulationDict["hourlyspectralAlbedo"]=False
+                SimulationDict["hourlySpectralAlbedo"]=False
                 SimulationDict["fixAlbedo"]=False
                 Label_albedo.config(state="disabled")
                 Entry_albedo.config(state="disabled")

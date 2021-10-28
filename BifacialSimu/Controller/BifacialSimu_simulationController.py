@@ -58,7 +58,7 @@ def startSimulation(simulationDict, moduleDict, resultsPath):
     ####################################################
     
     # optional spectralAlbedo calculation
-    if simulationDict['hourlyspectralAlbedo'] == True:
+    if simulationDict['hourlySpectralAlbedo'] == True:
         # spectralAlbedoHandler calculate the spectral albedo and write it in the weatherfile in colume 'albedo'
         BifacialSimu_spectralAlbedoHandler.calculateAlbedo(simulationDict, df, resultsPath)
     

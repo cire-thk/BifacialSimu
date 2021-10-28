@@ -46,7 +46,7 @@ def getReflectivityData(simulationDict):
    
     return R_lamda
     
-def modelingSpectralIrradiance(simulationDict, dataFrame, j):
+def modellingSpectralIrradiance(simulationDict, dataFrame, j):
     '''
     Model the spectral distribution of irradiance based on atmospheric conditions. 
     The spectral distribution of irradiance is the power content at each wavelength 
@@ -206,8 +206,10 @@ def calculateViewFactor(simulationDict, dataFrame, j):
     'gcr': 0.5,                                     # ground coverage ratio, irrelevant because only 1 row
     'surface_tilt': 0.,                             # tilt of albedometer, 0 = horizontal
     'surface_azimuth': simulationDict['azimuth'],   # azimuth of same to azimuth of pv rows front surface
-    'solar_zenith': df.iloc[j]['apparent_zenith'],  # solar zenith as dataframe
-    'solar_azimuth': df.iloc[j]['azimuth'],         # solar azimuth as dataframe
+    'solar_zenith': df.iloc[j]['apparent_zenith'],  # solar zenith out of dataframe
+    'solar_azimuth': df.iloc[j]['azimuth'],         # solar azimuth out of dataframe
+    'x_min': -10,
+    'x_max': 10,
     }
     
     # creat an OrderedPVArray with pvarray_parameters for albedometer
@@ -223,13 +225,16 @@ def calculateViewFactor(simulationDict, dataFrame, j):
     'gcr': simulationDict['gcr'],                   # ground coverage ratio, irrelevant because only 1 row
     'surface_tilt': simulationDict['tilt'],         # tilt of albedometer, 0 = horizontal
     'surface_azimuth': simulationDict['azimuth'],   # azimuth of same to azimuth of pv rows front surface
-    'solar_zenith': df.iloc[j]['apparent_zenith'],  # solar zenith as dataframe
-    'solar_azimuth': df.iloc[j]['azimuth'],         # solar azimuth as dataframe
+    'solar_zenith': df.iloc[j]['apparent_zenith'],  # solar zenith out of dataframe
+    'solar_azimuth': df.iloc[j]['azimuth'],         # solar azimuth out of dataframe
+    'x_min': -10,
+    'x_max': 10,
     }
     
     # creat an OrderedPVArray with simulationParemeters for the PVrowy like in radiationHandler
     pvarray_pv = OrderedPVArray.fit_from_dict_of_scalars(simulationParameter)
      
+      
     # create vf_matrix out of pvarray_albedo and pv_array_pv with selfmade function
     vf_matrix = build_ts_vf_matrix_albedo(pvarray_pv, pvarray_albedo)
     
@@ -255,23 +260,24 @@ def calculateAlbedo(simulationDict, dataFrame, resultspath):
     df = dataFrame
         
     # Translate startHour und endHour in timeindexes
-    dtStart = datetime.datetime(simulationDict['startHour'][0], simulationDict['startHour'][1], simulationDict['startHour'][2], simulationDict['startHour'][3], tzinfo=dateutil.tz.tzoffset(None, simulationDict['utcOffset']*60*60))
-    #beginning_of_year = datetime.datetime(dtStart.year, 1, 1, tzinfo=dtStart.tzinfo)
-    #startHour = int((dtStart - beginning_of_year).total_seconds() // 3600) # gives the hour in the year
-                
+    dtStart = datetime.datetime(simulationDict['startHour'][0], simulationDict['startHour'][1], simulationDict['startHour'][2], simulationDict['startHour'][3], tzinfo=dateutil.tz.tzoffset(None, simulationDict['utcOffset']*60*60))              
     dtEnd = datetime.datetime(simulationDict['endHour'][0], simulationDict['endHour'][1], simulationDict['endHour'][2], simulationDict['endHour'][3], tzinfo=dateutil.tz.tzoffset(None, simulationDict['utcOffset']*60*60))
-    #beginning_of_year = datetime.datetime(dtEnd.year, 1, 1, tzinfo=dtEnd.tzinfo)
-    #endHour = int((dtEnd - beginning_of_year).total_seconds() // 3600) # gives the hour in the year
     
+    # hours between start and endhour, converted from seconds into hours
     timedelta = int((dtEnd - dtStart).total_seconds() //3600) + 1       # +1, so that endHour also runs through the loop
     
     # Intialise arrays
     R_hourly = []     # array to hold R value
     H_hourly = []     # array to hold H value
+    VF_8_2_hourly = []
+    VF_8_4_hourly = []
+    VF_8_5_hourly = []
     VF_S_A1 = []      # array to hold view factors from surface s to surface A1
     VF_S_A2 = []      # array to hold view factors from surface s to surface A2
     a_hourly = []     # array to hold albedo
     cd = []           # array to hold hourly datetime  
+    
+    R_lamda_array = getReflectivityData(simulationDict) # 1D array from the function getReflectanceData is created
     
     #########################################################################
     '''
@@ -282,13 +288,12 @@ def calculateAlbedo(simulationDict, dataFrame, resultspath):
     
     for j in range(timedelta):
                        
-        spectrum = modelingSpectralIrradiance(simulationDict, df, j) # 8D array from the function modelingSpectralIrradiance is created
-        R_lamda_array = getReflectivityData(simulationDict) # 1D array from the function getReflectanceData is created
-        
+        spectrum = modellingSpectralIrradiance(simulationDict, df, j) # 8D array from the function modelingSpectralIrradiance is created
+               
         sum_R_G = 0
         sum_G = 0
                 
-        for i in range(112): # 112 loops (0<=i<=111), because of 112 wavelenghts in spectra, which are used for calculation (only to 3000 nm, because R values reaches only to 3000 nm)
+        for i in range(108): # 108 loops (0<=i<=107), because of 108 wavelenghts in spectra, which are used for calculation (only from 310 to 2800 nm, because measurment is onyl for spectral range of 310 to 2800 nm)
             
             '''
             Attention: 
@@ -297,7 +302,8 @@ def calculateAlbedo(simulationDict, dataFrame, resultspath):
               is a NaN value for night time, because apperent_zenith is greater than 90 deg
             - sum_R_G and sum_G are NaN values for nighttime, in consequence
             '''
-            G_lamda = spectrum['poa_global'][i] # G for current number of wavelength i [W/m²/nm]
+            G_lamda = spectrum['poa_global'][i+2] # G for current number of wavelength i [W/m²/nm]
+            # +2, because the first value of spectrum is for 300 nm and second for 305 nm, but we need the 310 value at first
             G_lamda2 = G_lamda[0]               # gets G out of the array (which contains only one value)
             R_lamda = R_lamda_array[i]          # R for current number of wavelength i [-]
             lamda = spectrum['wavelength'][i]   # current wavelength i [nm]
@@ -347,14 +353,23 @@ def calculateAlbedo(simulationDict, dataFrame, resultspath):
         if df.iloc[j]['ghi'] == 0:
             VF_s_a1 = 0
             VF_s_a2 = 0
+            VF_8_2 = 0
+            VF_8_4 = 0
+            VF_8_5 = 0
         else:
-            VF_s_a1_array = vf_matrix[8, 4, :] # Viewfactor from surface S (Albedo measurement) to surface A1 (unshaded ground)
-            VF_s_a1 = VF_s_a1_array[0]         # to convert array into number
-            VF_s_a2_array = vf_matrix[8, 0, :] # Viewfactor from surface S (Albedo measurement) to surface A2 (shaded ground)
-            VF_s_a2 = VF_s_a2_array[0]         # to convert array into number
+            VF_8_2 = vf_matrix[8, 2, :][0]
+            VF_8_4 = vf_matrix[8, 4, :][0]
+            VF_8_5 = vf_matrix[8, 5, :][0]
+            #VF_s_a1_array = vf_matrix[8, 4, :] + vf_matrix[8, 2, :] + vf_matrix[8, 5, :] # Viewfactor from surface S (Albedo measurement) to surface A1 (unshaded ground)
+            VF_s_a1 = VF_8_4 + VF_8_5 + VF_8_2     
+            #VF_s_a2_array = vf_matrix[8, 0, :] # Viewfactor from surface S (Albedo measurement) to surface A2 (shaded ground)
+            VF_s_a2 = vf_matrix[8, 0, :][0]         # to convert array into number
             
         a = R * (VF_s_a1 + (1/(H+1)) * VF_s_a2)     # spectral Albedo [-]
         
+        VF_8_2_hourly.append(VF_8_2)
+        VF_8_4_hourly.append(VF_8_4)
+        VF_8_5_hourly.append(VF_8_5)
         VF_S_A1.append(VF_s_a1)
         VF_S_A2.append(VF_s_a2)
         a_hourly.append(a)
@@ -369,7 +384,7 @@ def calculateAlbedo(simulationDict, dataFrame, resultspath):
     #########################################################################
     
     # calculted values are saved to new csv
-    albedo_results = pd.DataFrame({'datetime':cd, 'spectral Albedo':a_hourly, 'R': R_hourly, 'H': H_hourly, 'VF_s_a1': VF_S_A1, 'VF_s_a2': VF_S_A2})
+    albedo_results = pd.DataFrame({'datetime':cd, 'spectral Albedo':a_hourly, 'R': R_hourly, 'H': H_hourly, 'VF_s_a1': VF_S_A1, 'VF_8_2': VF_8_2_hourly, 'VF_8_4': VF_8_4_hourly, 'VF_8_5': VF_8_5_hourly, 'VF_s_a2': VF_S_A2})
     albedo_results.to_csv(resultspath + '/spectral_Albedo.csv', sep=';', index=False)
     
     #########################################################################
