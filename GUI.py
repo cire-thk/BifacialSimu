@@ -761,75 +761,7 @@ class Window(tk.Tk):
             Entry_albedo.delete(0,END)
             Entry_albedo.insert(0,str(a['Albedo']))
        
-            
-        def setdefault_Cologne():
-            Entry_Tilt.config(state="normal")
-            Entry_ClearanceHeight.config(state="normal")
-            clearall()
-            Combo_Module.current(0)
-            Combo_Albedo.current(0)
-            rad1_weatherfile.invoke()
-            rad1_simulationMode.invoke()
-            rad1_rb_SingleAxisTracking.invoke()
-            rad1_Albedo.invoke()
-            rad1_ElectricalMode.invoke()
-            rad1_BacktrackingMode.invoke()
-            Entry_Name.insert(0, simulationName_configfile_C)
-            Entry_weatherfile.insert(0, weatherFile_configfile_C) #zu überarbeiten
-            Entry_Tilt.insert(0, tilt_configfile_C)
-            Entry_LimitAngle.insert(0, limitAngle_configfile_C)
-            Entry_ClearanceHeight.insert(0, ClearanceHeight_configfile_C)
-            Entry_Azimuth.insert(0, azimuth_configfile_C)
-            Entry_nModsx.insert(0, nModsx_configfile_C)
-            Entry_nModsy.insert(0, nModsy_configfile_C)
-            Entry_nRows.insert(0, nRows_configfile_C)
-            Entry_sensors.insert(0, sensorsy_configfile_C)
-            Entry_year_start.insert(0, Start_Year_configfile_C)
-            Entry_month_start.insert(0, Start_Month_configfile_C)
-            Entry_day_start.insert(0, Start_Day_configfile_C)
-            Entry_hour_start.insert(0, Start_Hour_configfile_C)
-            Entry_year_end.insert(0, End_Year_configfile_C)
-            Entry_month_end.insert(0, End_Month_configfile_C)
-            Entry_day_end.insert(0, End_Day_configfile_C)
-            Entry_hour_end.insert(0, End_Hour_configfile_C)
-         #   Entry_moduley.insert(0, moduley_configfile)
-          #  Entry_modulex.insert(0, modulex_configfile)
-            Entry_frontReflect.insert(0, frontReflect_configfile_C)
-            Entry_backReflect.insert(0, backReflect_configfile_C)
-            Entry_longitude.insert(0, longitude_configfile_C)
-            Entry_latitude.insert(0, latitude_configfile_C)
-            Entry_gcr.insert(0, gcr_configfile_C)
-            Entry_utcoffset.insert(0, utcoffset_configfile_C)
-
-            key = entry_modulename_value.get()
-            d = self.jsondata[key]
-            self.module_type = key
-            SimulationDict["module_type"]=self.module_type
-            Entry_bi_factor.insert(0,str(d['bi_factor']))
-            Entry_nfront.insert(0,str(d['n_front']))
-            Entry_Iscf.insert(0,str(d['I_sc_f']))
-            Entry_Iscr.insert(0,str(d['I_sc_r']))
-            Entry_Vocf.insert(0,str(d['V_oc_f']))
-            Entry_Vocr.insert(0,str(d['V_oc_r']))
-            Entry_Vmppf.insert(0,str(d['V_mpp_f']))
-            Entry_Vmppr.insert(0,str(d['V_mpp_r']))
-            Entry_Imppf.insert(0,str(d['I_mpp_f']))              
-            Entry_Imppr.insert(0,str(d['I_mpp_r']))
-            Entry_Pmpp.insert(0,str(d['P_mpp']))
-            Entry_TkoeffP.insert(0,str(d['T_koeff_P']))
-            Entry_Tamb.insert(0,str(d['T_amb']))
-            Entry_TkoeffI.insert(0,str(d['T_koeff_I']))
-            Entry_TkoeffV.insert(0,str(d['T_koeff_V']))
-            Entry_zeta.insert(0,str(d['zeta']))
-            Entry_modulex.insert(0,str(d['modulex']))
-            Entry_moduley.insert(0,str(d['moduley'])) 
-                
-            key1=entry_albedo_value.get()
-            a = self.jsondata_albedo[key1]
-            self.albedo = key1
-            Entry_albedo.delete(0,END)
-            #Entry_albedo.insert(0,str(a['Albedo']))
-            Entry_albedo.insert(0,0.4)
+        
 
             
         def clearall():
@@ -1414,40 +1346,7 @@ class Window(tk.Tk):
         utcoffset_configfile=parser.get('default', 'utcoffset')
         
         
-# =============================================================================
-#          Config file (Sarah_Cologne.ini) 
-# =============================================================================
-         
-        parser = ConfigParser()
-        parser.read(rootPath + '\Lib\default\Sarah_Cologne.ini')
-        simulationName_configfile_C=parser.get('default', 'simulationName')
-       # simulationMode_configfile=parser.get('default', 'simulationMode')
-        weatherFile_configfile_C=parser.get('default', "weatherFile")
-        tilt_configfile_C=parser.get('default', 'tilt')
-        limitAngle_configfile_C=parser.getfloat('default', 'limitAngle')
-        ClearanceHeight_configfile_C=parser.getfloat('default', 'clearance_height')
-        azimuth_configfile_C=parser.getfloat('default', 'azimuth')
-        nModsx_configfile_C=parser.getint('default', 'nModsx')
-        nModsy_configfile_C=parser.getint('default', 'nModsy')
-        nRows_configfile_C=parser.getint('default', 'nRows')
-        sensorsy_configfile_C=parser.getint('default', 'sensorsy')
-        Start_Year_configfile_C=parser.get('default', 'Start_Year')
-        Start_Month_configfile_C=parser.get('default', 'Start_Month')
-        Start_Day_configfile_C=parser.get('default', 'Start_Day')
-        Start_Hour_configfile_C=parser.get('default', 'Start_Hour')
-        End_Year_configfile_C=parser.get('default', 'End_Year')
-        End_Month_configfile_C=parser.get('default', 'End_Month')
-        End_Day_configfile_C=parser.get('default', 'End_Day')
-        End_Hour_configfile_C=parser.get('default', 'End_Hour')
-      #  moduley_configfile=parser.get('default', 'moduley')
-      #  modulex_configfile=parser.get('default', 'modulex')
-        frontReflect_configfile_C=parser.get('default', 'frontReflect')
-        backReflect_configfile_C=parser.get('default', 'backReflect')
-        longitude_configfile_C=parser.get('default', 'longitude')
-        latitude_configfile_C=parser.get('default', 'latitude')
-        gcr_configfile_C=parser.get('default', 'gcr')
-        utcoffset_configfile_C=parser.get('default', 'utcoffset')
-        
+
         
         
 # =============================================================================
@@ -1650,8 +1549,6 @@ class Window(tk.Tk):
         Button_startSimulation.grid(column=2,row=1)
         Button_setDefault=ttk.Button(simulationFunction_frame, text="set default!", command=setdefault)
         Button_setDefault.grid(column=0,row=1)
-        Button_setDefault_Cologne=ttk.Button(simulationFunction_frame, text="set default_Cologne!", command=setdefault_Cologne)
-        Button_setDefault_Cologne.grid(column=3,row=1)
         Button_clear=ttk.Button(simulationFunction_frame, text="clear!", command=clearall)
         Button_clear.grid(column=1,row=1)
 
