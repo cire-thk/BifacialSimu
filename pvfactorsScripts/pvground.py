@@ -576,7 +576,7 @@ class TsGround(object):
 
     @staticmethod
     def _shadow_elements_from_coords_and_cut_pts(
-            list_shadow_coords, cut_point_coords, param_names, x_min, x_max):    #THKoeln
+            list_shadow_coords, cut_point_coords, param_names, x_min=MIN_X_GROUND, x_max=MAX_X_GROUND):    #THKoeln
         """Create ground shadow elements from a list of ordered shadow
         coordinates (from left to right), and the ground cut point coordinates.
 
@@ -620,7 +620,7 @@ class TsGround(object):
 
     @staticmethod
     def _illum_elements_from_coords_and_cut_pts(
-            list_shadow_elements, cut_pt_coords, param_names, y_ground, x_min, x_max):   #THKoeln
+            list_shadow_elements, cut_pt_coords, param_names, y_ground, x_min=MIN_X_GROUND, x_max=MAX_X_GROUND):   #THKoeln
         """Create ground illuminated elements from a list of ordered shadow
         elements (from left to right), and the ground cut point coordinates.
         This method will make sure that the illuminated ground elements are

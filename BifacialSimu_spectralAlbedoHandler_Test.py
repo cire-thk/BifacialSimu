@@ -45,7 +45,7 @@ simulationDict = {
 'spectralReflectancefile' : (rootPath + '/ReflectivityData/interpolated_reflectivity.csv'),
 'cumulativeSky' : False, # Mode for RayTracing: CumulativeSky or hourly
 'startHour' : (2021, 9, 23, 0),  # Only for hourly simulation, yy, mm, dd, hh
-'endHour' : (2021, 9, 23, 1),  # Only for hourly simulation, yy, mm, dd, hh
+'endHour' : (2021, 9, 23, 12),  # Only for hourly simulation, yy, mm, dd, hh
 'utcOffset': +2,
 'tilt' : 25, #tilt of the PV surface [deg]
 'singleAxisTracking' : True, # singleAxisTracking or not
@@ -126,6 +126,8 @@ def modelingSpectralIrradiance(simulationDict, dataFrame, j):
     
     # Attention: sun_zenith is greater than 90 deg for night time
     sun_zenith = df.iloc[j]['apparent_zenith']  # [deg] zenith angle of solar radiation
+    if sun_zenith > 90:
+        sun_zenith = 0
     sun_azimuth = df.iloc[j]['azimuth'] # [deg] azimith angle of solar radiation
 
     currentDate = datetime.datetime(simulationDict['startHour'][0], simulationDict['startHour'][1], simulationDict['startHour'][2], simulationDict['startHour'][3]) + pd.to_timedelta(j, unit='H')  # current date and time to calculate spectrum          
@@ -242,7 +244,7 @@ def calculateViewFactor(simulationDict, dataFrame, j):
     'pvrow_height': 1,                              # height of pvrows (measured at center / torque tube)
     'pvrow_width': 0.05,                            # width of glasdome of albedometer
     'axis_azimuth': 0.,                             # azimuth angle of rotation axis
-    'gcr': 0.5,                                     # ground coverage ratio, irrelevant because only 1 row
+    'gcr': simulationDict['gcr'],                                     # ground coverage ratio, irrelevant because only 1 row
     'surface_tilt': 0.,                             # tilt of albedometer, 0 = horizintal
     'surface_azimuth': simulationDict['azimuth'],   # azimuth of same to azimuth of pv rows front surface
     'solar_zenith': df.iloc[j]['apparent_zenith'],  # solar zenith as dataframe
@@ -275,13 +277,15 @@ def calculateViewFactor(simulationDict, dataFrame, j):
     
     
     # Plot pvarray shapely geometries at timestep 0
-    f, ax = plt.subplots(figsize=(10, 3))
+    f, ax = plt.subplots(figsize=(20, 3))
     pvarray_albedo.plot_at_idx(0, ax, with_surface_index=True)
+    plt.title(j)
     plt.show()
     
     # Plot pvarray shapely geometries at timestep 0
-    f, ax = plt.subplots(figsize=(10, 3))
+    f, ax = plt.subplots(figsize=(20, 3))
     pvarray_pv.plot_at_idx(0, ax, with_surface_index=True)
+    plt.title(j)
     plt.show()
     '''
     # List some indices
@@ -419,13 +423,6 @@ def calculateAlbedo(simulationDict, dataFrame, resultpath):
                 
         for i in range(108): # 112 loops (0<=i<=111), because of 112 wavelenghts in spectra, which are used for calculation (only to 3000 nm, because R values reaches only to 3000 nm)
             
-            '''
-            Attention: 
-            - G_lamda (= 'poa_global' colume of the array 'spectrum') gives NaN values for nigth time instead of 0,
-              because the input parameter 'relative_airmass' of 'spectra' in the function 'modelingSpectralIrradiance' 
-              is a NaN value for night time, because apperent_zenith is greater than 90 deg
-            - sum_R_G and sum_G are NaN values for nighttime, in consequence
-            '''
             G_lamda = spectrum['poa_global'][i+2] # G for current number of wavelength i [W/m²/nm]
             G_lamda2 = G_lamda[0]               # gets G out of the array (which contains only one value)
             R_lamda = R_lamda_array[i]          # R for current number of wavelength i [-]
@@ -439,8 +436,8 @@ def calculateAlbedo(simulationDict, dataFrame, resultpath):
         
         # Calculate R value
         
-        # Check, if sum_G is 0 or Nan, so that sum_R_G is not divided by 0 or NaN
-        if sum_G == 0 or pd.isna(sum_G): # NaN values only for night time (see comment above)
+        # Check, if sum_G is 0, so that sum_R_G is not divided by 0
+        if sum_G == 0: 
             R = 0       
         else:
             R = sum_R_G / sum_G
@@ -454,11 +451,11 @@ def calculateAlbedo(simulationDict, dataFrame, resultpath):
         DNI = df.iloc[j]['dni']                     # direct normal irradiation out of dataframe (which comes from weatherfile) [W/m²]
         DHI = df.iloc[j]['dhi']                     # diffuse horizontal irradation out of dataframe (which comes from weatherfile) [W/m²]
         theta = math.radians(df.iloc[j]['zenith'])  # sun zenith angle out of dataframe[rad]
-        
+        if theta > (0.5*math.pi):                   # 0.5*pi rad = 90 deg
+            theta = 0
+            
         # Check, if DHI is 0, so that DNI is not divided by 0
         if DHI == 0:
-            H = 0
-        elif theta > (0.5*math.pi):   # 0.5*pi rad = 90 deg
             H = 0
         else:
             H = (DNI/DHI) * math.cos(theta)
