@@ -206,7 +206,7 @@ def calculateViewFactor(simulationDict, dataFrame, j):
     'pvrow_height': 1,                              # height of albedometer (measured at center / torque tube)
     'pvrow_width': 0.05,                            # width of glasdome of albedometer
     'axis_azimuth': 0.,                             # azimuth angle of rotation axis
-    'gcr': simulationDict['gcr'],                                     # ground coverage ratio, irrelevant because only 1 row
+    'gcr': simulationDict['gcr'],                   # ground coverage ratio, irrelevant because only 1 row
     'surface_tilt': 0.,                             # tilt of albedometer, 0 = horizontal
     'surface_azimuth': simulationDict['azimuth'],   # azimuth of albedometer same to azimuth of pv rows front surface
     'solar_zenith': df.iloc[j]['apparent_zenith'],  # solar zenith out of dataframe
@@ -292,6 +292,9 @@ def calculateAlbedo(simulationDict, dataFrame, resultspath):
     for j in range(timedelta):
                        
         spectrum = modellingSpectralIrradiance(simulationDict, df, j) # 8D array from the function modelingSpectralIrradiance is created
+        save_spectrum = pd.DataFrame({'wavelength': spectrum['wavelength'], 'poa_global': spectrum['poa_global']})
+        print(save_spectrum)
+        #save_spectrum.to_csv(resultspath + '/spectrum_' + j + '.csv', sep=';', index=False)
         
         sum_R_G = 0
         sum_G = 0
@@ -307,7 +310,8 @@ def calculateAlbedo(simulationDict, dataFrame, resultspath):
                               
             sum_R_G += (G_lamda2 * R_lamda * delta_lamda) # sum up the multiplication of R, G and delta lamda for every wavelength [W/m²]
             sum_G += (G_lamda2 * delta_lamda)             # sum up multiplication of G and delta lamda for every wavelength [W/m²]
-        
+             
+            
         
         #########################################################################
         

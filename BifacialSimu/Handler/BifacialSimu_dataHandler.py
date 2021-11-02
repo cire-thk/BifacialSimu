@@ -115,7 +115,7 @@ class DataHandler:
         resultsPath: output filepath       
         """
         df = metdata.solpos
-        
+
         df['ghi'] = metdata.ghi
         df['dhi'] = metdata.dhi
         df['dni'] = metdata.dni
