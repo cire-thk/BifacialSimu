@@ -292,10 +292,8 @@ def calculateAlbedo(simulationDict, dataFrame, resultspath):
     for j in range(timedelta):
                        
         spectrum = modellingSpectralIrradiance(simulationDict, df, j) # 8D array from the function modelingSpectralIrradiance is created
-        save_spectrum = pd.DataFrame({'wavelength': spectrum['wavelength'], 'poa_global': spectrum['poa_global']})
-        print(save_spectrum)
-        #save_spectrum.to_csv(resultspath + '/spectrum_' + j + '.csv', sep=';', index=False)
         
+               
         sum_R_G = 0
         sum_G = 0
                 
