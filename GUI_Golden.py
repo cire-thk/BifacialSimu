@@ -96,12 +96,12 @@ SimulationDict = {
 'simulationName' : 'NREL_best_field_row_2',
 'simulationMode' : 2, 
 'localFile' : True, # Decide wether you want to use a  weather file or try to download one for the coordinates
-'weatherFile' : (rootPath +'/WeatherData/Cologne_Germany/Cologne_Bibdach_50.935_6.992_Measurement_Sept_Okt_2021.csv'), # weather file in TMY format 
+'weatherFile' : (rootPath +'/WeatherData/Golden_USA/SRRL_Golden_Jul_2020.csv'), # weather file in TMY format 
 'spectralReflectancefile' : (rootPath + '/ReflectivityData/interpolated_reflectivity.csv'),
 'cumulativeSky' : False, # Mode for RayTracing: CumulativeSky or hourly
-'startHour' : (2021, 9, 23, 0),  # Only for hourly simulation, yy, mm, dd, hh
-'endHour' : (2021, 9, 24, 0),  # Only for hourly simulation, yy, mm, dd, hh
-'utcOffset': +2,
+'startHour' : (2020, 7, 6, 0),  # Only for hourly simulation, yy, mm, dd, hh
+'endHour' : (2020, 7, 22, 0),  # Only for hourly simulation, yy, mm, dd, hh
+'utcOffset': -7,
 'tilt' : 30, #tilt of the PV surface [deg]
 'singleAxisTracking' : True, # singleAxisTracking or not
 'backTracking' : False, # Solar backtracking is a tracking control program that aims to minimize PV panel-on-panel shading 
@@ -118,12 +118,12 @@ SimulationDict = {
 'fixAlbedo': False, # Option to use the fix variable 'albedo'
 'hourlyMeasuredAlbedo' : False, # True if measured albedo values in weather file
 'hourlySpectralAlbedo' : True, # Option to calculate a spectral Albedo 
-'albedo' : 0.2169, # Measured Albedo average value, if hourly isn't available
+'albedo' : 0.26, # Measured Albedo average value, if hourly isn't available
 'frontReflect' : 0.03, #front surface reflectivity of PV rows
 'BackReflect' : 0.05, #back surface reflectivity of PV rows
-'longitude' : 6.992, 
-'latitude' : 50.935,
-'gcr' : 0.45, #ground coverage ratio (module area / land use)
+'longitude' : -105.172, 
+'latitude' : 39.739,
+'gcr' : 0.35, #ground coverage ratio (module area / land use)
 'module_type' : 'GCL-M3/72GDF-420W', #Name of Module
 }
 
@@ -765,7 +765,7 @@ class Window(tk.Tk):
             Entry_albedo.insert(0,str(a['Albedo']))
        
             
-        def setdefault_Cologne():
+        def setdefault_Golden():
             Entry_Tilt.config(state="normal")
             Entry_HubHeight.config(state="normal")
             clearall()
@@ -832,8 +832,8 @@ class Window(tk.Tk):
             a = self.jsondata_albedo[key1]
             self.albedo = key1
             Entry_albedo.delete(0,END)
-            Entry_albedo.insert(0,str(a['Albedo']))
-            #Entry_albedo.insert(0,0.2169)   # average measured albedo of quartz sand
+            #Entry_albedo.insert(0,str(a['Albedo']))
+            Entry_albedo.insert(0,0.26)   # average measured albedo of best field
 
             
         def clearall():
@@ -1449,11 +1449,11 @@ class Window(tk.Tk):
         
         
 # =============================================================================
-#          Config file (Sarah_Cologne.ini) 
+#          Config file (Sarah_Golden.ini) 
 # =============================================================================
          
         parser = ConfigParser()
-        parser.read(rootPath + '\Lib\default\Sarah_Cologne.ini')
+        parser.read(rootPath + '\Lib\default\Sarah_Golden.ini')
         simulationName_configfile_C=parser.get('default', 'simulationName')
        # simulationMode_configfile=parser.get('default', 'simulationMode')
         weatherFile_configfile_C=parser.get('default', "weatherFile")
@@ -1686,8 +1686,8 @@ class Window(tk.Tk):
         Button_startSimulation.grid(column=2,row=1)
         Button_setDefault=ttk.Button(simulationFunction_frame, text="set default!", command=setdefault)
         Button_setDefault.grid(column=0,row=1)
-        Button_setDefault_Cologne=ttk.Button(simulationFunction_frame, text="set default_Cologne!", command=setdefault_Cologne)
-        Button_setDefault_Cologne.grid(column=3,row=1)
+        Button_setDefault_Golden=ttk.Button(simulationFunction_frame, text="set default_Golden!", command=setdefault_Golden)
+        Button_setDefault_Golden.grid(column=3,row=1)
         Button_clear=ttk.Button(simulationFunction_frame, text="clear!", command=clearall)
         Button_clear.grid(column=1,row=1)
 

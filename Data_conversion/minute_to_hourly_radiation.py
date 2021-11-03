@@ -37,11 +37,11 @@ for i in range(loop_number):
     DHI_minute = []    # array to hold minute DHI values
     DNI_minute = []    # array to hold minute DNI values
     
-    k = i*60
-    
     currentDate = datetime.datetime(Dictionary['startHour'][0], Dictionary['startHour'][1], Dictionary['startHour'][2], Dictionary['startHour'][3]) + pd.to_timedelta(i, unit='H') 
     
     for j in range(60):
+        
+        k = i*60 + j
         
         GHI = df1.iloc[k]['GHI'] 
         DHI = df1.iloc[k]['DHI'] 
@@ -51,7 +51,6 @@ for i in range(loop_number):
         DHI_minute.append(DHI)
         DNI_minute.append(DNI)
         
-        k = k + 1
         
     GHI_h = np.mean(GHI_minute)     # mean value of 60 GHI minute values
     DHI_h = np.mean(DHI_minute)     # mean value of 60 DHI minute values

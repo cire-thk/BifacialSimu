@@ -24,7 +24,7 @@ Dictionary = {
 
 df1 = pd.read_csv(Dictionary['input_file'], sep=';', header=0)  
 print(df1)
-loop_number = Dictionary['number_of_days'] * 24 *6     # 24 hours per day and 6 10 minutes per hour
+loop_number = (Dictionary['number_of_days'] * 24 * 6)     # 24 hours per day and 6 10 minutes per hour
 
 GHI_minute = []     # array to hold minute GHI values
 DHI_minute = []     # array to hold minute DHI values
@@ -36,8 +36,8 @@ for i in range(loop_number):
         
         k = i * 10 + j
         
-        GHI = df1.iloc[i]['GHI'] *10 
-        DHI = df1.iloc[i]['DHI'] *10
+        GHI = df1.iloc[i]['GHI'] 
+        DHI = df1.iloc[i]['DHI'] 
         
         currentDate = datetime.datetime(Dictionary['startHour'][0], Dictionary['startHour'][1], Dictionary['startHour'][2], Dictionary['startHour'][3]) + pd.to_timedelta(k, unit='m') 
         
