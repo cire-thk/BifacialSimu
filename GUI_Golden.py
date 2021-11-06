@@ -97,7 +97,7 @@ SimulationDict = {
 'simulationMode' : 2, 
 'localFile' : True, # Decide wether you want to use a  weather file or try to download one for the coordinates
 'weatherFile' : (rootPath +'/WeatherData/Golden_USA/SRRL_Golden_Jul_2020.csv'), # weather file in TMY format 
-'spectralReflectancefile' : (rootPath + '/ReflectivityData/interpolated_reflectivity.csv'),
+'spectralReflectancefile' : (rootPath + '/ReflectivityData/grass_interpolated.csv'),
 'cumulativeSky' : False, # Mode for RayTracing: CumulativeSky or hourly
 'startHour' : (2020, 7, 6, 0),  # Only for hourly simulation, yy, mm, dd, hh
 'endHour' : (2020, 7, 22, 0),  # Only for hourly simulation, yy, mm, dd, hh
@@ -951,7 +951,7 @@ class Window(tk.Tk):
             """ select local reflectivityfile
             """
           
-            filename = tk.filedialog.askopenfilename(title="Select .csv file", filetypes = ((".csv files", "*.csv")))
+            filename = tk.filedialog.askopenfilename(title="Select .csv file", filetypes = ((".csv files", "*.csv"),))
 
             Entry_reflectivityfile.delete(0, END)
             Entry_reflectivityfile.insert(0, filename)   

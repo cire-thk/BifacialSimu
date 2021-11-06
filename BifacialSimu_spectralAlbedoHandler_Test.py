@@ -42,10 +42,10 @@ simulationDict = {
 'simulationMode' : 1, 
 'localFile' : True, # Decide wether you want to use a  weather file or try to download one for the coordinates
 'weatherFile' : (rootPath +'/WeatherData/Cologne_Germany/Cologne_Bibdach_50.935_6.992_Measurement_Sept_Okt_2021_Test.csv'), # weather file in TMY format 
-'spectralReflectancefile' : (rootPath + '/ReflectivityData/interpolated_reflectivity.csv'),
+'spectralReflectancefile' : (rootPath + '/ReflectivityData/Quartz_sand_interpolated.csv'),
 'cumulativeSky' : False, # Mode for RayTracing: CumulativeSky or hourly
 'startHour' : (2021, 9, 23, 0),  # Only for hourly simulation, yy, mm, dd, hh
-'endHour' : (2021, 9, 25, 23),  # Only for hourly simulation, yy, mm, dd, hh
+'endHour' : (2021, 9, 23, 23),  # Only for hourly simulation, yy, mm, dd, hh
 'utcOffset': +2,
 'tilt' : 25, #tilt of the PV surface [deg]
 'singleAxisTracking' : True, # singleAxisTracking or not
@@ -255,7 +255,7 @@ def calculateViewFactor(simulationDict, dataFrame, j):
     'surface_azimuth': simulationDict['azimuth'],   # azimuth of albedometer same to azimuth of pv rows front surface
     'solar_zenith': df.iloc[j]['apparent_zenith'],  # solar zenith out of dataframe
     'solar_azimuth': df.iloc[j]['azimuth'],         # solar azimuth out of dataframe
-    'x_min': -10,                                   # minimum border of ground
+    'x_min': -1 * pvarray_parameters['n_pvrows'],                                   # minimum border of ground
     'x_max': 10,                                    # maximum border of ground
     }
     
@@ -493,6 +493,7 @@ def calculateAlbedo(simulationDict, dataFrame, resultspath):
             VF_8_5 = 0
         else:
             VF_8_2 = vf_matrix[8, 2, :][0]
+            print(j, VF_8_2)
             VF_8_4 = vf_matrix[8, 4, :][0]
             VF_8_5 = vf_matrix[8, 5, :][0]
             VF_s_a1 = VF_8_4 + VF_8_5 + VF_8_2   # Viewfactor from surface S (Albedo measurement) to surface A1 (unshaded ground)
@@ -501,6 +502,7 @@ def calculateAlbedo(simulationDict, dataFrame, resultspath):
         a = R * (VF_s_a1 + (1/(H+1)) * VF_s_a2)  # spectral Albedo [-]
         
         VF_8_2_hourly.append(VF_8_2)
+        
         VF_8_4_hourly.append(VF_8_4)
         VF_8_5_hourly.append(VF_8_5)
         VF_S_A1.append(VF_s_a1)
@@ -515,7 +517,7 @@ def calculateAlbedo(simulationDict, dataFrame, resultspath):
    
     
     #########################################################################
-    
+    print(VF_8_2_hourly)
     # calculted values are saved to new csv
     albedo_results = pd.DataFrame({'datetime':cd, 'spectral Albedo':a_hourly, 'R': R_hourly, 'H': H_hourly, 'VF_s_a1': VF_S_A1, 'VF_8_2': VF_8_2_hourly, 'VF_8_4': VF_8_4_hourly, 'VF_8_5': VF_8_5_hourly, 'VF_s_a2': VF_S_A2})
     albedo_results.to_csv(resultspath + '/spectral_Albedo.csv', sep=';', index=False)
