@@ -1576,7 +1576,7 @@ class Window(tk.Tk):
            
             fig3, ax3= plt.subplots()
             
-            ax3.plot(idx,P_bi, label="P_bi")
+            ax3.plot(idx,P_bi, label="P_bi ")
             
             ax3.xaxis.set_minor_locator(dates.DayLocator(interval=1))   # every Day
             ax3.xaxis.set_minor_formatter(dates.DateFormatter('%d'))  # day and hours
@@ -1610,7 +1610,7 @@ class Window(tk.Tk):
            
             fig3, ax3= plt.subplots()
             
-            ax3.plot(idx,P_bi, label="P_bi")
+            ax3.plot(idx,P_bi, label="P_bi ")
             
             ax3.xaxis.set_minor_locator(dates.DayLocator(interval=1))   # every Day
             ax3.xaxis.set_minor_formatter(dates.DateFormatter('%d'))  # day and hours

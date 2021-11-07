@@ -176,6 +176,7 @@ class Electrical_simulation:
         
         # Array to hold other arrays -> average after for loop
         P_bi_hourly_arrays = []
+        P_m_hourly_arrays = []
         
         df_report['timestamp'] = df_report.index
         df_report = df_report.reset_index()
@@ -275,10 +276,7 @@ class Electrical_simulation:
             
             P_bi_hourly_average.append(average)
             
-        # Create dataframe with average data
-        p_bi_df = pd.DataFrame({"timestamps":df_report.index, "P_bi ": P_bi_hourly_average})
-        p_bi_df.set_index("timestamps")
-        p_bi_df.to_csv(resultsPath + "electrical_simulation.csv")
+       
         
         # The time gets implemented in the GUI
     # p_bi_df.to_csv(resultsPath + "electrical_simulation" + datetime.datetime.now().strftime("%Y-%m-%d-%H-%M") + ".csv")
@@ -327,6 +325,7 @@ class Electrical_simulation:
         for i in tqdm(range(0, simulationDict['nRows'])):
             
             key_front_mono = "row_" + str(i) + "_qabs_front"
+            P_m_hourly = []
             
             for index, row in df_report.iterrows():
                 
@@ -346,7 +345,26 @@ class Electrical_simulation:
                     #print("Power: " + str(P_bi))
              
                     sum_energy_m += P_m # Sum up the energy of every row in every hour
+                else:
+                    P_m = 0
+                    
+                P_m_hourly.append(P_m)
+            
+            # Append P_m_hourly array to arrays
+            P_m_hourly_arrays.append(P_m_hourly)
+        
+        
+        P_m_hourly_average = []
+        
+        for i in tqdm(range(0, len(P_m_hourly_arrays[0]))):
+            sum = 0
+          
+            for j in range(0, len(P_m_hourly_arrays)):
+                sum += P_m_hourly_arrays[j][i]
                 
+            average_m = sum / float(len(P_m_hourly_arrays))
+            
+            P_m_hourly_average.append(average_m)
                  #else:
                     #print("Power: 0.0")
         
@@ -373,6 +391,12 @@ class Electrical_simulation:
         
         Bifacial_gain= (annual_power_per_peak_b - annual_power_per_peak_m) / annual_power_per_peak_m
         print("Bifacial Gain: " + str(Bifacial_gain*100) + " %")
+        
+                
+        # Create dataframe with data
+        p_bi_df = pd.DataFrame({"timestamps":df_report.index, "P_bi ": P_bi_hourly_average, "P_m ": P_m_hourly_average})
+        p_bi_df.set_index("timestamps")
+        p_bi_df.to_csv(resultsPath + "electrical_simulation.csv")
         
         #Plot for Bifacial Power Output + Bifacial Gain
         GUI.Window.makePlotBifacialRadiance(resultsPath,Bifacial_gain)

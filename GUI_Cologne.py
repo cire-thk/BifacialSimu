@@ -1114,6 +1114,9 @@ class Window(tk.Tk):
                 Label_albedo.config(state="normal")
                 Entry_albedo.config(state="normal")
                 Combo_Albedo.config(state="normal")
+                Entry_reflectivityfile.config(state="disabled")
+                Button_reflectivityfile.config(state="disabled")
+                Lab_reflectivityfile.config(state="disabled")
 
             elif rb_Albedo.get()==2:
                 SimulationDict["hourlyMeasuredAlbedo"]=False
@@ -1122,6 +1125,9 @@ class Window(tk.Tk):
                 Label_albedo.config(state="normal")
                 Entry_albedo.config(state="normal")
                 Combo_Albedo.config(state="normal")
+                Entry_reflectivityfile.config(state="normal")
+                Button_reflectivityfile.config(state="normal")
+                Lab_reflectivityfile.config(state="normal")
             else:
                 SimulationDict["hourlyMeasuredAlbedo"]=True
                 SimulationDict["hourlySpectralAlbedo"]=False
@@ -1129,6 +1135,10 @@ class Window(tk.Tk):
                 Label_albedo.config(state="disabled")
                 Entry_albedo.config(state="disabled")
                 Combo_Albedo.config(state="disabled")
+                Entry_reflectivityfile.config(state="disabled")
+                Button_reflectivityfile.config(state="disabled")
+                Lab_reflectivityfile.config(state="disabled")
+
         
         
         #Radiobuttons Albedo
