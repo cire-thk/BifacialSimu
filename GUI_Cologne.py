@@ -97,7 +97,7 @@ SimulationDict = {
 'simulationMode' : 2, 
 'localFile' : True, # Decide wether you want to use a  weather file or try to download one for the coordinates
 'weatherFile' : (rootPath +'/WeatherData/Cologne_Germany/Cologne_Bibdach_50.935_6.992_Measurement_Sept_Okt_2021.csv'), # weather file in TMY format 
-'spectralReflectancefile' : (rootPath + '/ReflectivityData/Quartz_sand_interpolated.csv'),
+'spectralReflectancefile' : (rootPath + '/ReflectivityData/bare_sand_interpolated.csv'),
 'cumulativeSky' : False, # Mode for RayTracing: CumulativeSky or hourly
 'startHour' : (2021, 9, 23, 0),  # Only for hourly simulation, yy, mm, dd, hh
 'endHour' : (2021, 9, 24, 0),  # Only for hourly simulation, yy, mm, dd, hh
@@ -118,6 +118,7 @@ SimulationDict = {
 'fixAlbedo': False, # Option to use the fix variable 'albedo'
 'hourlyMeasuredAlbedo' : False, # True if measured albedo values in weather file
 'hourlySpectralAlbedo' : True, # Option to calculate a spectral Albedo 
+'variableAlbedo': False, # Option to calculate sun position dependend, variable albedo
 'albedo' : 0.2169, # Measured Albedo average value, if hourly isn't available
 'frontReflect' : 0.03, #front surface reflectivity of PV rows
 'BackReflect' : 0.05, #back surface reflectivity of PV rows
@@ -1111,6 +1112,7 @@ class Window(tk.Tk):
                 SimulationDict["hourlyMeasuredAlbedo"]=False
                 SimulationDict["hourlySpectralAlbedo"]=False
                 SimulationDict["fixAlbedo"]=True
+                SimulationDict["variableAlbedo"]=False
                 Label_albedo.config(state="normal")
                 Entry_albedo.config(state="normal")
                 Combo_Albedo.config(state="normal")
@@ -1122,16 +1124,32 @@ class Window(tk.Tk):
                 SimulationDict["hourlyMeasuredAlbedo"]=False
                 SimulationDict["hourlySpectralAlbedo"]=True
                 SimulationDict["fixAlbedo"]=False
+                SimulationDict["variableAlbedo"]=False
                 Label_albedo.config(state="normal")
                 Entry_albedo.config(state="normal")
                 Combo_Albedo.config(state="normal")
                 Entry_reflectivityfile.config(state="normal")
                 Button_reflectivityfile.config(state="normal")
                 Lab_reflectivityfile.config(state="normal")
+            
+            elif rb_Albedo.get()==3:
+                SimulationDict["hourlyMeasuredAlbedo"]=False
+                SimulationDict["hourlySpectralAlbedo"]=False
+                SimulationDict["fixAlbedo"]=False
+                SimulationDict["variableAlbedo"]=True
+                Label_albedo.config(state="disabled")
+                Entry_albedo.config(state="disabled")
+                Combo_Albedo.config(state="disabled")
+                Entry_reflectivityfile.config(state="disabled")
+                Button_reflectivityfile.config(state="disabled")
+                Lab_reflectivityfile.config(state="disabled")
+
+                
             else:
                 SimulationDict["hourlyMeasuredAlbedo"]=True
                 SimulationDict["hourlySpectralAlbedo"]=False
                 SimulationDict["fixAlbedo"]=False
+                SimulationDict["variableAlbedo"]=False
                 Label_albedo.config(state="disabled")
                 Entry_albedo.config(state="disabled")
                 Combo_Albedo.config(state="disabled")
@@ -1147,9 +1165,11 @@ class Window(tk.Tk):
         rad1_Albedo= Radiobutton(simulationParameter_frame, variable=rb_Albedo, width=23, text="Average measured Albedo!", value=0, command=lambda:Measuredalbedo())
         rad2_Albedo= Radiobutton(simulationParameter_frame, variable=rb_Albedo,  width=23, text="Hourly measured Albedo!", value=1, command=lambda:Measuredalbedo())
         rad3_Albedo= Radiobutton(simulationParameter_frame, variable=rb_Albedo,  width=20, text="Hourly spectral Albedo!", value=2, command=lambda:Measuredalbedo())
+        rad4_Albedo= Radiobutton(simulationParameter_frame, variable=rb_Albedo,  width=20, text="Hourly variable Albedo!", value=3, command=lambda:Measuredalbedo())
         rad1_Albedo.grid(column=0,row=17, sticky=W)
         rad2_Albedo.grid(column=1,row=17, columnspan=2, sticky=W)
         rad3_Albedo.grid(column=0,row=18, sticky=W)
+        rad4_Albedo.grid(column=1,row=18, columnspan=2, sticky=W)
   
     
  

@@ -42,6 +42,7 @@ from pvfactors.viewfactors import VFCalculator
 import numpy
 import dateutil.tz
 import sys
+import math
 #import os #to import directories
 #from pvlib.location import Location
 #from tqdm import tqdm
@@ -613,14 +614,47 @@ class ViewFactors:
         
         ####################################################
         
+        # Function to calculate variable albedo according 'PV BIFACIAL YIELD SIMULATION WITH A VARIABLE ALBEDO MODEL' from Matthieu Chiodetti et.al.
+        
+        def variableAlbedo(df, resultspath):
+            
+            # Set model parameters
+            a0 = 0.2428        # Measured Albedo under direct illumination with a solar zenith angle of approx. 60°
+            C = 0.4            # Solar angle dependency factor  
+            adiff = 0.1683     # Measured Albedo under 100% diffuse illumination
+            
+            # Calculate albedo for every hour
+            for index, row in df.iterrows(): 
+    
+                if row['ghi'] == 0: #Avoid division by 0
+                    df.loc[index,'albedo'] = 0
+                else:
+                    df.loc[index,'albedo'] = (1 - row['dhi'] / row['ghi']) * a0 * ((1 + C)  / (1 + 2 * C * math.cos(math.radians(row['zenith'])))) + (row['dhi']  / row['ghi'] * adiff)
+      
+            if df.loc[index,'albedo'] < 0: #change values below 0 for yield calculation
+                df.loc[index,'albedo'] = 0
+        
+        
+            variableAlbedo = pd.DataFrame({'datetime':df.index, 'variable_Albedo': df['albedo']})
+            variableAlbedo.to_csv(resultspath + '/variable_Albedo.csv', sep=';', index=False)
+        
+        ####################################################
+        
         # set Albedo calculation mode
-        if simulationDict['fixAlbedo'] ==True :
+        if simulationDict['fixAlbedo'] == True :
             # Measured Albedo average value, fix value
             albedo = simulationParameter['albedo']
-           
+            print("fix", albedo)
+       
+        elif simulationDict['variableAlbedo'] == True :
+            # calculated variable albedo
+            variableAlbedo(df, resultsPath)
+            albedo = df['albedo']  
+            print("variable", albedo)
         else:
             # hourly measured albedo or hourly spectral albedo
             albedo = df['albedo']  
+            print("spectral", albedo)
             # weatherfile must contain hourly measured albedo, if simulationDict['hourlymeasuredAlbedo'] = True
             # weatherfile contains spectral albedo, if simulationDict['hourlyspectralAlbedo'] = True
             # because spectralAlbedoHandler calculate spectral albedo and write the calculated spectral albedo in weatherfile
@@ -811,11 +845,17 @@ class ViewFactors:
                 
                 row = pvarray.ts_pvrows[i]
                 
-                result["row_" + str(i) + "_qabs_front"] = row.front.get_param_weighted('qabs') #avg qabs for every row front
-                result["row_" + str(i) + "_qabs_back"] = row.back.get_param_weighted('qabs') #avg qabs for every row back
+                result["row_" + str(i) + "_reflection_front"] = row.front.get_param_weighted('reflection') #avg reflection for every row front
+                result["row_" + str(i) + "_reflection_back"] = row.back.get_param_weighted('reflection') #avg reflection for every row back
                 result["row_" + str(i) + "_qinc_front"] = row.front.get_param_weighted('qinc') #avg qinc for every row front
                 result["row_" + str(i) + "_qinc_back"] = row.back.get_param_weighted('qinc') #avg qinc for every row back
-                
+                result["row_" + str(i) + "_qabs_front"] = row.front.get_param_weighted('qabs') #avg qabs for every row front
+                result["row_" + str(i) + "_qabs_back"] = row.back.get_param_weighted('qabs') #avg qabs for every row back
+                result["row_" + str(i) + "_q0_front"] = row.front.get_param_weighted('q0') #avg reflection for every row front
+                result["row_" + str(i) + "_q0_back"] = row.back.get_param_weighted('q0') #avg reflection for every row back
+                result["row_" + str(i) + "_isotropic_front"] = row.front.get_param_weighted('isotropic') #avg reflection for every row front
+                result["row_" + str(i) + "_isotropic_back"] = row.back.get_param_weighted('isotropic') #avg reflection for every row back              
+            
                 for ts_surface in row.front.all_ts_surfaces:
                     key = "qabs_segment_" + str(ts_surface.index)  # updated
                     result[key] = ts_surface.get_param('qabs')
