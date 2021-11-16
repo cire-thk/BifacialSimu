@@ -17,7 +17,7 @@ import datetime
 Dictionary = {
 'startHour' : (2020, 7, 6, 0),                     # yy, mm, dd, hh
 'number_of_days' : 17,                              # number of days to calculate hourly data for
-'input_file' : 'Golden_Albedo_15Min.csv',            # inset name of input file (utf8 file is needed)
+'input_file' : 'Golden_ohne_1_verschoben.csv',            # inset name of input file (utf8 file is needed)
 }
 #------------------------------------------------------------------------------
 
@@ -60,6 +60,6 @@ df2 = pd.DataFrame({'datetime':cd, 'Albedo':A_hourly})
 print(df2)
 
 # save pandas dataframe into a csv file
-df2.to_csv('hourly_Albedo_Golden.csv', sep=';', index=False)
+df2.to_csv('hourly_Albedo_Golden_verschoben.csv', sep=';', index=False)
         
         

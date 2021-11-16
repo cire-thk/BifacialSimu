@@ -36,7 +36,7 @@ for i in range(loop_number):
     GHI_minute = []    # array to hold minute GHI values
     DHI_minute = []    # array to hold minute DHI values
     DNI_minute = []    # array to hold minute DNI values
-    print(GHI_minute)
+    
     
     currentDate = datetime.datetime(Dictionary['startHour'][0], Dictionary['startHour'][1], Dictionary['startHour'][2], Dictionary['startHour'][3]) + pd.to_timedelta(i, unit='H') 
     

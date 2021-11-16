@@ -297,14 +297,14 @@ def calculateAlbedo(simulationDict, dataFrame, resultspath):
         sum_R_G = 0
         sum_G = 0
                 
-        for i in range(95): # 95 loops (0<=i<=94), because of 95 delta wavelenghts (=96 wavelenghts) in spectra, which are used for calculation (only from 350 to 2450 nm), because bar sand spectrum is in this range
+        for i in range(107): # 95 loops (0<=i<=94), because of 95 delta wavelenghts (=96 wavelenghts) in spectra, which are used for calculation (only from 350 to 2450 nm), because bar sand spectrum is in this range
             
             # +10, because the first value of spectrum is for 300 nm, but we need the 350 value at first (5nm resolution)
-            G_lamda = spectrum['poa_global'][i+10] # G for current number of wavelength i [W/m²/nm]
+            G_lamda = spectrum['poa_global'][i+2] # G for current number of wavelength i [W/m²/nm]
             G_lamda2 = G_lamda[0]               # gets G out of the array (which contains only one value)
             R_lamda = R_lamda_array[i]          # R for current number of wavelength i [-]
             # +2, because the first value of spectrum is for 300 nm and second for 305 nm, but we need the 310 value at first
-            delta_lamda = spectrum['wavelength'][i+11] - spectrum['wavelength'][i+10]   # delta of wavelength i+1 and wavelength i [nm]
+            delta_lamda = spectrum['wavelength'][i+3] - spectrum['wavelength'][i+2]   # delta of wavelength i+1 and wavelength i [nm]
                               
             sum_R_G += (G_lamda2 * R_lamda * delta_lamda) # sum up the multiplication of R, G and delta lamda for every wavelength [W/m²]
             sum_G += (G_lamda2 * delta_lamda)             # sum up multiplication of G and delta lamda for every wavelength [W/m²]

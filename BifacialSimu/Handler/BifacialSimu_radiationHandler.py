@@ -351,12 +351,12 @@ class RayTrace:
                     dhi = df_gendaylit.loc[i, 'dhi']
                     
                     #simulate sky with gendaylit
-                    print("sunalt", sunalt)
-                    print("dhi", dhi)
+                    #print("sunalt", sunalt)
+                    #print("dhi", dhi)
                     demo.gendaylit2manual(dni, dhi, sunalt, sunaz)
-                    print(time)
+                    #print(time)
                     demo.getfilelist()
-                    print(demo.skyfiles)
+                    #print(demo.skyfiles)
                     #print(demo.ground.ReflAvg.shape[0])
                     octfile = demo.makeOct(demo.getfilelist())  
 
