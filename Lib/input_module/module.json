@@ -39,7 +39,27 @@
 		"moduley": 1.98,
 		"modulex": 0.992
     },
-	"LG400N2T-BiFi200":{
+	"GCL-M3/72GDF-420W":{
+		"bi_factor": 0.7087,
+		"n_front": 0.206,
+        "I_sc_f": 10.71,
+        "I_sc_r": 7.5,
+        "V_oc_f": 49.88,
+        "V_oc_r": 49.18,
+        "V_mpp_f": 41.59,
+        "V_mpp_r": 41.99,
+        "I_mpp_f": 10.1,
+        "I_mpp_r": 7.07,
+        "P_mpp": 420,
+        "T_koeff_P": -0.0038,
+        "T_amb": 20,
+        "T_koeff_I": 0.0006,
+        "T_koeff_V": -0.0030,
+        "zeta": 0.07,
+		"moduley": 2.036,
+		"modulex": 1.002
+    },
+        "LG400N2T-BiFi200":{
 		"bi_factor": 0.7,
 		"n_front": 0.198,
         "I_sc_f": 11.06,
@@ -55,8 +75,8 @@
         "T_amb": 20,
         "T_koeff_I": 0.0004,
         "T_koeff_V": -0.0026,
-        "zeta": 0.07,
+        "zeta": 0.06,
 		"moduley": 2.13,
 		"modulex": 1.042
-	}		
+    }			
 }

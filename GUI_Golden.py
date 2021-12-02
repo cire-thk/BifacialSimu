@@ -94,36 +94,37 @@ import BifacialSimu_dataHandler
 # simulation parameters and variables
 SimulationDict = {
 'simulationName' : 'NREL_best_field_row_2',
-'simulationMode' : 1, 
+'simulationMode' : 2, 
 'localFile' : True, # Decide wether you want to use a  weather file or try to download one for the coordinates
-'weatherFile' : (rootPath +'/WeatherData/Golden_USA/SRRLWeatherdata Nov_Dez_2.csv'), #weather file in TMY format 
-'spectralReflectancefile' : (rootPath + '/ReflectivityData/interpolated_reflectivity.csv'),
+'weatherFile' : (rootPath +'/WeatherData/Golden_USA/SRRL_Golden_Jul_2020.csv'), # weather file in TMY format 
+'spectralReflectancefile' : (rootPath + '/ReflectivityData/grass_interpolated.csv'),
 'cumulativeSky' : False, # Mode for RayTracing: CumulativeSky or hourly
-'startHour' : (2019, 11, 1, 0),  # Only for hourly simulation, yy, mm, dd, hh
-'endHour' : (2019, 11, 16, 0),  # Only for hourly simulation, yy, mm, dd, hh
+'startHour' : (2020, 7, 6, 0),  # Only for hourly simulation, yy, mm, dd, hh
+'endHour' : (2020, 7, 22, 0),  # Only for hourly simulation, yy, mm, dd, hh
 'utcOffset': -7,
-'tilt' : 10, #tilt of the PV surface [deg]
+'tilt' : 30, #tilt of the PV surface [deg]
 'singleAxisTracking' : True, # singleAxisTracking or not
 'backTracking' : False, # Solar backtracking is a tracking control program that aims to minimize PV panel-on-panel shading 
 'ElectricalMode_simple': False, # simple electrical Simulation after PVSyst, use if rear module parameters are missing
 'limitAngle' : 60, # limit Angle for singleAxisTracking
-'hub_height' : 1.3, # Height of the rotation axis of the tracker [m]
+'hub_height' : 1.5, # Height of the rotation axis of the tracker [m], distance between ground and center of PVrows
 'azimuth' : 180, #azimuth of the PV surface [deg] 90°: East, 135° : South-East, 180°:South
 'nModsx' : 1, #number of modules in x-axis
 'nModsy' : 1, #number of modules in y-axis
-'nRows' : 3, #number of rows
+'nRows' : 1, #number of rows
 'sensorsy' : 5, #number of sensors
-'moduley' : 2 ,#length of modules in y-axis
-'modulex' : 1, #length of modules in x-axis  
-'hourlyMeasuredAlbedo' : True, # True if measured albedo values in weather file
-'spectralAlbedo' : True, # Option to calculate a spectral Albedo 
+'moduley' : 2.036 ,#length of modules in y-axis
+'modulex' : 1.002, #length of modules in x-axis  
+'fixAlbedo': False, # Option to use the fix variable 'albedo'
+'hourlyMeasuredAlbedo' : False, # True if measured albedo values in weather file
+'hourlySpectralAlbedo' : True, # Option to calculate a spectral Albedo 
 'albedo' : 0.26, # Measured Albedo average value, if hourly isn't available
 'frontReflect' : 0.03, #front surface reflectivity of PV rows
 'BackReflect' : 0.05, #back surface reflectivity of PV rows
 'longitude' : -105.172, 
 'latitude' : 39.739,
 'gcr' : 0.35, #ground coverage ratio (module area / land use)
-'module_type' : 'NREL row 2', #Name of Module
+'module_type' : 'GCL-M3/72GDF-420W', #Name of Module
 }
 
 # is in Function StartSimulation()
@@ -294,7 +295,9 @@ class Window(tk.Tk):
                 SimulationDict["limitAngle"]=float(Entry_LimitAngle.get())
         
             if len(Entry_ClearanceHeight.get()) !=0:
-                SimulationDict["clearance_height"]=float(Entry_ClearanceHeight.get())      
+                SimulationDict["clearance_height"]=float(Entry_ClearanceHeight.get())
+                # Calculate the hub height of the PV rows, measured at the bottom edge
+                SimulationDict['hub_height']  = (SimulationDict['clearance_height'] + (math.sin(SimulationDict['tilt'])*SimulationDict['moduley']/2))
                 
             if len(Entry_Azimuth.get()) !=0:
                 SimulationDict["azimuth"]=float(Entry_Azimuth.get()) 
@@ -337,8 +340,8 @@ class Window(tk.Tk):
                 
             if len(Entry_HubHeight.get()) !=0:
                 SimulationDict["hub_height"]=float(Entry_HubHeight.get()) 
-                # Calculate the height of the PV rows, measured at the bottom edge for the use in Viewfactors, PV*Sol and PVSyst
-                SimulationDict['clearance_height']  = (SimulationDict['hub_height'] - (math.sin(SimulationDict['tilt'])*SimulationDict['moduley']/2)) #height of the PV rows, measured at their center [m]
+                # Calculate the clearance height of the PV rows, measured at the bottom edge
+                SimulationDict['clearance_height']  = (SimulationDict['hub_height'] - (math.sin(SimulationDict['tilt'])*SimulationDict['moduley']/2))
 
 
 # =============================================================================
@@ -761,7 +764,76 @@ class Window(tk.Tk):
             Entry_albedo.delete(0,END)
             Entry_albedo.insert(0,str(a['Albedo']))
        
-        
+            
+        def setdefault_Golden():
+            Entry_Tilt.config(state="normal")
+            Entry_HubHeight.config(state="normal")
+            clearall()
+            Combo_Module.current(2)
+            Combo_Albedo.current(31)
+            rad1_weatherfile.invoke()
+            rad2_simulationMode.invoke()
+            rad1_rb_SingleAxisTracking.invoke()
+            rad3_Albedo.invoke()
+            rad1_ElectricalMode.invoke()
+            rad1_BacktrackingMode.invoke()
+            Entry_Name.insert(0, simulationName_configfile_C)
+            Entry_weatherfile.insert(0, weatherFile_configfile_C) #zu überarbeiten
+            Entry_reflectivityfile.insert(0, reflectivityFile_configfile_C)
+            Entry_Tilt.insert(0, tilt_configfile_C)
+            Entry_LimitAngle.insert(0, limitAngle_configfile_C)
+            Entry_HubHeight.insert(0, HubHeight_configfile_C)
+            Entry_Azimuth.insert(0, azimuth_configfile_C)
+            Entry_nModsx.insert(0, nModsx_configfile_C)
+            Entry_nModsy.insert(0, nModsy_configfile_C)
+            Entry_nRows.insert(0, nRows_configfile_C)
+            Entry_sensors.insert(0, sensorsy_configfile_C)
+            Entry_year_start.insert(0, Start_Year_configfile_C)
+            Entry_month_start.insert(0, Start_Month_configfile_C)
+            Entry_day_start.insert(0, Start_Day_configfile_C)
+            Entry_hour_start.insert(0, Start_Hour_configfile_C)
+            Entry_year_end.insert(0, End_Year_configfile_C)
+            Entry_month_end.insert(0, End_Month_configfile_C)
+            Entry_day_end.insert(0, End_Day_configfile_C)
+            Entry_hour_end.insert(0, End_Hour_configfile_C)
+         #   Entry_moduley.insert(0, moduley_configfile)
+          #  Entry_modulex.insert(0, modulex_configfile)
+            Entry_frontReflect.insert(0, frontReflect_configfile_C)
+            Entry_backReflect.insert(0, backReflect_configfile_C)
+            Entry_longitude.insert(0, longitude_configfile_C)
+            Entry_latitude.insert(0, latitude_configfile_C)
+            Entry_gcr.insert(0, gcr_configfile_C)
+            Entry_utcoffset.insert(0, utcoffset_configfile_C)
+
+            key = Module_name_configfile_C
+            d = self.jsondata[key]
+            self.module_type = key
+            SimulationDict["module_type"]=self.module_type
+            Entry_bi_factor.insert(0,str(d['bi_factor']))
+            Entry_nfront.insert(0,str(d['n_front']))
+            Entry_Iscf.insert(0,str(d['I_sc_f']))
+            Entry_Iscr.insert(0,str(d['I_sc_r']))
+            Entry_Vocf.insert(0,str(d['V_oc_f']))
+            Entry_Vocr.insert(0,str(d['V_oc_r']))
+            Entry_Vmppf.insert(0,str(d['V_mpp_f']))
+            Entry_Vmppr.insert(0,str(d['V_mpp_r']))
+            Entry_Imppf.insert(0,str(d['I_mpp_f']))              
+            Entry_Imppr.insert(0,str(d['I_mpp_r']))
+            Entry_Pmpp.insert(0,str(d['P_mpp']))
+            Entry_TkoeffP.insert(0,str(d['T_koeff_P']))
+            Entry_Tamb.insert(0,str(d['T_amb']))
+            Entry_TkoeffI.insert(0,str(d['T_koeff_I']))
+            Entry_TkoeffV.insert(0,str(d['T_koeff_V']))
+            Entry_zeta.insert(0,str(d['zeta']))
+            Entry_modulex.insert(0,str(d['modulex']))
+            Entry_moduley.insert(0,str(d['moduley'])) 
+                
+            key1=entry_albedo_value.get()
+            a = self.jsondata_albedo[key1]
+            self.albedo = key1
+            Entry_albedo.delete(0,END)
+            #Entry_albedo.insert(0,str(a['Albedo']))
+            Entry_albedo.insert(0,0.26)   # average measured albedo of best field
 
             
         def clearall():
@@ -873,7 +945,17 @@ class Window(tk.Tk):
             Entry_weatherfile.delete(0, END)
             Entry_weatherfile.insert(0, filename)   
             SimulationDict["weatherFile"]=Entry_weatherfile.get()
+         
+        def InsertReflectivityfile():    
             
+            """ select local reflectivityfile
+            """
+          
+            filename = tk.filedialog.askopenfilename(title="Select .csv file", filetypes = ((".csv files", "*.csv"),))
+
+            Entry_reflectivityfile.delete(0, END)
+            Entry_reflectivityfile.insert(0, filename)   
+            SimulationDict["spectralReflectancefile"]=Entry_reflectivityfile.get()
         
         #Changing the weatherfile
         Lab_weatherfile=ttk.Label(namecontrol_frame, text="Add Path of weatherfile:")
@@ -882,16 +964,24 @@ class Window(tk.Tk):
         Entry_weatherfile.grid(row=4, column=1)
         Button_weatherfile=ttk.Button(namecontrol_frame, text="Insert Weatherfile!", command=InsertWeatherfile)
         Button_weatherfile.grid(row=4, column=2)
+       
+        #Changing the reflectivityfile
+        Lab_reflectivityfile=ttk.Label(namecontrol_frame, text="Add Path of reflectivityfile:")
+        Lab_reflectivityfile.grid(row=5, column=0)
+        Entry_reflectivityfile=ttk.Entry(namecontrol_frame, background="white", width=25)
+        Entry_reflectivityfile.grid(row=5, column=1)
+        Button_reflectivityfile=ttk.Button(namecontrol_frame, text="Insert Reflectivityfile!", command=InsertReflectivityfile)
+        Button_reflectivityfile.grid(row=5, column=2)
         
         #Change Longitude and Latitude
         Label_longitude=ttk.Label(namecontrol_frame, text="Enter Longitude:")
         Label_latitude=ttk.Label(namecontrol_frame, text="Enter Latitude:")
-        Label_longitude.grid(column=0, row=5, sticky=W)
-        Label_latitude.grid(column=0, row=6, sticky=W)
+        Label_longitude.grid(column=0, row=6, sticky=W)
+        Label_latitude.grid(column=0, row=7, sticky=W)
         Entry_longitude=ttk.Entry(namecontrol_frame, background="white", width=10)
         Entry_latitude=ttk.Entry(namecontrol_frame, background="white", width=10)
-        Entry_longitude.grid(column=1, row=5, sticky=W)
-        Entry_latitude.grid(column=1, row=6, sticky=W)        
+        Entry_longitude.grid(column=1, row=6, sticky=W)
+        Entry_latitude.grid(column=1, row=7, sticky=W)        
         
         
   
@@ -982,12 +1072,12 @@ class Window(tk.Tk):
                 Label_LimitAngle.config(state="disabled")
                 Entry_LimitAngle.config(state="disabled")
                 Label_LimitAnglePar.config(state="disabled")
-                Label_HubHeight.config(state="disabled")
-                Entry_HubHeight.config(state="disabled")
-                Label_HubHeightPar.config(state="disabled")
-                Label_ClearanceHeight.config(state="normal")
-                Entry_ClearanceHeight.config(state="normal")
-                Label_ClearanceHeightPar.config(state="normal")
+                Label_HubHeight.config(state="normal")
+                Entry_HubHeight.config(state="normal")
+                Label_HubHeightPar.config(state="normal")
+                Label_ClearanceHeight.config(state="disabled")
+                Entry_ClearanceHeight.config(state="disabled")
+                Label_ClearanceHeightPar.config(state="disabled")
                  
                  
             else:
@@ -1015,17 +1105,27 @@ class Window(tk.Tk):
         rad1_rb_SingleAxisTracking.grid(column=0,row=1, sticky=W)
         rad2_rb_SingleAxisTracking.grid(column=1,row=1, columnspan=2, sticky=W)
         
-        # Choosing between hourly and average albedo
+        # Choosing between hourly and average and spectral albedo
         def Measuredalbedo():
             if rb_Albedo.get()==0:
                 SimulationDict["hourlyMeasuredAlbedo"]=False
+                SimulationDict["hourlySpectralAlbedo"]=False
+                SimulationDict["fixAlbedo"]=True
                 Label_albedo.config(state="normal")
                 Entry_albedo.config(state="normal")
                 Combo_Albedo.config(state="normal")
 
-               
+            elif rb_Albedo.get()==2:
+                SimulationDict["hourlyMeasuredAlbedo"]=False
+                SimulationDict["hourlySpectralAlbedo"]=True
+                SimulationDict["fixAlbedo"]=False
+                Label_albedo.config(state="normal")
+                Entry_albedo.config(state="normal")
+                Combo_Albedo.config(state="normal")
             else:
                 SimulationDict["hourlyMeasuredAlbedo"]=True
+                SimulationDict["hourlySpectralAlbedo"]=False
+                SimulationDict["fixAlbedo"]=False
                 Label_albedo.config(state="disabled")
                 Entry_albedo.config(state="disabled")
                 Combo_Albedo.config(state="disabled")
@@ -1035,9 +1135,11 @@ class Window(tk.Tk):
         rb_Albedo=IntVar()
         rb_Albedo.set("0")
         rad1_Albedo= Radiobutton(simulationParameter_frame, variable=rb_Albedo, width=23, text="Average measured Albedo!", value=0, command=lambda:Measuredalbedo())
-        rad2_Albedo= Radiobutton(simulationParameter_frame, variable=rb_Albedo,  width=20, text="Hourly measured Albedo!", value=1, command=lambda:Measuredalbedo())
+        rad2_Albedo= Radiobutton(simulationParameter_frame, variable=rb_Albedo,  width=23, text="Hourly measured Albedo!", value=1, command=lambda:Measuredalbedo())
+        rad3_Albedo= Radiobutton(simulationParameter_frame, variable=rb_Albedo,  width=20, text="Hourly spectral Albedo!", value=2, command=lambda:Measuredalbedo())
         rad1_Albedo.grid(column=0,row=17, sticky=W)
         rad2_Albedo.grid(column=1,row=17, columnspan=2, sticky=W)
+        rad3_Albedo.grid(column=0,row=18, sticky=W)
   
     
  
@@ -1173,8 +1275,8 @@ class Window(tk.Tk):
         Label_backReflect=ttk.Label(simulationParameter_frame, text="Back surface reflectivity of PV rows:")
         Label_frontReflect.grid(column=0, row=14, sticky=W)
         Label_backReflect.grid(column=0, row=15, sticky=W)
-        Label_frontReflectPar=ttk.Label(simulationParameter_frame, text="[%]")
-        Label_backReflectPar=ttk.Label(simulationParameter_frame, text="[%]")
+        Label_frontReflectPar=ttk.Label(simulationParameter_frame, text="[-]")
+        Label_backReflectPar=ttk.Label(simulationParameter_frame, text="[-]")
         Label_frontReflectPar.grid(column=2, row=14, sticky=W)
         Label_backReflectPar.grid(column=2, row=15, sticky=W)
         Entry_frontReflect=ttk.Entry(simulationParameter_frame, background="white", width=10)
@@ -1346,7 +1448,42 @@ class Window(tk.Tk):
         utcoffset_configfile=parser.get('default', 'utcoffset')
         
         
-
+# =============================================================================
+#          Config file (Sarah_Golden.ini) 
+# =============================================================================
+         
+        parser = ConfigParser()
+        parser.read(rootPath + '\Lib\default\Sarah_Golden.ini')
+        simulationName_configfile_C=parser.get('default', 'simulationName')
+       # simulationMode_configfile=parser.get('default', 'simulationMode')
+        weatherFile_configfile_C=parser.get('default', "weatherFile")
+        reflectivityFile_configfile_C=parser.get('default', "reflectivityFile")
+        tilt_configfile_C=parser.get('default', 'tilt')
+        limitAngle_configfile_C=parser.getfloat('default', 'limitAngle')
+        HubHeight_configfile_C=parser.getfloat('default', 'hub_height')
+        azimuth_configfile_C=parser.getfloat('default', 'azimuth')
+        nModsx_configfile_C=parser.getint('default', 'nModsx')
+        nModsy_configfile_C=parser.getint('default', 'nModsy')
+        nRows_configfile_C=parser.getint('default', 'nRows')
+        sensorsy_configfile_C=parser.getint('default', 'sensorsy')
+        Start_Year_configfile_C=parser.get('default', 'Start_Year')
+        Start_Month_configfile_C=parser.get('default', 'Start_Month')
+        Start_Day_configfile_C=parser.get('default', 'Start_Day')
+        Start_Hour_configfile_C=parser.get('default', 'Start_Hour')
+        End_Year_configfile_C=parser.get('default', 'End_Year')
+        End_Month_configfile_C=parser.get('default', 'End_Month')
+        End_Day_configfile_C=parser.get('default', 'End_Day')
+        End_Hour_configfile_C=parser.get('default', 'End_Hour')
+      #  moduley_configfile=parser.get('default', 'moduley')
+      #  modulex_configfile=parser.get('default', 'modulex')
+        frontReflect_configfile_C=parser.get('default', 'frontReflect')
+        backReflect_configfile_C=parser.get('default', 'backReflect')
+        longitude_configfile_C=parser.get('default', 'longitude')
+        latitude_configfile_C=parser.get('default', 'latitude')
+        gcr_configfile_C=parser.get('default', 'gcr')
+        utcoffset_configfile_C=parser.get('default', 'utcoffset')
+        Module_name_configfile_C=parser.get('default','module_name')
+        
         
         
 # =============================================================================
@@ -1394,13 +1531,13 @@ class Window(tk.Tk):
      
         
         Label_albedo=ttk.Label(simulationParameter_frame, text= "Albedo:")
-        Label_albedo.grid(column=0, row=18, sticky="w")
+        Label_albedo.grid(column=0, row=19, sticky="w")
         Entry_albedo=ttk.Entry(simulationParameter_frame, background="white", width=10)
-        Entry_albedo.grid(column=1, row=18, sticky="w")
+        Entry_albedo.grid(column=1, row=19, sticky="w")
         entry_albedo_value = tk.StringVar()
         Combo_Albedo=ttk.Combobox(simulationParameter_frame, textvariable=entry_albedo_value)
         
-        Combo_Albedo.grid(column=2, row=18, ipadx=50)
+        Combo_Albedo.grid(column=2, row=19, ipadx=50)
         getAlbedoJSONlist()                                     #set the module name values
         Combo_Albedo.bind("<<ComboboxSelected>>", comboclick_albedo)
 
@@ -1524,7 +1661,7 @@ class Window(tk.Tk):
             #pack the image in the frame
             Label2_logo=ttk.Label(namecontrol_frame, image=self.logo2)
             Label2_logo.image=logo2
-            Label2_logo.grid(row=7,column=0, columnspan=3)
+            Label2_logo.grid(row=8,column=0, columnspan=3)
         
         logo2()
         
@@ -1549,6 +1686,8 @@ class Window(tk.Tk):
         Button_startSimulation.grid(column=2,row=1)
         Button_setDefault=ttk.Button(simulationFunction_frame, text="set default!", command=setdefault)
         Button_setDefault.grid(column=0,row=1)
+        Button_setDefault_Golden=ttk.Button(simulationFunction_frame, text="set default_Golden!", command=setdefault_Golden)
+        Button_setDefault_Golden.grid(column=3,row=1)
         Button_clear=ttk.Button(simulationFunction_frame, text="clear!", command=clearall)
         Button_clear.grid(column=1,row=1)
 
@@ -1576,7 +1715,7 @@ class Window(tk.Tk):
            
             fig3, ax3= plt.subplots()
             
-            ax3.plot(idx,P_bi, label="P_bi ")
+            ax3.plot(idx,P_bi, label="P_bi")
             
             ax3.xaxis.set_minor_locator(dates.DayLocator(interval=1))   # every Day
             ax3.xaxis.set_minor_formatter(dates.DateFormatter('%d'))  # day and hours
@@ -1610,7 +1749,7 @@ class Window(tk.Tk):
            
             fig3, ax3= plt.subplots()
             
-            ax3.plot(idx,P_bi, label="P_bi ")
+            ax3.plot(idx,P_bi, label="P_bi")
             
             ax3.xaxis.set_minor_locator(dates.DayLocator(interval=1))   # every Day
             ax3.xaxis.set_minor_formatter(dates.DateFormatter('%d'))  # day and hours

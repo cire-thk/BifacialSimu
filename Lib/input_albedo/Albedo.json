@@ -91,5 +91,8 @@
     },
     "Native grass surface grown in clay loam soil": {
         "Albedo": 0.194
+    },
+    "Quartz sand": {
+        "Albedo": 0.2172
     }
 }
