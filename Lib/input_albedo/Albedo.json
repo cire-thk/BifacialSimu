@@ -94,5 +94,8 @@
     },
     "Quartz sand": {
         "Albedo": 0.2172
+    },
+    "Red soil sand": {
+        "Albedo": 0.26
     }
 }

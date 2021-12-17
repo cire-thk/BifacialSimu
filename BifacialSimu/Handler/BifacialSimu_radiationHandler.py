@@ -29,6 +29,7 @@ get_ipython().magic('reset -sf')
 
 import pandas as pd #pandas = can read .csv as input
 import matplotlib.pyplot as plt #display shadows
+import matplotlib.dates as mdates
 import numpy as np
 import warnings
 import bifacial_radiance
@@ -619,9 +620,9 @@ class ViewFactors:
         def variableAlbedo(df, resultspath):
             
             # Set model parameters
-            a0 = 0.2428        # Measured Albedo under direct illumination with a solar zenith angle of approx. 60°
+            a0 = 0.22       # Measured Albedo under direct illumination with a solar zenith angle of approx. 60°
             C = 0.4            # Solar angle dependency factor  
-            adiff = 0.1683     # Measured Albedo under 100% diffuse illumination
+            adiff = 0.19896735     # Measured Albedo under 100% diffuse illumination
             
             # Calculate albedo for every hour
             for index, row in df.iterrows(): 
@@ -637,6 +638,22 @@ class ViewFactors:
         
             variableAlbedo = pd.DataFrame({'datetime':df.index, 'variable_Albedo': df['albedo']})
             variableAlbedo.to_csv(resultspath + '/variable_Albedo.csv', sep=';', index=False)
+            
+            # Plot variable albedo
+            f, ax = plt.subplots(figsize=(12, 4))
+                    
+            x = variableAlbedo['datetime']
+            print("x",x)
+            y = variableAlbedo['variable Albedo']
+            print("y", y)
+            plt.plot(x,y)
+            ax.set_ylabel('Variable albedo')
+            #ax.xaxis.set_major_locator(mdates.MonthLocator())
+            #ax.xaxis.set_major_formatter(mdates.DateFormatter('%b'))
+            plt.xlim(0,len(y)-1)
+            print("len", len(y))
+            plt.ylim(0,0.4)
+            plt.show()
         
         ####################################################
         
@@ -841,21 +858,26 @@ class ViewFactors:
         def Segments_report(pvarray):
             result = dict()
             
+            rowsum_qabs_front = 0
+            rowsum_qabs_back = 0
+            rowsum_qinc_front = 0
+            rowsum_qinc_back = 0
+            
             for i in range(0, len(pvarray.ts_pvrows)):
                 
                 row = pvarray.ts_pvrows[i]
                 
-                result["row_" + str(i) + "_reflection_front"] = row.front.get_param_weighted('reflection') #avg reflection for every row front
-                result["row_" + str(i) + "_reflection_back"] = row.back.get_param_weighted('reflection') #avg reflection for every row back
+                #result["row_" + str(i) + "_reflection_front"] = row.front.get_param_weighted('reflection') #avg reflection for every row front
+                #result["row_" + str(i) + "_reflection_back"] = row.back.get_param_weighted('reflection') #avg reflection for every row back
                 result["row_" + str(i) + "_qinc_front"] = row.front.get_param_weighted('qinc') #avg qinc for every row front
                 result["row_" + str(i) + "_qinc_back"] = row.back.get_param_weighted('qinc') #avg qinc for every row back
                 result["row_" + str(i) + "_qabs_front"] = row.front.get_param_weighted('qabs') #avg qabs for every row front
                 result["row_" + str(i) + "_qabs_back"] = row.back.get_param_weighted('qabs') #avg qabs for every row back
-                result["row_" + str(i) + "_q0_front"] = row.front.get_param_weighted('q0') #avg reflection for every row front
-                result["row_" + str(i) + "_q0_back"] = row.back.get_param_weighted('q0') #avg reflection for every row back
-                result["row_" + str(i) + "_isotropic_front"] = row.front.get_param_weighted('isotropic') #avg reflection for every row front
-                result["row_" + str(i) + "_isotropic_back"] = row.back.get_param_weighted('isotropic') #avg reflection for every row back              
-            
+                #result["row_" + str(i) + "_q0_front"] = row.front.get_param_weighted('q0') #avg reflection for every row front
+                #result["row_" + str(i) + "_q0_back"] = row.back.get_param_weighted('q0') #avg reflection for every row back
+                #result["row_" + str(i) + "_isotropic_front"] = row.front.get_param_weighted('isotropic') #avg reflection for every row front
+                #result["row_" + str(i) + "_isotropic_back"] = row.back.get_param_weighted('isotropic') #avg reflection for every row back              
+                
                 for ts_surface in row.front.all_ts_surfaces:
                     key = "qabs_segment_" + str(ts_surface.index)  # updated
                     result[key] = ts_surface.get_param('qabs')
@@ -871,6 +893,17 @@ class ViewFactors:
                 for ts_surface in row.back.all_ts_surfaces:
                     key = "qinc_segment_" + str(ts_surface.index)  # udpated
                     result[key] = ts_surface.get_param('qinc')
+                
+                rowsum_qabs_front += row.front.get_param_weighted('qabs')
+                rowsum_qabs_back += row.back.get_param_weighted('qabs')
+                rowsum_qinc_front += row.front.get_param_weighted('qinc')
+                rowsum_qinc_back += row.back.get_param_weighted('qinc')
+                
+            result["row_avg_qabs_front"] = rowsum_qabs_front / simulationDict['nRows']
+            result["row_avg_qabs_back"] = rowsum_qabs_back / simulationDict['nRows']
+            result["row_avg_qinc_front"] = rowsum_qinc_front / simulationDict['nRows']
+            result["row_avg_qinc_back"] = rowsum_qinc_back / simulationDict['nRows']
+            
             return result
                
         def Segments_report_front(pvarray):
@@ -916,14 +949,150 @@ class ViewFactors:
         
         ####################################################
         
+        def daily_mean_irradiance(df_reportVF):
+            df1 = df_reportVF  
+
+            Avg_front_daily = []     # array to hold daily row average qabs front values
+            Avg_back_daily = []      # array to hold daily row average qabs back values
+            Row_0_front_daily = []   # array to hold daily qabs front values of row 0
+            Row_1_front_daily = []   # array to hold daily qabs front values of row 1
+            Row_2_front_daily = []   # array to hold daily qabs front values of row 2
+            Row_0_back_daily = []   # array to hold daily qabs back values of row 0
+            Row_1_back_daily = []   # array to hold daily qabs back values of row 1
+            Row_2_back_daily = []   # array to hold daily qabs back values of row 2
+            cd = []             # array to hold hourly datetime
+
+            for i in range(365):
+                
+                Avg_front_hourly = []     # array to hold hourly row average qabs front values
+                Avg_back_hourly = []     # array to hold hourly row average qabs front values
+                Row_0_front_hourly = []   # array to hold hourly qabs front values of row 0
+                Row_1_front_hourly = []   # array to hold hourly qabs front values of row 1
+                Row_2_front_hourly = []   # array to hold hourly qabs front values of row 2
+                Row_0_back_hourly = []   # array to hold hourly qabs back values of row 0
+                Row_1_back_hourly = []   # array to hold hourly qabs back values of row 1
+                Row_2_back_hourly = []   # array to hold hourly qabs back values of row 2
+                
+                currentDate = datetime.datetime(simulationDict['startHour'][0], simulationDict['startHour'][1], simulationDict['startHour'][2], simulationDict['startHour'][3]) + pd.to_timedelta(i, unit='D') 
+                
+                for j in range(24):
+                    
+                    k = i*24 + j
+                    
+                    Avg_front = df1.iloc[k]['row_avg_qabs_front']    
+                    Avg_back = df1.iloc[k]['row_avg_qabs_back'] 
+                    Row_0_front = df1.iloc[k]['row_0_qabs_front'] 
+                    Row_1_front = df1.iloc[k]['row_1_qabs_front'] 
+                    Row_2_front = df1.iloc[k]['row_2_qabs_front'] 
+                    Row_0_back = df1.iloc[k]['row_0_qabs_back'] 
+                    Row_1_back = df1.iloc[k]['row_1_qabs_back'] 
+                    Row_2_back = df1.iloc[k]['row_2_qabs_back'] 
+                                                            
+                    if Avg_front == 0:
+                        Avg_front = np.nan
+                    if Avg_back == 0:
+                        Avg_back = np.nan
+                    if Row_0_front == 0:
+                        Row_0_front = np.nan
+                    if Row_1_front == 0:
+                        Row_1_front = np.nan
+                    if Row_2_front == 0:
+                        Row_2_front = np.nan
+                    if Row_0_back == 0:
+                        Row_0_back = np.nan
+                    if Row_1_back == 0:
+                        Row_1_back = np.nan
+                    if Row_2_back == 0:
+                        Row_2_back = np.nan
+                        
+                    Avg_front_hourly.append(Avg_front)
+                    Avg_back_hourly.append(Avg_back)
+                    Row_0_front_hourly.append(Row_0_front)
+                    Row_1_front_hourly.append(Row_1_front)
+                    Row_2_front_hourly.append(Row_2_front)
+                    Row_0_back_hourly.append(Row_0_back)
+                    Row_1_back_hourly.append(Row_1_back)
+                    Row_2_back_hourly.append(Row_2_back)
+                    
+
+                Avg_front_mean = np.nanmean(Avg_front_hourly)      # mean value of 24 hourly values without nan values
+                Avg_back_mean = np.nanmean(Avg_back_hourly)        # mean value of 24 hourly values without nan values
+                Row_0_front_mean = np.nanmean(Row_0_front_hourly)  # mean value of 24 hourly values without nan values         
+                Row_1_front_mean = np.nanmean(Row_1_front_hourly)  # mean value of 24 hourly values without nan values         
+                Row_2_front_mean = np.nanmean(Row_2_front_hourly)  # mean value of 24 hourly values without nan values         
+                Row_0_back_mean = np.nanmean(Row_0_back_hourly)    # mean value of 24 hourly values without nan values         
+                Row_1_back_mean = np.nanmean(Row_1_back_hourly)    # mean value of 24 hourly values without nan values         
+                Row_2_back_mean = np.nanmean(Row_2_back_hourly)    # mean value of 24 hourly values without nan values         
+                
+                Avg_front_daily.append(Avg_front_mean)
+                Avg_back_daily.append(Avg_back_mean)
+                Row_0_front_daily.append(Row_0_front_mean)
+                Row_1_front_daily.append(Row_1_front_mean)
+                Row_2_front_daily.append(Row_2_front_mean) 
+                Row_0_back_daily.append(Row_0_back_mean)
+                Row_1_back_daily.append(Row_1_back_mean)
+                Row_2_back_daily.append(Row_2_back_mean)
+                
+                cd.append(currentDate)          # append the currentDate to cd array
+            
+            # create pandas dataframe to save the four arrays and give them headers
+            df2 = pd.DataFrame({'datetime':cd, 'Average front surface irradiance': Avg_front_daily, 'Average rear surface irradiance': Avg_back_daily, 'Front surface irradiance row 1':Row_0_front_daily, 'Front surface irradiance row 2':Row_1_front_daily,'Front surface irradiance row 3':Row_2_front_daily,'Rear surface irradiance row 1':Row_0_back_daily, 'Rear surface irradiance row 2':Row_1_back_daily, 'Rear surface irradiance row 3':Row_2_back_daily})
+            df2.set_index('datetime')
+            print(df2)
+            return df2
+        
+        def plot_irradiance1(df2):
+            # Plot average surface irradiance (qabs)
+            fig, ax = plt.subplots(figsize=(12, 4))
+            
+            width = 1
+                       
+            y1 = df2['Average front surface irradiance']
+            y2 = df2['Average rear surface irradiance']
+            ind = range(len(y1))
+            ax.bar(ind, y1, width, label='Average front surface irradiance', linewidth=0)
+            ax.bar(ind, y2, width, bottom=y1, label='Average rear surface irradiance', linewidth=0)
+            
+            ax.set_ylabel('Average surface irradiance in $\mathregular{W/m^2}$')
+            ax.xaxis.set_major_locator(mdates.MonthLocator())
+            ax.xaxis.set_major_formatter(mdates.DateFormatter('%b'))
+            ax.legend(bbox_to_anchor=(0., 1.02, 1, 0.1), loc='lower left', ncol=2, borderaxespad=0.)
+            plt.xlim(0,len(y1)-1)
+            plt.show()
+            
+            
+        def plot_irradiance2(df2):
+            # Plot surface irradiance for every row
+            fig, ax = plt.subplots(figsize=(12, 4))
+            
+            width = 1
+                       
+            y1 = df2['Rear surface irradiance row 1']
+            y2 = df2['Rear surface irradiance row 2']
+            y3 = df2['Rear surface irradiance row 3']
+            ind = range(len(y1))
+            ax.bar(ind, y1, width, label='Rear surface irradiance row 1', linewidth=0)
+            ax.bar(ind, y2, width, label='Rear surface irradiance row 2', linewidth=0)
+            ax.bar(ind, y3, width, label='Rear surface irradiance row 3', linewidth=0)
+            
+            ax.xaxis.set_major_locator(mdates.MonthLocator())
+            ax.xaxis.set_major_formatter(mdates.DateFormatter('%b'))
+            ax.legend(bbox_to_anchor=(0., 1.02, 1, 0.1), loc='lower left', ncol=3, borderaxespad=0.)
+            ax.set_ylabel('Rear surface irradiance in $\mathregular{W/m^2}$')
+            plt.xlim(0,len(y1)-1)
+            plt.show()
+        
+        
         # Run full simulation
             
         if onlyFrontscan == False:
             report = engine.run_full_mode(fn_build_report=Segments_report)
             df_reportVF = pd.DataFrame(report, index=df.index)
+            df2 = daily_mean_irradiance(df_reportVF)
+            plot_irradiance1(df2)
+            plot_irradiance2(df2)
             
             # Print results as .csv in directory
-            
             df_reportVF.to_csv(resultsPath + "radiation_qabs_results.csv")
             """
             # Plot total qinc front and back for every row
@@ -935,7 +1104,7 @@ class ViewFactors:
             ax[0].set_ylabel('W/m2')
             ax[1].set_ylabel('W/m2')
             ax[2].set_ylabel('W/m2')
-            f.savefig("row0-3_qinc.png", dpi = dpi)
+            #f.savefig("row0-3_qinc.png", dpi = dpi)
             plt.show(sns)
             """
             
@@ -962,7 +1131,7 @@ class ViewFactors:
             f.savefig("row0-3_qinc.png", dpi = dpi)
             plt.show(sns)
             """
-            
+        
         df_reportVF=df_reportVF.set_index(pd.date_range(start = dtStart - datetime.timedelta(hours=1), end = dtEnd, freq='H', closed='right'))
         
         print("df_reportVF at end of RadiationHandler: ")
