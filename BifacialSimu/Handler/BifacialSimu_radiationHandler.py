@@ -644,19 +644,11 @@ class ViewFactors:
             plt.rc ('xtick', labelsize = 11) #Schriftgröße der x-Tick-Labels
             plt.rc ('ytick', labelsize = 11) #Schriftgröße der y-Tick-Labels
             plt.rc ('legend', fontsize = 11) #Schriftgröße der Legende
-            f, ax = plt.subplots(figsize=(12, 4))
+            f, ax = plt.subplots(figsize=(12, 4), dpi=200)
             
             variableAlbedo[['variable_Albedo']].plot(ax=ax)
-            #x = variableAlbedo[['datetime']]
-            #print("x",x)
-            #y = variableAlbedo[['variable_Albedo']]
-            #print("y", y)
-            #plt.plot(x,y)
             ax.set_ylabel('Variable albedo')
             ax.legend(bbox_to_anchor=(0., 1.02, 1, 0.1), loc='lower left', ncol=2, borderaxespad=0.)
-            #ax.xaxis.set_major_locator(mdates.MonthLocator())
-            #ax.xaxis.set_major_formatter(mdates.DateFormatter('%b'))
-            #plt.xlim(0,744)
             plt.ylim(0,0.4)
             plt.show()
         
@@ -1053,7 +1045,7 @@ class ViewFactors:
             plt.rc ('xtick', labelsize = 11) #Schriftgröße der x-Tick-Labels
             plt.rc ('ytick', labelsize = 11) #Schriftgröße der y-Tick-Labels
             plt.rc ('legend', fontsize = 11) #Schriftgröße der Legende
-            fig, ax = plt.subplots(figsize=(12, 4))
+            fig, ax = plt.subplots(figsize=(12, 4), dpi=200)
             width = 1
                        
             y1 = df2['Average front surface irradiance']
@@ -1074,7 +1066,7 @@ class ViewFactors:
             
         def plot_irradiance2(df2):
             # Plot surface irradiance for every row
-            fig, ax = plt.subplots(figsize=(12, 4))
+            fig, ax = plt.subplots(figsize=(12, 4), dpi=200)
             
             width = 1
                        
