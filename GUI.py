@@ -115,8 +115,10 @@ SimulationDict = {
 'sensorsy' : 5, #number of sensors
 'moduley' : 2 ,#length of modules in y-axis
 'modulex' : 1, #length of modules in x-axis  
+'fixAlbedo': False, # Option to use the fix albedo
 'hourlyMeasuredAlbedo' : True, # True if measured albedo values in weather file
-'spectralAlbedo' : True, # Option to calculate a spectral Albedo 
+'hourlySpectralAlbedo' : True, # Option to calculate a spectral Albedo 
+'variableAlbedo': False, # Option to calculate sun position dependend, variable albedo
 'albedo' : 0.26, # Measured Albedo average value, if hourly isn't available
 'frontReflect' : 0.03, #front surface reflectivity of PV rows
 'BackReflect' : 0.05, #back surface reflectivity of PV rows
@@ -294,7 +296,9 @@ class Window(tk.Tk):
                 SimulationDict["limitAngle"]=float(Entry_LimitAngle.get())
         
             if len(Entry_ClearanceHeight.get()) !=0:
-                SimulationDict["clearance_height"]=float(Entry_ClearanceHeight.get())      
+                SimulationDict["clearance_height"]=float(Entry_ClearanceHeight.get())
+                # Calculate the hub height of the PV rows, measured at the bottom edge
+                SimulationDict['hub_height']  = (SimulationDict['clearance_height'] + (math.sin(SimulationDict['tilt'])*SimulationDict['moduley']/2))
                 
             if len(Entry_Azimuth.get()) !=0:
                 SimulationDict["azimuth"]=float(Entry_Azimuth.get()) 
@@ -337,8 +341,8 @@ class Window(tk.Tk):
                 
             if len(Entry_HubHeight.get()) !=0:
                 SimulationDict["hub_height"]=float(Entry_HubHeight.get()) 
-                # Calculate the height of the PV rows, measured at the bottom edge for the use in Viewfactors, PV*Sol and PVSyst
-                SimulationDict['clearance_height']  = (SimulationDict['hub_height'] - (math.sin(SimulationDict['tilt'])*SimulationDict['moduley']/2)) #height of the PV rows, measured at their center [m]
+                # Calculate the clearance height of the PV rows, measured at the bottom edge
+                SimulationDict['clearance_height']  = (SimulationDict['hub_height'] - (math.sin(SimulationDict['tilt'])*SimulationDict['moduley']/2))
 
 
 # =============================================================================
@@ -873,7 +877,17 @@ class Window(tk.Tk):
             Entry_weatherfile.delete(0, END)
             Entry_weatherfile.insert(0, filename)   
             SimulationDict["weatherFile"]=Entry_weatherfile.get()
+        
+        def InsertReflectivityfile():    
             
+            """ select local reflectivityfile
+            """
+          
+            filename = tk.filedialog.askopenfilename(title="Select .csv file", filetypes = (("TMY .csv files", "*.csv"),))
+
+            Entry_reflectivityfile.delete(0, END)
+            Entry_reflectivityfile.insert(0, filename)   
+            SimulationDict["spectralReflectancefile"]=Entry_reflectivityfile.get()
         
         #Changing the weatherfile
         Lab_weatherfile=ttk.Label(namecontrol_frame, text="Add Path of weatherfile:")
@@ -883,15 +897,23 @@ class Window(tk.Tk):
         Button_weatherfile=ttk.Button(namecontrol_frame, text="Insert Weatherfile!", command=InsertWeatherfile)
         Button_weatherfile.grid(row=4, column=2)
         
+        #Changing the reflectivityfile
+        Lab_reflectivityfile=ttk.Label(namecontrol_frame, text="Add Path of reflectivityfile:")
+        Lab_reflectivityfile.grid(row=5, column=0)
+        Entry_reflectivityfile=ttk.Entry(namecontrol_frame, background="white", width=25)
+        Entry_reflectivityfile.grid(row=5, column=1)
+        Button_reflectivityfile=ttk.Button(namecontrol_frame, text="Insert Reflectivityfile!", command=InsertReflectivityfile)
+        Button_reflectivityfile.grid(row=5, column=2)
+        
         #Change Longitude and Latitude
         Label_longitude=ttk.Label(namecontrol_frame, text="Enter Longitude:")
         Label_latitude=ttk.Label(namecontrol_frame, text="Enter Latitude:")
-        Label_longitude.grid(column=0, row=5, sticky=W)
-        Label_latitude.grid(column=0, row=6, sticky=W)
+        Label_longitude.grid(column=0, row=6, sticky=W)
+        Label_latitude.grid(column=0, row=7, sticky=W)
         Entry_longitude=ttk.Entry(namecontrol_frame, background="white", width=10)
         Entry_latitude=ttk.Entry(namecontrol_frame, background="white", width=10)
-        Entry_longitude.grid(column=1, row=5, sticky=W)
-        Entry_latitude.grid(column=1, row=6, sticky=W)        
+        Entry_longitude.grid(column=1, row=6, sticky=W)
+        Entry_latitude.grid(column=1, row=7, sticky=W)        
         
         
   
@@ -982,12 +1004,12 @@ class Window(tk.Tk):
                 Label_LimitAngle.config(state="disabled")
                 Entry_LimitAngle.config(state="disabled")
                 Label_LimitAnglePar.config(state="disabled")
-                Label_HubHeight.config(state="disabled")
-                Entry_HubHeight.config(state="disabled")
-                Label_HubHeightPar.config(state="disabled")
-                Label_ClearanceHeight.config(state="normal")
-                Entry_ClearanceHeight.config(state="normal")
-                Label_ClearanceHeightPar.config(state="normal")
+                Label_HubHeight.config(state="normal")
+                Entry_HubHeight.config(state="normal")
+                Label_HubHeightPar.config(state="normal")
+                Label_ClearanceHeight.config(state="disabled")
+                Entry_ClearanceHeight.config(state="disabled")
+                Label_ClearanceHeightPar.config(state="disabled")
                  
                  
             else:
@@ -1015,29 +1037,69 @@ class Window(tk.Tk):
         rad1_rb_SingleAxisTracking.grid(column=0,row=1, sticky=W)
         rad2_rb_SingleAxisTracking.grid(column=1,row=1, columnspan=2, sticky=W)
         
-        # Choosing between hourly and average albedo
+        # Choosing between hourly and average and spectral albedo
         def Measuredalbedo():
             if rb_Albedo.get()==0:
                 SimulationDict["hourlyMeasuredAlbedo"]=False
+                SimulationDict["hourlySpectralAlbedo"]=False
+                SimulationDict["fixAlbedo"]=True
+                SimulationDict["variableAlbedo"]=False
                 Label_albedo.config(state="normal")
                 Entry_albedo.config(state="normal")
                 Combo_Albedo.config(state="normal")
+                Entry_reflectivityfile.config(state="disabled")
+                Button_reflectivityfile.config(state="disabled")
+                Lab_reflectivityfile.config(state="disabled")
 
-               
-            else:
-                SimulationDict["hourlyMeasuredAlbedo"]=True
+            elif rb_Albedo.get()==2:
+                SimulationDict["hourlyMeasuredAlbedo"]=False
+                SimulationDict["hourlySpectralAlbedo"]=True
+                SimulationDict["fixAlbedo"]=False
+                SimulationDict["variableAlbedo"]=False
+                Label_albedo.config(state="normal")
+                Entry_albedo.config(state="normal")
+                Combo_Albedo.config(state="normal")
+                Entry_reflectivityfile.config(state="normal")
+                Button_reflectivityfile.config(state="normal")
+                Lab_reflectivityfile.config(state="normal")
+            
+            elif rb_Albedo.get()==3:
+                SimulationDict["hourlyMeasuredAlbedo"]=False
+                SimulationDict["hourlySpectralAlbedo"]=False
+                SimulationDict["fixAlbedo"]=False
+                SimulationDict["variableAlbedo"]=True
                 Label_albedo.config(state="disabled")
                 Entry_albedo.config(state="disabled")
                 Combo_Albedo.config(state="disabled")
+                Entry_reflectivityfile.config(state="disabled")
+                Button_reflectivityfile.config(state="disabled")
+                Lab_reflectivityfile.config(state="disabled")
+
+                
+            else:
+                SimulationDict["hourlyMeasuredAlbedo"]=True
+                SimulationDict["hourlySpectralAlbedo"]=False
+                SimulationDict["fixAlbedo"]=False
+                SimulationDict["variableAlbedo"]=False
+                Label_albedo.config(state="disabled")
+                Entry_albedo.config(state="disabled")
+                Combo_Albedo.config(state="disabled")
+                Entry_reflectivityfile.config(state="disabled")
+                Button_reflectivityfile.config(state="disabled")
+                Lab_reflectivityfile.config(state="disabled")
         
         
         #Radiobuttons Albedo
         rb_Albedo=IntVar()
         rb_Albedo.set("0")
         rad1_Albedo= Radiobutton(simulationParameter_frame, variable=rb_Albedo, width=23, text="Average measured Albedo!", value=0, command=lambda:Measuredalbedo())
-        rad2_Albedo= Radiobutton(simulationParameter_frame, variable=rb_Albedo,  width=20, text="Hourly measured Albedo!", value=1, command=lambda:Measuredalbedo())
+        rad2_Albedo= Radiobutton(simulationParameter_frame, variable=rb_Albedo,  width=23, text="Hourly measured Albedo!", value=1, command=lambda:Measuredalbedo())
+        rad3_Albedo= Radiobutton(simulationParameter_frame, variable=rb_Albedo,  width=20, text="Hourly spectral Albedo!", value=2, command=lambda:Measuredalbedo())
+        rad4_Albedo= Radiobutton(simulationParameter_frame, variable=rb_Albedo,  width=20, text="Hourly variable Albedo!", value=3, command=lambda:Measuredalbedo())
         rad1_Albedo.grid(column=0,row=17, sticky=W)
         rad2_Albedo.grid(column=1,row=17, columnspan=2, sticky=W)
+        rad3_Albedo.grid(column=0,row=18, sticky=W)
+        rad4_Albedo.grid(column=1,row=18, columnspan=2, sticky=W)
   
     
  
@@ -1173,8 +1235,8 @@ class Window(tk.Tk):
         Label_backReflect=ttk.Label(simulationParameter_frame, text="Back surface reflectivity of PV rows:")
         Label_frontReflect.grid(column=0, row=14, sticky=W)
         Label_backReflect.grid(column=0, row=15, sticky=W)
-        Label_frontReflectPar=ttk.Label(simulationParameter_frame, text="[%]")
-        Label_backReflectPar=ttk.Label(simulationParameter_frame, text="[%]")
+        Label_frontReflectPar=ttk.Label(simulationParameter_frame, text="[-]")
+        Label_backReflectPar=ttk.Label(simulationParameter_frame, text="[-]")
         Label_frontReflectPar.grid(column=2, row=14, sticky=W)
         Label_backReflectPar.grid(column=2, row=15, sticky=W)
         Entry_frontReflect=ttk.Entry(simulationParameter_frame, background="white", width=10)
@@ -1394,13 +1456,13 @@ class Window(tk.Tk):
      
         
         Label_albedo=ttk.Label(simulationParameter_frame, text= "Albedo:")
-        Label_albedo.grid(column=0, row=18, sticky="w")
+        Label_albedo.grid(column=0, row=19, sticky="w")
         Entry_albedo=ttk.Entry(simulationParameter_frame, background="white", width=10)
-        Entry_albedo.grid(column=1, row=18, sticky="w")
+        Entry_albedo.grid(column=1, row=19, sticky="w")
         entry_albedo_value = tk.StringVar()
         Combo_Albedo=ttk.Combobox(simulationParameter_frame, textvariable=entry_albedo_value)
         
-        Combo_Albedo.grid(column=2, row=18, ipadx=50)
+        Combo_Albedo.grid(column=2, row=19, ipadx=50)
         getAlbedoJSONlist()                                     #set the module name values
         Combo_Albedo.bind("<<ComboboxSelected>>", comboclick_albedo)
 
@@ -1524,7 +1586,7 @@ class Window(tk.Tk):
             #pack the image in the frame
             Label2_logo=ttk.Label(namecontrol_frame, image=self.logo2)
             Label2_logo.image=logo2
-            Label2_logo.grid(row=7,column=0, columnspan=3)
+            Label2_logo.grid(row=8,column=0, columnspan=3)
         
         logo2()
         
