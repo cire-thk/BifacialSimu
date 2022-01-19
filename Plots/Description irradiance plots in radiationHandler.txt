@@ -1,0 +1,28 @@
+Stand: 19.01.2021 11:05 Uhr
+
+In der Datei "radiationHandler.py" in der class "viewfactor" ist die Funktion "daily_mean_irradiance" 
+(line 951 to line 1041) dafür zuständig, dass die stündlichen front und back irradiances auf alle Reihen 
+sowie die durchschnittliche front und back irradiance aller Reihen zu täglichen Werten gemittelt werden. 
+Aktuell ist die Schleife so eingestellt, dass sie für ein Jahr durchläuft. 
+--> line 964: for i in range(365)
+
+Durch Ändern der Zahl 365 kann die Anzahl der Tage für die Mittelung geändert werden.
+
+Die Funktion "plot_irradiance1" erzeugt ein Plot mit der durschnittlichen front und back irradiance aller 
+Reihen für jeden Tag.
+--> line 1043: def plot_irradiance1(df2):
+    ...
+--> line 1066:  plt.show()
+
+Die Funktion "plot_irradiance2" erzeugt ein Plot mit der front und back irradiance für jede Reihen für 
+jeden Tag.
+--> line 1069: def plot_irradiance2(df2):
+    ...
+--> line 1088:  plt.show()
+
+Wenn die Plots nicht gewünscht sind oder eine Fehlermeldung aufgrunddessen erscheint, können folgende Zeilen
+auskommentiert werden, sodass die oben genannten drei Funktionen nicht mehr aufgerufen werden:
+--> line 1096: df2 = daily_mean_irradiance(df_reportVF)
+--> line 1097: plot_irradiance1(df2)
+--> line 1098: plot_irradiance2(df2)
+
