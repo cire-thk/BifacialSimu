@@ -2,12 +2,10 @@
 """
 Created on Mon Jun  7 11:39:16 2021
 @author:        
+    CIRE TH Cologne
     Eva-Maria Grommes
     Jan Schmitt
-
-Additional co-authors can be found here:
-https://github.com/cire-thk/bifacialSimu    
-
+    Sarah Glaubitz
 name:
     Bifacial Simu - GUI
 overview:
@@ -16,6 +14,8 @@ overview:
     with View Factors and/or Ray Tracing method. 
     Command to run the simulation
     
+last changes:
+    07.06.21 created
 """
     
 # Start-Befehl für Simulation
@@ -93,39 +93,39 @@ import BifacialSimu_dataHandler
 
 # simulation parameters and variables
 SimulationDict = {
-'simulationName' : 'NREL_best_field_row_2',
-'simulationMode' : 1, 
+'simulationName' : 'Tamale_Ghana',
+'simulationMode' : 2, 
 'localFile' : True, # Decide wether you want to use a  weather file or try to download one for the coordinates
-'weatherFile' : (rootPath +'/WeatherData/Golden_USA/SRRLWeatherdata Nov_Dez_2.csv'), #weather file in TMY format 
-'spectralReflectancefile' : (rootPath + '/ReflectivityData/interpolated_reflectivity.csv'),
+'weatherFile' : (rootPath +'/WeatherData/Tamale_Ghana/Ghana_Tamale_TMY_2.csv'), # weather file in TMY format 
+'spectralReflectancefile' : (rootPath + '/ReflectivityData/bare_sand_interpolated.csv'),
 'cumulativeSky' : False, # Mode for RayTracing: CumulativeSky or hourly
-'startHour' : (2019, 11, 1, 0),  # Only for hourly simulation, yy, mm, dd, hh
-'endHour' : (2019, 11, 16, 0),  # Only for hourly simulation, yy, mm, dd, hh
-'utcOffset': -7,
-'tilt' : 10, #tilt of the PV surface [deg]
-'singleAxisTracking' : True, # singleAxisTracking or not
+'startHour' : (2011, 1, 1, 0),  # Only for hourly simulation, yy, mm, dd, hh
+'endHour' : (2011, 12, 31, 23),  # Only for hourly simulation, yy, mm, dd, hh
+'utcOffset': 0,
+'tilt' : 35, #tilt of the PV surface [deg]
+'singleAxisTracking' : False, # singleAxisTracking or not
 'backTracking' : False, # Solar backtracking is a tracking control program that aims to minimize PV panel-on-panel shading 
 'ElectricalMode_simple': False, # simple electrical Simulation after PVSyst, use if rear module parameters are missing
 'limitAngle' : 60, # limit Angle for singleAxisTracking
-'hub_height' : 1.3, # Height of the rotation axis of the tracker [m]
+'hub_height' : 2.95, # Height of the rotation axis of the tracker [m], distance between ground and center of PVrows
 'azimuth' : 180, #azimuth of the PV surface [deg] 90°: East, 135° : South-East, 180°:South
-'nModsx' : 1, #number of modules in x-axis
-'nModsy' : 1, #number of modules in y-axis
+'nModsx' : 10, #number of modules in x-axis
+'nModsy' : 2, #number of modules in y-axis
 'nRows' : 3, #number of rows
 'sensorsy' : 5, #number of sensors
-'moduley' : 2 ,#length of modules in y-axis
-'modulex' : 1, #length of modules in x-axis  
-'fixAlbedo': False, # Option to use the fix albedo
-'hourlyMeasuredAlbedo' : True, # True if measured albedo values in weather file
-'hourlySpectralAlbedo' : True, # Option to calculate a spectral Albedo 
+'moduley' : 2.036 ,#length of modules in y-axis
+'modulex' : 1.002, #length of modules in x-axis  
+'fixAlbedo': True, # Option to use the fix variable 'albedo'
+'hourlyMeasuredAlbedo' : False, # True if measured albedo values in weather file
+'hourlySpectralAlbedo' : False, # Option to calculate a spectral Albedo 
 'variableAlbedo': False, # Option to calculate sun position dependend, variable albedo
 'albedo' : 0.26, # Measured Albedo average value, if hourly isn't available
 'frontReflect' : 0.03, #front surface reflectivity of PV rows
 'BackReflect' : 0.05, #back surface reflectivity of PV rows
-'longitude' : -105.172, 
-'latitude' : 39.739,
-'gcr' : 0.35, #ground coverage ratio (module area / land use)
-'module_type' : 'NREL row 2', #Name of Module
+'longitude' : -0.848, 
+'latitude' : 9.433,
+'gcr' : 0.55, #ground coverage ratio (module area / land use)
+'module_type' : 'GCL-M3/72GDF-420W', #Name of Module
 }
 
 # is in Function StartSimulation()
@@ -765,7 +765,76 @@ class Window(tk.Tk):
             Entry_albedo.delete(0,END)
             Entry_albedo.insert(0,str(a['Albedo']))
        
-        
+            
+        def setdefault_Tamale():
+            Entry_Tilt.config(state="normal")
+            Entry_HubHeight.config(state="normal")
+            clearall()
+            Combo_Module.current(2)
+            Combo_Albedo.current(32)
+            rad1_weatherfile.invoke()
+            rad2_simulationMode.invoke()
+            rad1_rb_SingleAxisTracking.invoke()
+            rad1_Albedo.invoke()
+            rad1_ElectricalMode.invoke()
+            rad1_BacktrackingMode.invoke()
+            Entry_Name.insert(0, simulationName_configfile_C)
+            Entry_weatherfile.insert(0, weatherFile_configfile_C) #zu überarbeiten
+            Entry_reflectivityfile.insert(0, reflectivityFile_configfile_C)
+            Entry_Tilt.insert(0, tilt_configfile_C)
+            Entry_LimitAngle.insert(0, limitAngle_configfile_C)
+            Entry_HubHeight.insert(0, HubHeight_configfile_C)
+            Entry_Azimuth.insert(0, azimuth_configfile_C)
+            Entry_nModsx.insert(0, nModsx_configfile_C)
+            Entry_nModsy.insert(0, nModsy_configfile_C)
+            Entry_nRows.insert(0, nRows_configfile_C)
+            Entry_sensors.insert(0, sensorsy_configfile_C)
+            Entry_year_start.insert(0, Start_Year_configfile_C)
+            Entry_month_start.insert(0, Start_Month_configfile_C)
+            Entry_day_start.insert(0, Start_Day_configfile_C)
+            Entry_hour_start.insert(0, Start_Hour_configfile_C)
+            Entry_year_end.insert(0, End_Year_configfile_C)
+            Entry_month_end.insert(0, End_Month_configfile_C)
+            Entry_day_end.insert(0, End_Day_configfile_C)
+            Entry_hour_end.insert(0, End_Hour_configfile_C)
+         #   Entry_moduley.insert(0, moduley_configfile)
+          #  Entry_modulex.insert(0, modulex_configfile)
+            Entry_frontReflect.insert(0, frontReflect_configfile_C)
+            Entry_backReflect.insert(0, backReflect_configfile_C)
+            Entry_longitude.insert(0, longitude_configfile_C)
+            Entry_latitude.insert(0, latitude_configfile_C)
+            Entry_gcr.insert(0, gcr_configfile_C)
+            Entry_utcoffset.insert(0, utcoffset_configfile_C)
+
+            key = Module_name_configfile_C
+            d = self.jsondata[key]
+            self.module_type = key
+            SimulationDict["module_type"]=self.module_type
+            Entry_bi_factor.insert(0,str(d['bi_factor']))
+            Entry_nfront.insert(0,str(d['n_front']))
+            Entry_Iscf.insert(0,str(d['I_sc_f']))
+            Entry_Iscr.insert(0,str(d['I_sc_r']))
+            Entry_Vocf.insert(0,str(d['V_oc_f']))
+            Entry_Vocr.insert(0,str(d['V_oc_r']))
+            Entry_Vmppf.insert(0,str(d['V_mpp_f']))
+            Entry_Vmppr.insert(0,str(d['V_mpp_r']))
+            Entry_Imppf.insert(0,str(d['I_mpp_f']))              
+            Entry_Imppr.insert(0,str(d['I_mpp_r']))
+            Entry_Pmpp.insert(0,str(d['P_mpp']))
+            Entry_TkoeffP.insert(0,str(d['T_koeff_P']))
+            Entry_Tamb.insert(0,str(d['T_amb']))
+            Entry_TkoeffI.insert(0,str(d['T_koeff_I']))
+            Entry_TkoeffV.insert(0,str(d['T_koeff_V']))
+            Entry_zeta.insert(0,str(d['zeta']))
+            Entry_modulex.insert(0,str(d['modulex']))
+            Entry_moduley.insert(0,str(d['moduley'])) 
+                
+            key1=entry_albedo_value.get()
+            a = self.jsondata_albedo[key1]
+            self.albedo = key1
+            Entry_albedo.delete(0,END)
+            Entry_albedo.insert(0,str(a['Albedo']))
+            #Entry_albedo.insert(0,0.2169)   # average measured albedo of quartz sand
 
             
         def clearall():
@@ -870,14 +939,14 @@ class Window(tk.Tk):
             """ select local weatherfile
             """
           
-            filename = tk.filedialog.askopenfilename(title="Select EPW or TMY .csv file", filetypes = (("TMY .csv files", "*.csv"),
+            filename = tk.filedialog.askopenfilename(title="Select EPW or TMY .csv file", filetypes = ((".csv files", "*.csv"),
                                                               ("EPW files", "*.epw"),
                                                              ("EPW and TMY files", "*.epw;*.csv")))
 
             Entry_weatherfile.delete(0, END)
             Entry_weatherfile.insert(0, filename)   
             SimulationDict["weatherFile"]=Entry_weatherfile.get()
-        
+         
         def InsertReflectivityfile():    
             
             """ select local reflectivityfile
@@ -896,7 +965,7 @@ class Window(tk.Tk):
         Entry_weatherfile.grid(row=4, column=1)
         Button_weatherfile=ttk.Button(namecontrol_frame, text="Insert Weatherfile!", command=InsertWeatherfile)
         Button_weatherfile.grid(row=4, column=2)
-        
+       
         #Changing the reflectivityfile
         Lab_reflectivityfile=ttk.Label(namecontrol_frame, text="Add Path of reflectivityfile:")
         Lab_reflectivityfile.grid(row=5, column=0)
@@ -1087,6 +1156,7 @@ class Window(tk.Tk):
                 Entry_reflectivityfile.config(state="disabled")
                 Button_reflectivityfile.config(state="disabled")
                 Lab_reflectivityfile.config(state="disabled")
+
         
         
         #Radiobuttons Albedo
@@ -1408,7 +1478,42 @@ class Window(tk.Tk):
         utcoffset_configfile=parser.get('default', 'utcoffset')
         
         
-
+# =============================================================================
+#          Config file (default_Tamale.ini) 
+# =============================================================================
+         
+        parser = ConfigParser()
+        parser.read(rootPath + '\Lib\default\default_Tamale.ini')
+        simulationName_configfile_C=parser.get('default', 'simulationName')
+       # simulationMode_configfile=parser.get('default', 'simulationMode')
+        weatherFile_configfile_C=parser.get('default', "weatherFile")
+        reflectivityFile_configfile_C=parser.get('default', "reflectivityFile")
+        tilt_configfile_C=parser.get('default', 'tilt')
+        limitAngle_configfile_C=parser.getfloat('default', 'limitAngle')
+        HubHeight_configfile_C=parser.getfloat('default', 'hub_height')
+        azimuth_configfile_C=parser.getfloat('default', 'azimuth')
+        nModsx_configfile_C=parser.getint('default', 'nModsx')
+        nModsy_configfile_C=parser.getint('default', 'nModsy')
+        nRows_configfile_C=parser.getint('default', 'nRows')
+        sensorsy_configfile_C=parser.getint('default', 'sensorsy')
+        Start_Year_configfile_C=parser.get('default', 'Start_Year')
+        Start_Month_configfile_C=parser.get('default', 'Start_Month')
+        Start_Day_configfile_C=parser.get('default', 'Start_Day')
+        Start_Hour_configfile_C=parser.get('default', 'Start_Hour')
+        End_Year_configfile_C=parser.get('default', 'End_Year')
+        End_Month_configfile_C=parser.get('default', 'End_Month')
+        End_Day_configfile_C=parser.get('default', 'End_Day')
+        End_Hour_configfile_C=parser.get('default', 'End_Hour')
+      #  moduley_configfile=parser.get('default', 'moduley')
+      #  modulex_configfile=parser.get('default', 'modulex')
+        frontReflect_configfile_C=parser.get('default', 'frontReflect')
+        backReflect_configfile_C=parser.get('default', 'backReflect')
+        longitude_configfile_C=parser.get('default', 'longitude')
+        latitude_configfile_C=parser.get('default', 'latitude')
+        gcr_configfile_C=parser.get('default', 'gcr')
+        utcoffset_configfile_C=parser.get('default', 'utcoffset')
+        Module_name_configfile_C=parser.get('default','module_name')
+        
         
         
 # =============================================================================
@@ -1611,6 +1716,8 @@ class Window(tk.Tk):
         Button_startSimulation.grid(column=2,row=1)
         Button_setDefault=ttk.Button(simulationFunction_frame, text="set default!", command=setdefault)
         Button_setDefault.grid(column=0,row=1)
+        Button_setDefault_Tamale=ttk.Button(simulationFunction_frame, text="set default_Tamale!", command=setdefault_Tamale)
+        Button_setDefault_Tamale.grid(column=3,row=1)
         Button_clear=ttk.Button(simulationFunction_frame, text="clear!", command=clearall)
         Button_clear.grid(column=1,row=1)
 
@@ -1638,7 +1745,7 @@ class Window(tk.Tk):
            
             fig3, ax3= plt.subplots()
             
-            ax3.plot(idx,P_bi, label="P_bi ")
+            ax3.plot(idx,P_bi, label="P_bi")
             
             ax3.xaxis.set_minor_locator(dates.DayLocator(interval=1))   # every Day
             ax3.xaxis.set_minor_formatter(dates.DateFormatter('%d'))  # day and hours
@@ -1672,7 +1779,7 @@ class Window(tk.Tk):
            
             fig3, ax3= plt.subplots()
             
-            ax3.plot(idx,P_bi, label="P_bi ")
+            ax3.plot(idx,P_bi, label="P_bi")
             
             ax3.xaxis.set_minor_locator(dates.DayLocator(interval=1))   # every Day
             ax3.xaxis.set_minor_formatter(dates.DateFormatter('%d'))  # day and hours

@@ -2,7 +2,12 @@
 """
 Created on Wed Sep 15 17:53:38 2021
 
-@author: Sarah Glaubitz
+@author:        
+    Eva-Maria Grommes
+    Sarah Glaubitz
+
+Additional co-authors can be found here:
+https://github.com/cire-thk/bifacialSimu    
 
 name: BifacialSimu - spectralAlbedoHandler
 
@@ -11,8 +16,6 @@ overview:
     "A Comprehensive Albedo Model for Solar Energy Applications: Geometric Spectral Albedo"
     from Hesan Ziar, Furkan Fatih Sönmez, Olindo Isabella, and Miro Zeman; October 2019
     
-last changes:
-    15.09.2021 created
 """
 
 import pandas as pd

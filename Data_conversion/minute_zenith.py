@@ -2,7 +2,13 @@
 """
 Created on Mon Nov  1 11:49:36 2021
 
-@author: sarah
+@author:        
+    Eva-Maria Grommes
+    Sarah Glaubitz
+
+Additional co-authors can be found here:
+https://github.com/cire-thk/bifacialSimu    
+
 """
 import pandas as pd
 from pvlib import solarposition

@@ -2,7 +2,12 @@
 """
 Created on Tue Oct  5 18:55:49 2021
 
-@author: sarah
+@author:        
+    Eva-Maria Grommes
+    Sarah Glaubitz
+
+Additional co-authors can be found here:
+https://github.com/cire-thk/bifacialSimu    
 
 
 Converting minute values of GHI, DNI and DHI into houly values
