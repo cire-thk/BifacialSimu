@@ -2,10 +2,13 @@
 """
 Created on Mon Jun  7 11:39:16 2021
 @author:        
-    CIRE TH Cologne
     Eva-Maria Grommes
-    Jan Schmitt
     Sarah Glaubitz
+
+Additional co-authors can be found here:
+https://github.com/cire-thk/bifacialSimu    
+
+
 name:
     Bifacial Simu - GUI
 overview:
@@ -13,9 +16,7 @@ overview:
     Input of variables and settings for the bifacial simulation of PV-Modules 
     with View Factors and/or Ray Tracing method. 
     Command to run the simulation
-    
-last changes:
-    07.06.21 created
+
 """
     
 # Start-Befehl für Simulation

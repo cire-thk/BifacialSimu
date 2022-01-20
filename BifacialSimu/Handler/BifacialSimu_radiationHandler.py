@@ -1,12 +1,12 @@
 # -*- coding: utf-8 -*-
 """
 Created on Mon Jun  7 11:39:16 2021
+
 @author:        
-    CIRE TH Cologne
     Eva-Maria Grommes
-    Felix Schemann
-    Frederik Klag
-    Sebastian Nows
+
+Additional co-authors can be found here:
+https://github.com/cire-thk/bifacialSimu    
 
 name:
     BifacialSimu - radiationHandler
@@ -15,10 +15,6 @@ overview:
     Manages the calculation of the radiation over the extern modules
     bifacial Radiance and/or PVfactors and delivers the radiation data for the 
     further simulation of BifacialSimu
-
-
-last changes:
-    07.06.21 created
 
 """
 

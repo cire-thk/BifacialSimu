@@ -2,7 +2,12 @@
 """
 Created on Wed Sep 29 20:03:21 2021
 
-@author: sarah
+@author:        
+    Eva-Maria Grommes
+    Sarah Glaubitz
+
+Additional co-authors can be found here:
+https://github.com/cire-thk/bifacialSimu    
 
 name:
     InterpolationReflectivityData

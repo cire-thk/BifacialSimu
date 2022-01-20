@@ -2,10 +2,11 @@
 """
 Created on Mon Jun  7 11:39:16 2021
 @author:        
-    CIRE TH Cologne
-    Felix Schemann
-    Frederik Klag
-    Sebastian Nows
+    Eva-Maria Grommes
+
+Additional co-authors can be found here:
+https://github.com/cire-thk/bifacialSimu    
+
 name:
     BifacialSimu - main
 overview:
@@ -14,8 +15,6 @@ overview:
     with View Factors and/or Ray Tracing method. 
     Command to run the simulation
     
-last changes:
-    07.06.21 created
 """
     
 # Start-Befehl für Simulation

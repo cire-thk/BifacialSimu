@@ -1,11 +1,12 @@
 # -*- coding: utf-8 -*-
 """
 Created on Mon Jun  7 11:39:16 2021
+
 @author:        
-    CIRE TH Cologne
-    Felix Schemann
-    Frederik Klag
-    Sebastian Nows
+    Eva-Maria Grommes
+
+Additional co-authors can be found here:
+https://github.com/cire-thk/bifacialSimu    
 
 name:
     BifacialSimu - calculationHandler
@@ -14,8 +15,6 @@ overview:
     Contains all own calculations of BifacialSimu which are needed for 
     the bifacial simulation of PV-Modules
 
-last changes:
-    07.06.21 created
 
 """
 
@@ -158,7 +157,7 @@ class Electrical_simulation:
         FF_r0 = (I_mpp_r0 * V_mpp_r0)/(I_sc_r0 * V_oc_r0) 
         
         
-        dpi = 150 #Quality for plot export
+        dpi = 300 #Quality for plot export
         ####################################################
         # Bifacial performance Calculation
         

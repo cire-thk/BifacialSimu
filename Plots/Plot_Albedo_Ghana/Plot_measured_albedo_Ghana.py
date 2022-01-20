@@ -2,7 +2,13 @@
 """
 Created on Thu Dec 16 22:07:44 2021
 
-@author: sarah
+@author:        
+    Eva-Maria Grommes
+    Sarah Glaubitz
+
+Additional co-authors can be found here:
+https://github.com/cire-thk/bifacialSimu    
+
 """
 
 import pandas as pd

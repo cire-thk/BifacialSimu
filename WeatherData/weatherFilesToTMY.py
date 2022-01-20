@@ -2,7 +2,12 @@
 """
 Created on Tue May 18 10:42:51 2021
 
-@author: Sebastian Nows
+@author:        
+    Eva-Maria Grommes
+    Sebastian Nows
+
+Additional co-authors can be found here:
+https://github.com/cire-thk/bifacialSimu    
 """
 
 import pandas

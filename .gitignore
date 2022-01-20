@@ -1,2 +1,10 @@
 
 rumprobieren.py
+__pycache__/GUI.cpython-37.pyc
+Archiv/GUI_Cologne.py
+BifacialSimu/Controller/__pycache__/BifacialSimu_simulationController.cpython-37.pyc
+BifacialSimu/Handler/__pycache__/BifacialSimu_calculationHandler.cpython-37.pyc
+BifacialSimu/Handler/__pycache__/BifacialSimu_dataHandler.cpython-37.pyc
+BifacialSimu/Handler/__pycache__/BifacialSimu_radiationHandler.cpython-37.pyc
+BifacialSimu/Handler/__pycache__/BifacialSimu_spectralAlbedoHandler.cpython-37.pyc
+GUI_Cologne.py

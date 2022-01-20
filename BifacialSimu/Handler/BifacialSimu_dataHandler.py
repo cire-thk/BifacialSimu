@@ -2,11 +2,10 @@
 """
 Created on Mon Jun  7 11:39:16 2021
 @author:        
-    CIRE TH Cologne
     Eva-Maria Grommes
-    Felix Schemann
-    Frederik Klag
-    Sebastian Nows
+
+Additional co-authors can be found here:
+https://github.com/cire-thk/bifacialSimu    
 
 name:
     BifacialSimu - dataHandler
@@ -14,9 +13,6 @@ name:
 overview:
     Handles the import and export of data 
     used by the bifacial simulation of PV-Modules
-
-last changes:
-    07.06.21 created
 
 """
 
