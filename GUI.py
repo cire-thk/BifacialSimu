@@ -1004,12 +1004,12 @@ class Window(tk.Tk):
                 Label_LimitAngle.config(state="disabled")
                 Entry_LimitAngle.config(state="disabled")
                 Label_LimitAnglePar.config(state="disabled")
-                Label_HubHeight.config(state="normal")
-                Entry_HubHeight.config(state="normal")
-                Label_HubHeightPar.config(state="normal")
-                Label_ClearanceHeight.config(state="disabled")
-                Entry_ClearanceHeight.config(state="disabled")
-                Label_ClearanceHeightPar.config(state="disabled")
+                Label_HubHeight.config(state="disabled")
+                Entry_HubHeight.config(state="disabled")
+                Label_HubHeightPar.config(state="disabled")
+                Label_ClearanceHeight.config(state="normal")
+                Entry_ClearanceHeight.config(state="normal")
+                Label_ClearanceHeightPar.config(state="normal")
                  
                  
             else:
@@ -1020,12 +1020,12 @@ class Window(tk.Tk):
                 Label_LimitAngle.config(state="normal")
                 Entry_LimitAngle.config(state="normal")
                 Label_LimitAnglePar.config(state="normal")
-                Label_HubHeight.config(state="normal")
-                Entry_HubHeight.config(state="normal")
-                Label_HubHeightPar.config(state="normal")
-                Label_ClearanceHeight.config(state="disabled")
-                Entry_ClearanceHeight.config(state="disabled")
-                Label_ClearanceHeightPar.config(state="disabled")
+                Label_HubHeight.config(state="disabled")
+                Entry_HubHeight.config(state="disabled")
+                Label_HubHeightPar.config(state="disabled")
+                Label_ClearanceHeight.config(state="normal")
+                Entry_ClearanceHeight.config(state="normal")
+                Label_ClearanceHeightPar.config(state="normal")
                 
                 
                 
