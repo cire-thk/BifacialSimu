@@ -36,6 +36,8 @@ try:
     from tkinter import ttk
     from tkinter import filedialog
     from tkinter import messagebox
+    from tkinter.messagebox import showinfo        # Import of showinfo to get the event response of tkinter objects (is not used in the program yet)
+
 except:
     import Tkinter as tk
     import ttk
@@ -1105,16 +1107,45 @@ class Window(tk.Tk):
  
         # Defining the electrical Mode with our without Values of rear side
         def Electricalmode():
+            
+         #    Electricalmode= tk.StringVAR()
+         #    showinfo(title='Result', message=Electricalmode.get())
+            
+            
+         #    sizes = (('Without rear values!', 'Aufpassen'),
+         # )
+            
+            
             if rb_ElectricalMode.get()==0:
                 SimulationDict["ElectricalMode_simple"]=False
                 
+                # for size in sizes:
+                #     r = ttk.Radiobutton(Electricalmode,
+                #         text=size[0],
+                #         value=size[1],
+                #         variable=selected_size
+                #     )
+                #     r.pack(fill='x', padx=5, pady=5)
+                
             else:
                 SimulationDict["ElectricalMode_simple"]=True
+                # label = ttk.Label(ModuleParameter_frame, text="Aufpassen")
+                # label.pack(fills='x', padx=5, pady=5)
                 
+                
+                    
+                
+                    # # button
+                    # button = ttk.Button(
+                    #     root,
+                    #     text="Get Selected Size",
+                    #     command=show_selected_size)
+                    
+                    # button.pack(fill='x', padx=5, pady=5)
   
     
   
-    
+        #Radiobutton Choice Rear values
         rb_ElectricalMode=IntVar()
         rb_ElectricalMode.set("0")
         rad1_ElectricalMode= Radiobutton(ModuleParameter_frame, variable=rb_ElectricalMode, width=15, text="With rear values!", value=0, command=lambda:Electricalmode())
@@ -1251,6 +1282,15 @@ class Window(tk.Tk):
         Label_gcrPar.grid(column=2, row=16, sticky=W)
         Entry_gcr=ttk.Entry(simulationParameter_frame, background="white", width=10)
         Entry_gcr.grid(column=1, row=16, sticky=W)        
+        
+        #with or without rear values        
+        Labela_modulinfo=ttk.Label(ModuleParameter_frame, text="", background = 'white')
+        Labela_modulinfo.grid(column=0, columnspan=3, row=21, sticky=W)
+        Entry_modulinfo=ttk.Entry(ModuleParameter_frame, background="white", width=16)
+        Label_modulinfo=ttk.Label(ModuleParameter_frame, text="If your choice for the module attribute is 'With rear values!' use the modules 1 to 3 in the Combobox.\nIf your choice is 'Without rear values' use the modules 4 to the end of the list.", background = 'red',font=8)
+        Label_modulinfo.grid(column=0, columnspan=3, row=23, sticky=W)
+        Entry_modulinfo=ttk.Entry(ModuleParameter_frame, background="white", width=8)       
+            
         
 # =============================================================================
 #     Configuration for the module dict
@@ -1522,24 +1562,52 @@ class Window(tk.Tk):
                 Entry_moduley.delete(0,END)
  
                # set module entries loaded from json
-                Entry_bi_factor.insert(0,str(d['bi_factor']))
-                Entry_nfront.insert(0,str(d['n_front']))
-                Entry_Iscf.insert(0,str(d['I_sc_f']))
-                Entry_Iscr.insert(0,str(d['I_sc_r']))
-                Entry_Vocf.insert(0,str(d['V_oc_f']))
-                Entry_Vocr.insert(0,str(d['V_oc_r']))
-                Entry_Vmppf.insert(0,str(d['V_mpp_f']))
-                Entry_Vmppr.insert(0,str(d['V_mpp_r']))
-                Entry_Imppf.insert(0,str(d['I_mpp_f']))              
-                Entry_Imppr.insert(0,str(d['I_mpp_r']))
-                Entry_Pmpp.insert(0,str(d['P_mpp']))
-                Entry_TkoeffP.insert(0,str(d['T_koeff_P']))
-                Entry_Tamb.insert(0,str(d['T_amb']))
-                Entry_TkoeffI.insert(0,str(d['T_koeff_I']))
-                Entry_TkoeffV.insert(0,str(d['T_koeff_V']))
-                Entry_zeta.insert(0,str(d['zeta']))
-                Entry_modulex.insert(0,str(d['modulex']))
-                Entry_moduley.insert(0,str(d['moduley']))                
+               
+                if rb_ElectricalMode.get()==0:                  #If the rb "Without rear values!" is activated it is possible to just pick the A-Modules
+     #A-Modules: Number 1 to 3 in the list of the Combobox
+     #B-Modules: Number 4 to the end in the list of the Combobox                
+                    
+                    
+                    Entry_bi_factor.insert(0,str(d['bi_factor']))
+                    Entry_nfront.insert(0,str(d['n_front']))
+                    Entry_Iscf.insert(0,str(d['I_sc_f']))
+                    Entry_Iscr.insert(0,str(d['I_sc_r']))
+                    Entry_Vocf.insert(0,str(d['V_oc_f']))
+                    Entry_Vocr.insert(0,str(d['V_oc_r']))
+                    Entry_Vmppf.insert(0,str(d['V_mpp_f']))
+                    Entry_Vmppr.insert(0,str(d['V_mpp_r']))
+                    Entry_Imppf.insert(0,str(d['I_mpp_f']))              
+                    Entry_Imppr.insert(0,str(d['I_mpp_r']))
+                    Entry_Pmpp.insert(0,str(d['P_mpp']))
+                    Entry_TkoeffP.insert(0,str(d['T_koeff_P']))
+                    Entry_Tamb.insert(0,str(d['T_amb']))
+                    Entry_TkoeffI.insert(0,str(d['T_koeff_I']))
+                    Entry_TkoeffV.insert(0,str(d['T_koeff_V']))
+                    Entry_zeta.insert(0,str(d['zeta']))
+                    Entry_modulex.insert(0,str(d['modulex']))
+                    Entry_moduley.insert(0,str(d['moduley']))   
+                
+                else:                                               #If the rb "Without rear values!" is activated it is possible to just pick the B-Modules
+ 
+    # 0 means "nicht verfügbar" or not avaiable in this Radiobutton mode                  
+                    Entry_bi_factor.insert(0,str(d['bi_factor']))
+                    Entry_nfront.insert(0,str(d['n_front']))
+                    Entry_Iscf.insert(0,str(d['I_sc_f']))
+                    Entry_Iscr.insert(0, "0")
+                    Entry_Vocf.insert(0,str(d['V_oc_f']))
+                    Entry_Vocr.insert(0,"0")
+                    Entry_Vmppf.insert(0,str(d['V_mpp_f']))
+                    Entry_Vmppr.insert(0,"0")
+                    Entry_Imppf.insert(0,str(d['I_mpp_f']))              
+                    Entry_Imppr.insert(0,"0")
+                    Entry_Pmpp.insert(0,str(d['P_mpp']))
+                    Entry_TkoeffP.insert(0,str(d['T_koeff_P']))
+                    Entry_Tamb.insert(0,str(d['T_amb']))
+                    Entry_TkoeffI.insert(0,str(d['T_koeff_I']))
+                    Entry_TkoeffV.insert(0,str(d['T_koeff_V']))
+                    Entry_zeta.insert(0,str(d['zeta']))
+                    Entry_modulex.insert(0,str(d['modulex']))
+                    Entry_moduley.insert(0,str(d['moduley']))    
                 
 
         # Combobox Module
@@ -1625,7 +1693,7 @@ class Window(tk.Tk):
             plt.style.use("seaborn")
             
             
-            data=pd.read_csv(resultsPath + "/electrical_simulation.csv")
+            data=pd.read_csv(resultsPath + "electrical_simulation" + datetime.datetime.now().strftime("%Y-%m-%d-%H-%M") + ".csv")
             date=pd.read_csv(resultsPath + "/Data.csv")
             timestamp_start=date.timestamp [0]
            # print (timestamp_start)
@@ -1652,13 +1720,13 @@ class Window(tk.Tk):
             plt.grid(True, which="minor")
             plt.tight_layout()
             fig3.savefig("Bifacial_output_Power_" + datetime.datetime.now().strftime("%Y-%m-%d-%H-%M") + ".png")
-            os.rename(resultsPath + "/electrical_simulation.csv", resultsPath + "electrical_simulation_" + datetime.datetime.now().strftime("%Y-%m-%d-%H-%M") + ".csv")
+            #os.rename(resultsPath + "/electrical_simulation.csv", resultsPath + "electrical_simulation_" + datetime.datetime.now().strftime("%Y-%m-%d-%H-%M") + ".csv")
             
         if SimulationDict["simulationMode"]==3  or SimulationDict["simulationMode"]==5:
             plt.style.use("seaborn")
             
             
-            data=pd.read_csv(resultsPath + "/electrical_simulation.csv")
+            data=pd.read_csv(resultsPath + "electrical_simulation" + datetime.datetime.now().strftime("%Y-%m-%d-%H-%M") + ".csv")
             date1=pd.read_csv(resultsPath + "/Dataframe_df.csv")
             date2=pd.read_csv(resultsPath + "/df_reportRT.csv")
             timestamp_start=date1.corrected_timestamp [0]
@@ -1686,7 +1754,7 @@ class Window(tk.Tk):
             plt.grid(True, which="minor")
             plt.tight_layout()
             fig3.savefig("Bifacial_output_Power_" + datetime.datetime.now().strftime("%Y-%m-%d-%H-%M") + ".png")
-            os.rename(resultsPath + "/electrical_simulation.csv", resultsPath + "electrical_simulation_" + datetime.datetime.now().strftime("%Y-%m-%d-%H-%M") + ".csv") 
+            #os.rename(resultsPath + "/electrical_simulation.csv", resultsPath + "electrical_simulation_" + datetime.datetime.now().strftime("%Y-%m-%d-%H-%M") + ".csv") 
 
 
 
