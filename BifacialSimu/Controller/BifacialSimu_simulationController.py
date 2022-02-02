@@ -69,14 +69,19 @@ def startSimulation(simulationDict, moduleDict, resultsPath):
     ####################################################
     
     # choose simulation mode and perform raytracing, viewfactor and electrical simulation
+    
     if simulationDict['simulationMode'] == 3:
         print('Front and back simulation with RayTrace')
         df_reportRT = BifacialSimu_radiationHandler.RayTrace.simulateRayTrace(simulationDict, demo, metdata, resultsPath, df, onlyBackscan = False)
         
-        if simulationDict['ElectricalMode_simple'] == True:      
+        if simulationDict['ElectricalMode_simple'] == 0:      
             BifacialSimu_calculationHandler.Electrical_simulation.simulate_simpleBifacial(moduleDict, simulationDict, df_reportVF, df_reportRT, df_report, df, resultsPath)
-        else:
+        if simulationDict['ElectricalMode_simple'] == 1:
             BifacialSimu_calculationHandler.Electrical_simulation.simulate_oneDiode(moduleDict, simulationDict, df_reportVF, df_reportRT, df_report, df, resultsPath)
+        if simulationDict['ElectricalMode_simple'] == 2:      
+            BifacialSimu_calculationHandler.Electrical_simulation.simulate_doubleDiode(moduleDict, simulationDict, df_reportVF, df_reportRT, df_report, df, resultsPath)
+        if simulationDict['ElectricalMode_simple'] == 3:
+            BifacialSimu_calculationHandler.Electrical_simulation.simulate_doubleDiodeBi(moduleDict, simulationDict, df_reportVF, df_reportRT, df_report, df, resultsPath)
         
     if simulationDict['simulationMode'] == 5 or simulationDict['simulationMode'] == 1:
         print('Back simulation with RayTrace')
@@ -87,19 +92,25 @@ def startSimulation(simulationDict, moduleDict, resultsPath):
         print('Front and back simulation with ViewFactors')
         df_reportVF, df = BifacialSimu_radiationHandler.ViewFactors.simulateViewFactors(simulationDict, demo, metdata,  df, resultsPath, onlyFrontscan = False)
         
-        if simulationDict['ElectricalMode_simple'] == True:      
+        if simulationDict['ElectricalMode_simple'] == 0:      
             BifacialSimu_calculationHandler.Electrical_simulation.simulate_simpleBifacial(moduleDict, simulationDict, df_reportVF, df_reportRT, df_report, df, resultsPath)
-        else:
+        if simulationDict['ElectricalMode_simple'] == 1:
             BifacialSimu_calculationHandler.Electrical_simulation.simulate_oneDiode(moduleDict, simulationDict, df_reportVF, df_reportRT, df_report, df, resultsPath)
+        if simulationDict['ElectricalMode_simple'] == 2:      
+            BifacialSimu_calculationHandler.Electrical_simulation.simulate_doubleDiode(moduleDict, simulationDict, df_reportVF, df_reportRT, df_report, df, resultsPath)
+        if simulationDict['ElectricalMode_simple'] == 3:
+            BifacialSimu_calculationHandler.Electrical_simulation.simulate_doubleDiodeBi(moduleDict, simulationDict, df_reportVF, df_reportRT, df_report, df, resultsPath)
+    
     
     if simulationDict['simulationMode'] == 4 or simulationDict['simulationMode'] == 1:
         print('Front simulation with ViewFactors')
         df_reportVF, df = BifacialSimu_radiationHandler.ViewFactors.simulateViewFactors(simulationDict, demo, metdata,  df, resultsPath, onlyFrontscan = True)
         
-        if simulationDict['ElectricalMode_simple'] == True:      
+        if simulationDict['ElectricalMode_simple'] == 0:      
             BifacialSimu_calculationHandler.Electrical_simulation.simulate_simpleBifacial(moduleDict, simulationDict, df_reportVF, df_reportRT, df_report, df, resultsPath)
-        else:
+        if simulationDict['ElectricalMode_simple'] == 1:
             BifacialSimu_calculationHandler.Electrical_simulation.simulate_oneDiode(moduleDict, simulationDict, df_reportVF, df_reportRT, df_report, df, resultsPath)
-    
-
-
+        if simulationDict['ElectricalMode_simple'] == 2:      
+            BifacialSimu_calculationHandler.Electrical_simulation.simulate_doubleDiode(moduleDict, simulationDict, df_reportVF, df_reportRT, df_report, df, resultsPath)
+        if simulationDict['ElectricalMode_simple'] == 3:
+            BifacialSimu_calculationHandler.Electrical_simulation.simulate_doubleDiodeBi(moduleDict, simulationDict, df_reportVF, df_reportRT, df_report, df, resultsPath)
