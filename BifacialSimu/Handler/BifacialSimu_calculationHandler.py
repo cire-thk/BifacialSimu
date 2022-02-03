@@ -1182,7 +1182,7 @@ class Electrical_simulation:
        
         
         # The time gets implemented in the GUI
-    # p_bi_df.to_csv(resultsPath + "electrical_simulation" + datetime.datetime.now().strftime("%Y-%m-%d-%H-%M") + ".csv")
+    # p_bi_df.to_csv(resultsPath + "simulation" + datetime.datetime.now().strftime("%Y-%m-%d-%H-%M") + ".csv")
         
         
         annual_power_per_module_b = (sum_energy_b/simulationDict['nRows']) #[W] annual bifacial output power per module
@@ -1299,7 +1299,8 @@ class Electrical_simulation:
         # Create dataframe with data
         p_bi_df = pd.DataFrame({"timestamps":df_report.index, "P_bi ": P_bi_hourly_average, "P_m ": P_m_hourly_average})
         p_bi_df.set_index("timestamps")
-        p_bi_df.to_csv(resultsPath + "electrical_simulation.csv")
+        p_bi_df.to_csv(resultsPath + "electrical_simulation" + datetime.datetime.now().strftime("%Y-%m-%d-%H-%M") + ".csv")
+        #p_bi_df.to_csv(resultsPath + "electrical_simulation.csv")
         
         #Plot for Bifacial Power Output + Bifacial Gain
         GUI.Window.makePlotBifacialRadiance(resultsPath,Bifacial_gain)   
@@ -1854,7 +1855,8 @@ class Electrical_simulation:
         # Create dataframe with data
         p_bi_df = pd.DataFrame({"timestamps":df_report.index, "P_bi ": P_bi_hourly_average, "P_m ": P_m_hourly_average})
         p_bi_df.set_index("timestamps")
-        p_bi_df.to_csv(resultsPath + "electrical_simulation.csv")
+        p_bi_df.to_csv(resultsPath + "electrical_simulation" + datetime.datetime.now().strftime("%Y-%m-%d-%H-%M") + ".csv")
+        #p_bi_df.to_csv(resultsPath + "electrical_simulation.csv")
         
         #Plot for Bifacial Power Output + Bifacial Gain
         GUI.Window.makePlotBifacialRadiance(resultsPath,Bifacial_gain)
