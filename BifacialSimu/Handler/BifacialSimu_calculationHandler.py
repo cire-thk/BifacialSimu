@@ -961,16 +961,16 @@ class Electrical_simulation:
                           
                if V >= V_oc_r0:
                    if P_mpp_r0 + tol_P >= P_mpp_rs0 and P_mpp_rs0 >= P_mpp_r0 - tol_P:
-                       print ('Rear resistance calculation completed in ',xf,' iterations.', 'Rs_r0 =', Rs_r0, 'Rp_r0 =', Rp_r0)
+                       print ('Rear resistance calculation completed in ',xr,' iterations.', 'Rs_r0 =', Rs_r0, 'Rp_r0 =', Rp_r0)
                        
                        f, (ax1) = plt.subplots(1, figsize=(6, 6))
                        ax1.locator_params(tight=True, nbins=6)
-                       ax1.plot(Vfplt[-round(V_oc_f0 * 10):], Ifplt[-round(V_oc_f0 * 10):], color = "red")
+                       ax1.plot(Vfplt[-round(V_oc_r0 * 10):], Ifplt[-round(V_oc_r0 * 10):], color = "red")
                        ax1.set_title('P-V I-V Curve back side', fontsize=14)
                        ax1.set_xlabel('Voltage [V]', fontsize=14)
                        ax1.set_ylabel('Current [I]', fontsize=14, color = 'red')
                        ax2=ax1.twinx()
-                       ax2.plot(Vfplt[-round(V_oc_f0 * 10):], Pfplt[-round(V_oc_f0 * 10):], color = "blue")
+                       ax2.plot(Vrplt[-round(V_oc_r0 * 10):], Prplt[-round(V_oc_r0 * 10):], color = "blue")
                        ax2.set_ylabel('Power [W]', fontsize=14, color = 'blue')
                        f.savefig("P-V_I-V_Curve_back" + datetime.datetime.now().strftime("%Y-%m-%d-%H-%M") + ".png", dpi = dpi)
                        plt.show()                       

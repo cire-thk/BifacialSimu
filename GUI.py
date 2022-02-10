@@ -1130,11 +1130,11 @@ class Window(tk.Tk):
    
         rad1_ElectricalMode= Radiobutton(ModuleParameter_frame, variable=rb_ElectricalMode, width=22, text="OneDiode front and back", value=0, command=lambda:Electricalmode())
         rad2_ElectricalMode= Radiobutton(ModuleParameter_frame, variable=rb_ElectricalMode, width=21, text="OneDiode with BiFactor", value=1, command=lambda:Electricalmode())
-        rad3_ElectricalMode= Radiobutton(ModuleParameter_frame, variable=rb_ElectricalMode, width=22, text="TwoDiode front and back", value=2, command=lambda:Electricalmode())
+        #rad3_ElectricalMode= Radiobutton(ModuleParameter_frame, variable=rb_ElectricalMode, width=22, text="TwoDiode front and back", value=2, command=lambda:Electricalmode())
         rad4_ElectricalMode= Radiobutton(ModuleParameter_frame, variable=rb_ElectricalMode, width=21, text="TwoDiode with BiFactor", value=3, command=lambda:Electricalmode())
         rad1_ElectricalMode.grid(column=0,row=3, sticky=W)
         rad2_ElectricalMode.grid(column=1,row=3, columnspan=1, sticky=W)
-        rad3_ElectricalMode.grid(column=0,row=4, sticky=W)
+        #rad3_ElectricalMode.grid(column=0,row=4, sticky=W)
         rad4_ElectricalMode.grid(column=1,row=4, columnspan=1, sticky=W)
   
     
@@ -1277,11 +1277,11 @@ class Window(tk.Tk):
         Entry_gcr=ttk.Entry(simulationParameter_frame, background="white", width=10)
         Entry_gcr.grid(column=1, row=16, sticky=W)        
         
-        #with or without rear values        
+        #with or without rear  / Warning        
         #Labela_modulinfo=ttk.Label(ModuleParameter_frame, text="", background = 'white')
         #Labela_modulinfo.grid(column=0, columnspan=3, row=21, sticky=W)
         #Entry_modulinfo=ttk.Entry(ModuleParameter_frame, background="white", width=16)
-        #Label_modulinfo=ttk.Label(ModuleParameter_frame, text="If your choice for the module attribute is 'With rear values!' use the modules 1 to 3 in the Combobox.\nIf your choice is 'Without rear values' use the modules 4 to the end of the list.", background = 'white',font=8)
+        #Label_modulinfo=ttk.Label(ModuleParameter_frame, text="If your choice for the module attribute is 'With rear values!' use the modules 1 to 3 in the Combobox.\nIf your choice is 'Without rear values' use the modules 4 to the end of the list.", background = 'red',font=8)
         #Label_modulinfo.grid(column=0, columnspan=3, row=23, sticky=W)
         #Entry_modulinfo=ttk.Entry(ModuleParameter_frame, background="white", width=8)       
             
