@@ -64,7 +64,7 @@ design, and support for Astropy functionality in `Gala` will enable exciting
 scientific explorations of forthcoming data releases from the *Gaia* mission
 [@gaia] by students and experts alike.
 
-# Mathematics
+# State of the field
 
 Single dollars ($) are required for inline mathematics e.g. $f(x) = e^{\pi/x}$
 
