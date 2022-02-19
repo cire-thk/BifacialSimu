@@ -716,6 +716,7 @@ class Window(tk.Tk):
             rad1_BacktrackingMode.invoke()
             Entry_Name.insert(0, simulationName_configfile)
             Entry_weatherfile.insert(0, weatherFile_configfile) #zu überarbeiten
+            Entry_reflectivityfile.insert(0, reflectivityFile_configfile)
             Entry_Tilt.insert(0, tilt_configfile)
             Entry_LimitAngle.insert(0, limitAngle_configfile)
             Entry_ClearanceHeight.insert(0, ClearanceHeight_configfile)
@@ -1421,6 +1422,7 @@ class Window(tk.Tk):
         simulationName_configfile=parser.get('default', 'simulationName')
        # simulationMode_configfile=parser.get('default', 'simulationMode')
         weatherFile_configfile=parser.get('default', "weatherFile")
+        reflectivityFile_configfile=parser.get('default', "reflectivityFile")
         tilt_configfile=parser.get('default', 'tilt')
         limitAngle_configfile=parser.getfloat('default', 'limitAngle')
         ClearanceHeight_configfile=parser.getfloat('default', 'clearance_height')

@@ -205,7 +205,7 @@ def calculateViewFactorMatrix(simulationDict, dataFrame, j):
         
     # parameters of pvarrray, which contains the albedometer as a horizontal PVrow
     pvarray_parameters = {
-    'n_pvrows': simulationDict['nRows'],               #ÄNDERN nrows                   # number of pv rows, 1 because albedometer has only 1 surface
+    'n_pvrows': 1,               #ÄNDERN nrows                   # number of pv rows, 1 because albedometer has only 1 surface
     'pvrow_height': 1,                              # height of albedometer (measured at center / torque tube)
     'pvrow_width': 0.05,                            # width of glasdome of albedometer
     'axis_azimuth': 0.,                             # azimuth angle of rotation axis
@@ -275,6 +275,11 @@ def calculateAlbedo(simulationDict, dataFrame, resultspath):
     # Intialise arrays
     R_hourly = []     # array to hold R value
     H_hourly = []     # array to hold H value
+    # ÄNDERN bzw kann weg
+    VF_8_2_hourly = []
+    VF_8_4_hourly = []
+    VF_8_5_hourly = []
+    # bis hier
     VF_S_A1 = []      # array to hold view factors from surface s to surface A1
     VF_S_A2 = []      # array to hold view factors from surface s to surface A2
     a_hourly = []     # array to hold albedo
@@ -354,52 +359,47 @@ def calculateAlbedo(simulationDict, dataFrame, resultspath):
         
         # Calculate Viewfactors
         
-        # Anzahl der Bodenflächen im pvarray_pv
-        
-        n_tsground = 10
-        
-        # mittige Albedometerfläche, welche nach unten zeigt und length > 0 hat, idendifizieren
+        #ÄNDERN 
+        # Viewfactor Berechnung hier
+        # Abzählen der Bodenflächen und Zuordnung zu VF-S-A1 und VF-S-A2 abhängig vom shaded status
+        # jede Bodensurface muss abgefragt werden über surface status und dann muss Flächennummer gespeichert werden für Abfrage VF Matrix
+        # Automatische Ermittlung der Surface number für Unterseite Albedometer
         # Klären, wie vielte Reihe Albeodmeter bei gerader Anzahl an Reihen -> Albedometer nicht mittig?
-        l = 2    # Nummer der Fläche im pvarray_albedo
-       
-        # vf_maritx is created with timestep eqaul to current loop number, which represents the hour after starthour
-        vf_matrix = calculateViewFactorMatrix(simulationDict, df, j)
+        # Ausprobieren wie Reihen zum Nullpunkt stehen, wenn gerade Anzahl (Nullpunkt in Mitte oder bei 1. Reihe?)
+        # Schleife, welche Surfaces zu Vf 1 oder VF 2 addieren
         
-        # Schleife, welche jede Bodenfläche nach Schading status abfragt und length>0
-        # Bodenflächen werden dem array shaded oder unshaded zugeordnet
         
-        # Check if GHI is 0, then viewfactors are also 0 because there is no radiation
-        if df.iloc[j]['ghi'] == 0:
-            VF_s_a1 = 0
-            VF_s_a2 = 0
-            
-        else:
-            '''
-            for k in range(n_tsground):
-                
-                tsground = tsground mit Nummer k
-                
-                if tsground.shaded = True and tsground.length > 0:
-                    
-                    VF_k_l = vf_matrix[k, l, :][0]
-                    VF_s_a2 =+ VF_k_l      # Viewfactor from surface S (Albedo measurement) to surface A2 (shaded ground)   
-                    
-                
-                if tsground.shaded = False and tsground.length > 0:
-                    
-                    VF_k_l = vf_matrix[k, l, :][0]
-                    VF_s_a1 =+ VF_k_l       # Viewfactor from surface S (Albedo measurement) to surface A1 (unshaded ground)
-              '''      
-        VF_S_A1.append(VF_s_a1)
-        VF_S_A2.append(VF_s_a2)
-            
-
         #########################################################################        
         
         # Calculate Albedo
         
+        # vf_maritx is created with timestep eqaul to current loop number, which represents the hour after starthour
+        vf_matrix = calculateViewFactorMatrix(simulationDict, df, j)
+        # Ab hier nach oben
+        # Check if GHI is 0, then viewfactors are also 0 because there is no radiation
+        if df.iloc[j]['ghi'] == 0:
+            VF_s_a1 = 0
+            VF_s_a2 = 0
+            VF_8_2 = 0
+            VF_8_4 = 0
+            VF_8_5 = 0
+        else:
+            VF_8_2 = vf_matrix[8, 2, :][0]
+            VF_8_4 = vf_matrix[8, 4, :][0]
+            VF_8_5 = vf_matrix[8, 5, :][0]
+            VF_s_a1 = VF_8_4 + VF_8_5 + VF_8_2   # Viewfactor from surface S (Albedo measurement) to surface A1 (unshaded ground)
+            VF_s_a2 = vf_matrix[8, 0, :][0]      # Viewfactor from surface S (Albedo measurement) to surface A2 (shaded ground)    
+        # Bis hier nach oben    
         a = R * (VF_s_a1 + (1/(H+1)) * VF_s_a2)  # spectral Albedo [-]
         
+        # ÄNDERN Verschieben bzw kann weg
+        VF_8_2_hourly.append(VF_8_2)
+        VF_8_4_hourly.append(VF_8_4)
+        VF_8_5_hourly.append(VF_8_5)
+        # bis hier kann weg
+        VF_S_A1.append(VF_s_a1)
+        VF_S_A2.append(VF_s_a2)
+        # bis hier verschieben
         a_hourly.append(a)
         
         #########################################################################
@@ -412,8 +412,7 @@ def calculateAlbedo(simulationDict, dataFrame, resultspath):
     #########################################################################
     
     # calculated values are saved to new csv
-    # ÄNDERN
-    albedo_results = pd.DataFrame({'datetime':cd, 'spectral Albedo':a_hourly, 'R': R_hourly, 'H': H_hourly, 'VF_s_a1': VF_S_A1, 'VF_s_a2': VF_S_A2})
+    albedo_results = pd.DataFrame({'datetime':cd, 'spectral Albedo':a_hourly, 'R': R_hourly, 'H': H_hourly, 'VF_s_a1': VF_S_A1, 'VF_8_2': VF_8_2_hourly, 'VF_8_4': VF_8_4_hourly, 'VF_8_5': VF_8_5_hourly, 'VF_s_a2': VF_S_A2})
     albedo_results.to_csv(resultspath + '/spectral_Albedo.csv', sep=';', index=False)
     
     #########################################################################
