@@ -185,7 +185,7 @@ def build_ts_vf_matrix_albedo(pvarray_pv, pvarray_albedo):
 
     return vf_matrix
 
-def calculateViewFactor(simulationDict, dataFrame, j):
+def calculateViewFactorMatrix(simulationDict, dataFrame, j):
     '''
     Calculates timeseries view factors with pvfactors between albedometer and ground
         
@@ -205,7 +205,7 @@ def calculateViewFactor(simulationDict, dataFrame, j):
         
     # parameters of pvarrray, which contains the albedometer as a horizontal PVrow
     pvarray_parameters = {
-    'n_pvrows': 1,                                  # number of pv rows, 1 because albedometer has only 1 surface
+    'n_pvrows': 1,               #ÄNDERN nrows                   # number of pv rows, 1 because albedometer has only 1 surface
     'pvrow_height': 1,                              # height of albedometer (measured at center / torque tube)
     'pvrow_width': 0.05,                            # width of glasdome of albedometer
     'axis_azimuth': 0.,                             # azimuth angle of rotation axis
@@ -275,9 +275,11 @@ def calculateAlbedo(simulationDict, dataFrame, resultspath):
     # Intialise arrays
     R_hourly = []     # array to hold R value
     H_hourly = []     # array to hold H value
+    # ÄNDERN bzw kann weg
     VF_8_2_hourly = []
     VF_8_4_hourly = []
     VF_8_5_hourly = []
+    # bis hier
     VF_S_A1 = []      # array to hold view factors from surface s to surface A1
     VF_S_A2 = []      # array to hold view factors from surface s to surface A2
     a_hourly = []     # array to hold albedo
@@ -299,14 +301,22 @@ def calculateAlbedo(simulationDict, dataFrame, resultspath):
                
         sum_R_G = 0
         sum_G = 0
-                
+        
+        ' loopnumber depends on the used ground material reflectivity spectrum: loopnumber = number of wavelength of the interpolated spectrum - 1
+    
         for i in range(95): # 95 loops (0<=i<=94), because of 95 delta wavelenghts (=96 wavelenghts) in spectra, which are used for calculation (only from 350 to 2450 nm), because bar sand spectrum is in this range
             
-            # +10, because the first value of spectrum is for 300 nm, but we need the 350 value at first (5nm resolution)
+            '''
+            +10, because the first value of spectrum is for 300 nm, but we need the 350 nm value at first (5nm resolution)
+            +10 depends on the used ground material reflectivtiy spectrum; 
+            the first wavlenght of the interpolated spectrum has to be search in the x array of the script "interpolationReflectivtyData"
+            and it has to be counted at which position the wavelenght is in the x array
+            this position has to be added here
+            '''
             G_lamda = spectrum['poa_global'][i+10] # G for current number of wavelength i [W/m²/nm]
             G_lamda2 = G_lamda[0]               # gets G out of the array (which contains only one value)
             R_lamda = R_lamda_array[i]          # R for current number of wavelength i [-]
-            # +2, because the first value of spectrum is for 300 nm and second for 305 nm, but we need the 310 value at first
+            # see comment above about +10
             delta_lamda = spectrum['wavelength'][i+11] - spectrum['wavelength'][i+10]   # delta of wavelength i+1 and wavelength i [nm]
                               
             sum_R_G += (G_lamda2 * R_lamda * delta_lamda) # sum up the multiplication of R, G and delta lamda for every wavelength [W/m²]
@@ -347,11 +357,25 @@ def calculateAlbedo(simulationDict, dataFrame, resultspath):
         
         #########################################################################
         
+        # Calculate Viewfactors
+        
+        #ÄNDERN 
+        # Viewfactor Berechnung hier
+        # Abzählen der Bodenflächen und Zuordnung zu VF-S-A1 und VF-S-A2 abhängig vom shaded status
+        # jede Bodensurface muss abgefragt werden über surface status und dann muss Flächennummer gespeichert werden für Abfrage VF Matrix
+        # Automatische Ermittlung der Surface number für Unterseite Albedometer
+        # Klären, wie vielte Reihe Albeodmeter bei gerader Anzahl an Reihen -> Albedometer nicht mittig?
+        # Ausprobieren wie Reihen zum Nullpunkt stehen, wenn gerade Anzahl (Nullpunkt in Mitte oder bei 1. Reihe?)
+        # Schleife, welche Surfaces zu Vf 1 oder VF 2 addieren
+        
+        
+        #########################################################################        
+        
         # Calculate Albedo
         
         # vf_maritx is created with timestep eqaul to current loop number, which represents the hour after starthour
-        vf_matrix = calculateViewFactor(simulationDict, df, j)
-        
+        vf_matrix = calculateViewFactorMatrix(simulationDict, df, j)
+        # Ab hier nach oben
         # Check if GHI is 0, then viewfactors are also 0 because there is no radiation
         if df.iloc[j]['ghi'] == 0:
             VF_s_a1 = 0
@@ -365,14 +389,17 @@ def calculateAlbedo(simulationDict, dataFrame, resultspath):
             VF_8_5 = vf_matrix[8, 5, :][0]
             VF_s_a1 = VF_8_4 + VF_8_5 + VF_8_2   # Viewfactor from surface S (Albedo measurement) to surface A1 (unshaded ground)
             VF_s_a2 = vf_matrix[8, 0, :][0]      # Viewfactor from surface S (Albedo measurement) to surface A2 (shaded ground)    
-            
+        # Bis hier nach oben    
         a = R * (VF_s_a1 + (1/(H+1)) * VF_s_a2)  # spectral Albedo [-]
         
+        # ÄNDERN Verschieben bzw kann weg
         VF_8_2_hourly.append(VF_8_2)
         VF_8_4_hourly.append(VF_8_4)
         VF_8_5_hourly.append(VF_8_5)
+        # bis hier kann weg
         VF_S_A1.append(VF_s_a1)
         VF_S_A2.append(VF_s_a2)
+        # bis hier verschieben
         a_hourly.append(a)
         
         #########################################################################
