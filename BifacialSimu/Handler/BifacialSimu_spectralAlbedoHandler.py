@@ -208,9 +208,9 @@ def calculateViewFactorMatrix(simulationDict, dataFrame, j):
     'n_pvrows': simulationDict['nRows'],            # number of pv rows
     'pvrow_height': 1,                              # height of albedometer (measured at center / torque tube)
     'pvrow_width': 0.05,                            # width of glasdome of albedometer
-    'axis_azimuth': 0.,                             # azimuth angle of rotation axis
+    'axis_azimuth': 0,                             # azimuth angle of rotation axis
     'gcr': simulationDict['gcr'],                   # ground coverage ratio
-    'surface_tilt': 0.,                             # tilt of albedometer, 0 = horizontal
+    'surface_tilt': 0,                             # tilt of albedometer, 0 = horizontal
     'surface_azimuth': simulationDict['azimuth'],   # azimuth of albedometer same to azimuth of pv rows front surface
     'solar_zenith': df.iloc[j]['apparent_zenith'],  # solar zenith out of dataframe
     'solar_azimuth': df.iloc[j]['azimuth'],         # solar azimuth out of dataframe
@@ -227,7 +227,7 @@ def calculateViewFactorMatrix(simulationDict, dataFrame, j):
     'n_pvrows': simulationDict['nRows'],            # number of pv rows
     'pvrow_height': simulationDict['hub_height'],   # height of pvrows (measured at center / torque tube)
     'pvrow_width': simulationDict['moduley'],       # width of pv module
-    'axis_azimuth': 0.,                             # azimuth angle of rotation axis
+    'axis_azimuth': 0,                             # azimuth angle of rotation axis
     'gcr': simulationDict['gcr'],                   # ground coverage ratio
     'surface_tilt': simulationDict['tilt'],         # tilt of pv row
     'surface_azimuth': simulationDict['azimuth'],   # azimuth of pv rows front surface
@@ -244,8 +244,10 @@ def calculateViewFactorMatrix(simulationDict, dataFrame, j):
     # create vf_matrix out of pvarray_albedo and pv_array_pv with selfmade function
     vf_matrix = build_ts_vf_matrix_albedo(pvarray_pv, pvarray_albedo)
     
+    vf_dict = {'vf_matrix':vf_matrix, 'pvarray_albedo': pvarray_albedo, 'pvarray_pv': pvarray_pv}
     
-    return [vf_matrix, pvarray_albedo, pvarray_pv]
+    #return [vf_matrix, pvarray_albedo, pvarray_pv]
+    return vf_dict
     
 def calculateAlbedo(simulationDict, dataFrame, resultspath):
     '''
@@ -355,13 +357,22 @@ def calculateAlbedo(simulationDict, dataFrame, resultspath):
         # Calculate Viewfactors
         
         # vf_maritx is created with timestep eqaul to current loop number, which represents the hour after starthour
+        
+        vf_dict = calculateViewFactorMatrix(simulationDict, df, j)
+        vf_matrix = vf_dict['vf_matrix']
+        #print(vf_matrix)
+        pvarray_albedo = vf_dict['pvarray_albedo']
+        pvarray_pv = vf_dict['pvarray_pv']
+        
+        '''
         vf_matrix_return = calculateViewFactorMatrix(simulationDict, df, j)
         vf_matrix = vf_matrix_return[0]
+        #print(vf_matrix)
         pvarray_albedo = vf_matrix_return[1]
         pvarray_pv = vf_matrix_return[2]
-       
+        '''
         n_tsground_pv = pvarray_pv.ts_ground.n_ts_surfaces           # Anzahl der Bodenflächen im pvarray_pv
-       #print("n_tsground_pv", n_tsground_pv)
+        #print("n_tsground_pv", n_tsground_pv)
         ts_ground_list = pvarray_pv.ts_ground.all_ts_surfaces        # list of all ground surfaces like the geometry of PVrows
         
         #TO_DO xminx max entsprechend verschieben, sodass mittlere Reihe in der mitte der Bodenbegrenzungen ist
@@ -395,6 +406,7 @@ def calculateAlbedo(simulationDict, dataFrame, resultspath):
                     
                     # # Abhängig vom Shading status werden Vf für jeweilige ground surface gebildet und auf VF_s_a2 oder VF_s_a1 aufaddiert
                     if ts_surface.shaded:
+                        #print(vf_matrix[k, l, :][0])
                         VF_k_l = vf_matrix[k, l, :][0]          # bild Vf between actuall ground surface and albedometer surface
                         VF_s_a2 =+ VF_k_l                       # Viewfactor from surface S (Albedo measurement) to surface A2 (shaded ground)   
                     else:

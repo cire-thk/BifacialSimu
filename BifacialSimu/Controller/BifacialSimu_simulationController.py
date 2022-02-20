@@ -32,6 +32,7 @@ import BifacialSimu_calculationHandler
 import BifacialSimu_radiationHandler
 import BifacialSimu_dataHandler
 import BifacialSimu_spectralAlbedoHandler
+import BifacialSimu_spectralAlbedoHandler_1_row
 
 # Overarching procedure to perform bifacial irrdiance and electrical simulations  
 def startSimulation(simulationDict, moduleDict, resultsPath):
@@ -57,8 +58,8 @@ def startSimulation(simulationDict, moduleDict, resultsPath):
     # optional spectralAlbedo calculation
     if simulationDict['hourlySpectralAlbedo'] == True:
         # spectralAlbedoHandler calculate the spectral albedo and write it in the weatherfile in colume 'albedo'
+        #BifacialSimu_spectralAlbedoHandler_1_row.calculateAlbedo(simulationDict, df, resultsPath)
         BifacialSimu_spectralAlbedoHandler.calculateAlbedo(simulationDict, df, resultsPath)
-    
         # weatherfile is read in again with updated albedo values as metdata
         metdata, demo = BifacialSimu_dataHandler.DataHandler().getWeatherData(simulationDict, resultsPath) 
     

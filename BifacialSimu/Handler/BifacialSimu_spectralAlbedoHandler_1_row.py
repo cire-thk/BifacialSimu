@@ -375,6 +375,7 @@ def calculateAlbedo(simulationDict, dataFrame, resultspath):
         
         # vf_maritx is created with timestep eqaul to current loop number, which represents the hour after starthour
         vf_matrix = calculateViewFactorMatrix(simulationDict, df, j)
+        print(vf_matrix)
         # Ab hier nach oben
         # Check if GHI is 0, then viewfactors are also 0 because there is no radiation
         if df.iloc[j]['ghi'] == 0:
