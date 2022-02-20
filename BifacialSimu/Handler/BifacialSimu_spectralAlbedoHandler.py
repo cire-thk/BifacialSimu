@@ -164,7 +164,7 @@ def build_ts_vf_matrix_albedo(pvarray_pv, pvarray_albedo):
     rotation_vec = pvarray_albedo.rotation_vec
     tilted_to_left = rotation_vec > 0
     n_steps = len(rotation_vec)
-    n_ts_surfaces = pvarray_albedo.n_ts_surfaces #pvarray_albedo has also 5 ground surfaces as pvarray_pv
+    n_ts_surfaces = pvarray_albedo.n_ts_surfaces #pvarray_albedo has same number of ground surfaces as pvarray_pv
     vf_matrix = np.zeros((n_ts_surfaces + 1, n_ts_surfaces + 1, n_steps), dtype=float)  # don't forget to include the sky
 
     # Get timeseries objects
@@ -205,7 +205,7 @@ def calculateViewFactorMatrix(simulationDict, dataFrame, j):
         
     # parameters of pvarrray, which contains the albedometer as a horizontal PVrow
     pvarray_parameters = {
-    'n_pvrows': simulationDict['nRows'],               #ÄNDERN nrows                   # number of pv rows, 1 because albedometer has only 1 surface
+    'n_pvrows': simulationDict['nRows'],            # number of pv rows
     'pvrow_height': 1,                              # height of albedometer (measured at center / torque tube)
     'pvrow_width': 0.05,                            # width of glasdome of albedometer
     'axis_azimuth': 0.,                             # azimuth angle of rotation axis
@@ -245,7 +245,7 @@ def calculateViewFactorMatrix(simulationDict, dataFrame, j):
     vf_matrix = build_ts_vf_matrix_albedo(pvarray_pv, pvarray_albedo)
     
     
-    return vf_matrix
+    return [vf_matrix, pvarray_albedo, pvarray_pv]
     
 def calculateAlbedo(simulationDict, dataFrame, resultspath):
     '''
@@ -354,19 +354,28 @@ def calculateAlbedo(simulationDict, dataFrame, resultspath):
         
         # Calculate Viewfactors
         
-        # Anzahl der Bodenflächen im pvarray_pv
-        
-        n_tsground = 10
-        
-        # mittige Albedometerfläche, welche nach unten zeigt und length > 0 hat, idendifizieren
-        # Klären, wie vielte Reihe Albeodmeter bei gerader Anzahl an Reihen -> Albedometer nicht mittig?
-        l = 2    # Nummer der Fläche im pvarray_albedo
-       
         # vf_maritx is created with timestep eqaul to current loop number, which represents the hour after starthour
-        vf_matrix = calculateViewFactorMatrix(simulationDict, df, j)
+        vf_matrix_return = calculateViewFactorMatrix(simulationDict, df, j)
+        vf_matrix = vf_matrix_return[0]
+        pvarray_albedo = vf_matrix_return[1]
+        pvarray_pv = vf_matrix_return[2]
+       
+        n_tsground_pv = pvarray_pv.ts_ground.n_ts_surfaces           # Anzahl der Bodenflächen im pvarray_pv
+       #print("n_tsground_pv", n_tsground_pv)
+        ts_ground_list = pvarray_pv.ts_ground.all_ts_surfaces        # list of all ground surfaces like the geometry of PVrows
         
-        # Schleife, welche jede Bodenfläche nach Schading status abfragt und length>0
-        # Bodenflächen werden dem array shaded oder unshaded zugeordnet
+        #TO_DO xminx max entsprechend verschieben, sodass mittlere Reihe in der mitte der Bodenbegrenzungen ist
+        
+        if simulationDict['nRows'] % 2 == 0:
+            # nRows ist gerade
+            # Albedometerfläche-Nummer = Hälfte aller Reihen. Fläche, welche nach unten zeigt. Das ist 3. Fläche einer Reihe
+            addition = ((simulationDict['nRows']/2)-1)*4     # pro Reihe links vom Albedometer werden 4 Flächen hinzuaddiert
+            l = n_tsground_pv + addition + 3                 # Nummer der Albedometerfläche
+        else:
+            # nRows ist ungerade
+            # Albedometerfläche = Fläche der mittigen Reihe, welche nach unten zeigt. Das ist 3. Fläche einer Reihe
+            addition = ((simulationDict['nRows'] - 1)/2)*4   # pro Reihe links vom Albedometer werden 4 Flächen hinzuaddiert
+            l = n_tsground_pv + addition + 3                 # Nummer der Albedometerfläche
         
         # Check if GHI is 0, then viewfactors are also 0 because there is no radiation
         if df.iloc[j]['ghi'] == 0:
@@ -374,26 +383,27 @@ def calculateAlbedo(simulationDict, dataFrame, resultspath):
             VF_s_a2 = 0
             
         else:
-            '''
-            for k in range(n_tsground):
-                
-                tsground = tsground mit Nummer k
-                
-                if tsground.shaded = True and tsground.length > 0:
-                    
-                    VF_k_l = vf_matrix[k, l, :][0]
-                    VF_s_a2 =+ VF_k_l      # Viewfactor from surface S (Albedo measurement) to surface A2 (shaded ground)   
-                    
-                
-                if tsground.shaded = False and tsground.length > 0:
-                    
-                    VF_k_l = vf_matrix[k, l, :][0]
-                    VF_s_a1 =+ VF_k_l       # Viewfactor from surface S (Albedo measurement) to surface A1 (unshaded ground)
-              '''      
-        VF_S_A1.append(VF_s_a1)
-        VF_S_A2.append(VF_s_a2)
+            VF_s_a1 = 0
+            VF_s_a2 = 0
             
-
+            # Schleife, welche jede ground surface durchgeht 
+            for ts_surface in ts_ground_list:
+                k = ts_surface.index                   # index number of actuall ground surface
+                
+                # If Abfrage, ob length der ground surface >0 (nur dann ist sie vorhanden)
+                if ts_surface.length > 0:
+                    
+                    # # Abhängig vom Shading status werden Vf für jeweilige ground surface gebildet und auf VF_s_a2 oder VF_s_a1 aufaddiert
+                    if ts_surface.shaded:
+                        VF_k_l = vf_matrix[k, l, :][0]          # bild Vf between actuall ground surface and albedometer surface
+                        VF_s_a2 =+ VF_k_l                       # Viewfactor from surface S (Albedo measurement) to surface A2 (shaded ground)   
+                    else:
+                        VF_k_l = vf_matrix[k, l, :][0]          # bild Vf between actuall ground surface and albedometer surface
+                        VF_s_a1 =+ VF_k_l                       # Viewfactor from surface S (Albedo measurement) to surface A1 (unshaded ground)
+                   
+        VF_S_A1.append(VF_s_a1)   # add VF_s_a1 of current hour to array with VF of all hours
+        VF_S_A2.append(VF_s_a2)   # add VF_s_a2 of current hour to array with VF of all hours
+            
         #########################################################################        
         
         # Calculate Albedo
