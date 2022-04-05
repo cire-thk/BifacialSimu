@@ -399,6 +399,9 @@ class Window(tk.Tk):
             if len(Entry_zeta.get()) !=0:
                 ModuleDict["zeta"]=float(Entry_zeta.get())
                 
+            if len(Entry_Ns.get()) !=0:
+                ModuleDict["Ns"]=float(Entry_Ns.get())           
+                
             
 # =============================================================================
 #             Defining the Path for the Results    
@@ -713,6 +716,7 @@ class Window(tk.Tk):
             rad1_BacktrackingMode.invoke()
             Entry_Name.insert(0, simulationName_configfile)
             Entry_weatherfile.insert(0, weatherFile_configfile) #zu überarbeiten
+            Entry_reflectivityfile.insert(0, reflectivityFile_configfile)
             Entry_Tilt.insert(0, tilt_configfile)
             Entry_LimitAngle.insert(0, limitAngle_configfile)
             Entry_ClearanceHeight.insert(0, ClearanceHeight_configfile)
@@ -1105,53 +1109,44 @@ class Window(tk.Tk):
   
     
  
-        # Defining the electrical Mode with our without Values of rear side
+       # Defining the electrical Mode with or without Values of rear side
         def Electricalmode():
-            
-         #    Electricalmode= tk.StringVAR()
-         #    showinfo(title='Result', message=Electricalmode.get())
-            
-            
-         #    sizes = (('Without rear values!', 'Aufpassen'),
-         # )
-            
-            
-            if rb_ElectricalMode.get()==0:
-                SimulationDict["ElectricalMode_simple"]=False
-                
-                # for size in sizes:
-                #     r = ttk.Radiobutton(Electricalmode,
-                #         text=size[0],
-                #         value=size[1],
-                #         variable=selected_size
-                #     )
-                #     r.pack(fill='x', padx=5, pady=5)
-                
-            else:
-                SimulationDict["ElectricalMode_simple"]=True
-                # label = ttk.Label(ModuleParameter_frame, text="Aufpassen")
-                # label.pack(fills='x', padx=5, pady=5)
-                
-                
-                    
-                
-                    # # button
-                    # button = ttk.Button(
-                    #     root,
-                    #     text="Get Selected Size",
-                    #     command=show_selected_size)
-                    
-                    # button.pack(fill='x', padx=5, pady=5)
+           if rb_ElectricalMode.get()==0:
+               SimulationDict["ElectricalMode_simple"]= 1 #One diode front and back
+           if rb_ElectricalMode.get()==1:
+               SimulationDict["ElectricalMode_simple"]= 0 #One diode front and Bi factor
+           if rb_ElectricalMode.get()==2:
+               SimulationDict["ElectricalMode_simple"]= 2 #Two Diode front and back
+           if rb_ElectricalMode.get()==3:
+               SimulationDict["ElectricalMode_simple"]= 3 #Two Diode front and Bi factor
+               
+          # else:
+         #      SimulationDict["ElectricalMode_simple"]=True
+               
+   
+        #Radiobuttons for the two-diode-Methodes
+   
+        rb_ElectricalMode=IntVar()
+        rb_ElectricalMode.set("0")
+   
+        rad1_ElectricalMode= Radiobutton(ModuleParameter_frame, variable=rb_ElectricalMode, width=22, text="OneDiode front and back", value=0, command=lambda:Electricalmode())
+        rad2_ElectricalMode= Radiobutton(ModuleParameter_frame, variable=rb_ElectricalMode, width=21, text="OneDiode with BiFactor", value=1, command=lambda:Electricalmode())
+        #rad3_ElectricalMode= Radiobutton(ModuleParameter_frame, variable=rb_ElectricalMode, width=22, text="TwoDiode front and back", value=2, command=lambda:Electricalmode())
+        rad4_ElectricalMode= Radiobutton(ModuleParameter_frame, variable=rb_ElectricalMode, width=21, text="TwoDiode with BiFactor", value=3, command=lambda:Electricalmode())
+        rad1_ElectricalMode.grid(column=0,row=3, sticky=W)
+        rad2_ElectricalMode.grid(column=1,row=3, columnspan=1, sticky=W)
+        #rad3_ElectricalMode.grid(column=0,row=4, sticky=W)
+        rad4_ElectricalMode.grid(column=1,row=4, columnspan=1, sticky=W)
   
     
   
         #Radiobutton Choice Rear values
-        rb_ElectricalMode=IntVar()
-        rb_ElectricalMode.set("0")
-        rad1_ElectricalMode= Radiobutton(ModuleParameter_frame, variable=rb_ElectricalMode, width=15, text="With rear values!", value=0, command=lambda:Electricalmode())
-        rad2_ElectricalMode= Radiobutton(ModuleParameter_frame, variable=rb_ElectricalMode,  width=18, text="Without rear values!", value=1, command=lambda:Electricalmode())
-        rad1_ElectricalMode.grid(column=0,row=2, sticky=W)
-        rad2_ElectricalMode.grid(column=1,row=2, columnspan=1, sticky=W)
+        #rb_ElectricalMode=IntVar()
+        #rb_ElectricalMode.set("0")
+        #rad1_ElectricalMode= Radiobutton(ModuleParameter_frame, variable=rb_ElectricalMode, width=15, text="With rear values!", value=0, command=lambda:Electricalmode())
+        #rad2_ElectricalMode= Radiobutton(ModuleParameter_frame, variable=rb_ElectricalMode,  width=18, text="Without rear values!", value=1, command=lambda:Electricalmode())
+        #rad1_ElectricalMode.grid(column=0,row=2, sticky=W)
+        #rad2_ElectricalMode.grid(column=1,row=2, columnspan=1, sticky=W)
         
         
         # Defining Backtracking
@@ -1283,13 +1278,13 @@ class Window(tk.Tk):
         Entry_gcr=ttk.Entry(simulationParameter_frame, background="white", width=10)
         Entry_gcr.grid(column=1, row=16, sticky=W)        
         
-        #with or without rear values        
-        Labela_modulinfo=ttk.Label(ModuleParameter_frame, text="", background = 'white')
-        Labela_modulinfo.grid(column=0, columnspan=3, row=21, sticky=W)
-        Entry_modulinfo=ttk.Entry(ModuleParameter_frame, background="white", width=16)
-        Label_modulinfo=ttk.Label(ModuleParameter_frame, text="If your choice for the module attribute is 'With rear values!' use the modules 1 to 3 in the Combobox.\nIf your choice is 'Without rear values' use the modules 4 to the end of the list.", background = 'red',font=8)
-        Label_modulinfo.grid(column=0, columnspan=3, row=23, sticky=W)
-        Entry_modulinfo=ttk.Entry(ModuleParameter_frame, background="white", width=8)       
+        #with or without rear  / Warning        
+        #Labela_modulinfo=ttk.Label(ModuleParameter_frame, text="", background = 'white')
+        #Labela_modulinfo.grid(column=0, columnspan=3, row=21, sticky=W)
+        #Entry_modulinfo=ttk.Entry(ModuleParameter_frame, background="white", width=16)
+        #Label_modulinfo=ttk.Label(ModuleParameter_frame, text="If your choice for the module attribute is 'With rear values!' use the modules 1 to 3 in the Combobox.\nIf your choice is 'Without rear values' use the modules 4 to the end of the list.", background = 'red',font=8)
+        #Label_modulinfo.grid(column=0, columnspan=3, row=23, sticky=W)
+        #Entry_modulinfo=ttk.Entry(ModuleParameter_frame, background="white", width=8)       
             
         
 # =============================================================================
@@ -1298,119 +1293,124 @@ class Window(tk.Tk):
         
         #Bifaciality factor
         Label_bi_factor=ttk.Label(ModuleParameter_frame, text="bi_factor:")
-        Label_bi_factor.grid(column=0, row=3, sticky=W)
+        Label_bi_factor.grid(column=0, row=5, sticky=W)
         Label_bi_factorPar=ttk.Label(ModuleParameter_frame, text="[-]")
-        Label_bi_factorPar.grid(column=2, row=3, sticky=W)
+        Label_bi_factorPar.grid(column=2, row=5, sticky=W)
         Entry_bi_factor=ttk.Entry(ModuleParameter_frame, background="white", width=8)
-        Entry_bi_factor.grid(column=1, row=3, sticky=W)   
+        Entry_bi_factor.grid(column=1, row=5, sticky=W)   
         
         #Wirkungsgrad Vorderseite
         Label_nfront=ttk.Label(ModuleParameter_frame, text="n_front:")
-        Label_nfront.grid(column=0, row=4, sticky=W)
+        Label_nfront.grid(column=0, row=6, sticky=W)
         Label_nfrontPar=ttk.Label(ModuleParameter_frame, text="[-]")
-        Label_nfrontPar.grid(column=2, row=4, sticky=W)
+        Label_nfrontPar.grid(column=2, row=6, sticky=W)
         Entry_nfront=ttk.Entry(ModuleParameter_frame, background="white", width=8)
-        Entry_nfront.grid(column=1, row=4, sticky=W)   
+        Entry_nfront.grid(column=1, row=6, sticky=W)   
 
         Label_Iscf=ttk.Label(ModuleParameter_frame, text="I_sc_f:")
-        Label_Iscf.grid(column=0, row=5, sticky=W)
+        Label_Iscf.grid(column=0, row=7, sticky=W)
         Label_IscfPar=ttk.Label(ModuleParameter_frame, text="[A]")
-        Label_IscfPar.grid(column=2, row=5, sticky=W)
+        Label_IscfPar.grid(column=2, row=7, sticky=W)
         Entry_Iscf=ttk.Entry(ModuleParameter_frame, background="white", width=8)
-        Entry_Iscf.grid(column=1, row=5, sticky=W)    
+        Entry_Iscf.grid(column=1, row=7, sticky=W)    
         
         Label_Iscr=ttk.Label(ModuleParameter_frame, text="I_sc_r:")
-        Label_Iscr.grid(column=0, row=6, sticky=W)
+        Label_Iscr.grid(column=0, row=8, sticky=W)
         Label_IscrPar=ttk.Label(ModuleParameter_frame, text="[A]")
-        Label_IscrPar.grid(column=2, row=6, sticky=W)
+        Label_IscrPar.grid(column=2, row=8, sticky=W)
         Entry_Iscr=ttk.Entry(ModuleParameter_frame, background="white", width=8)
-        Entry_Iscr.grid(column=1, row=6, sticky=W)    
+        Entry_Iscr.grid(column=1, row=8, sticky=W)    
         
         Label_Vocf=ttk.Label(ModuleParameter_frame, text="V_oc_f:")
-        Label_Vocf.grid(column=0, row=7, sticky=W)
+        Label_Vocf.grid(column=0, row=9, sticky=W)
         Label_VocfPar=ttk.Label(ModuleParameter_frame, text="[V]")
-        Label_VocfPar.grid(column=2, row=7, sticky=W)
+        Label_VocfPar.grid(column=2, row=9, sticky=W)
         Entry_Vocf=ttk.Entry(ModuleParameter_frame, background="white", width=8)
-        Entry_Vocf.grid(column=1, row=7, sticky=W)  
+        Entry_Vocf.grid(column=1, row=9, sticky=W)  
         
         Label_Vocr=ttk.Label(ModuleParameter_frame, text="V_oc_r:")
-        Label_Vocr.grid(column=0, row=8, sticky=W)
+        Label_Vocr.grid(column=0, row=10, sticky=W)
         Label_VocrPar=ttk.Label(ModuleParameter_frame, text="[V]")
-        Label_VocrPar.grid(column=2, row=8, sticky=W)
+        Label_VocrPar.grid(column=2, row=10, sticky=W)
         Entry_Vocr=ttk.Entry(ModuleParameter_frame, background="white", width=8)
-        Entry_Vocr.grid(column=1, row=8, sticky=W)  
+        Entry_Vocr.grid(column=1, row=10, sticky=W)  
         
         Label_Vmppf=ttk.Label(ModuleParameter_frame, text="V_mpp_f:")
-        Label_Vmppf.grid(column=0, row=9, sticky=W)
+        Label_Vmppf.grid(column=0, row=11, sticky=W)
         Label_VmppfPar=ttk.Label(ModuleParameter_frame, text="[V]")
-        Label_VmppfPar.grid(column=2, row=9, sticky=W)
+        Label_VmppfPar.grid(column=2, row=11, sticky=W)
         Entry_Vmppf=ttk.Entry(ModuleParameter_frame, background="white", width=8)
-        Entry_Vmppf.grid(column=1, row=9, sticky=W)  
+        Entry_Vmppf.grid(column=1, row=11, sticky=W)  
         
         Label_Vmppr=ttk.Label(ModuleParameter_frame, text="V_mpp_r:")
-        Label_Vmppr.grid(column=0, row=10, sticky=W)
+        Label_Vmppr.grid(column=0, row=12, sticky=W)
         Label_VmpprPar=ttk.Label(ModuleParameter_frame, text="[V]")
-        Label_VmpprPar.grid(column=2, row=10, sticky=W)
+        Label_VmpprPar.grid(column=2, row=12, sticky=W)
         Entry_Vmppr=ttk.Entry(ModuleParameter_frame, background="white", width=8)
-        Entry_Vmppr.grid(column=1, row=10, sticky=W)  
+        Entry_Vmppr.grid(column=1, row=12, sticky=W)  
         
         Label_Imppf=ttk.Label(ModuleParameter_frame, text="I_mpp_f:")
-        Label_Imppf.grid(column=0, row=11, sticky=W)
+        Label_Imppf.grid(column=0, row=13, sticky=W)
         Label_ImppfPar=ttk.Label(ModuleParameter_frame, text="[A]")
-        Label_ImppfPar.grid(column=2, row=11, sticky=W)
+        Label_ImppfPar.grid(column=2, row=13, sticky=W)
         Entry_Imppf=ttk.Entry(ModuleParameter_frame, background="white", width=8)
-        Entry_Imppf.grid(column=1, row=11, sticky=W) 
+        Entry_Imppf.grid(column=1, row=13, sticky=W) 
         
         Label_Imppr=ttk.Label(ModuleParameter_frame, text="I_mpp_r:")
-        Label_Imppr.grid(column=0, row=12, sticky=W)
+        Label_Imppr.grid(column=0, row=14, sticky=W)
         Label_ImpprPar=ttk.Label(ModuleParameter_frame, text="[A]")
-        Label_ImpprPar.grid(column=2, row=12, sticky=W)
+        Label_ImpprPar.grid(column=2, row=14, sticky=W)
         Entry_Imppr=ttk.Entry(ModuleParameter_frame, background="white", width=8)
-        Entry_Imppr.grid(column=1, row=12, sticky=W) 
+        Entry_Imppr.grid(column=1, row=14, sticky=W) 
         
         Label_Pmpp=ttk.Label(ModuleParameter_frame, text="P_mpp:")
-        Label_Pmpp.grid(column=0, row=13, sticky=W)
+        Label_Pmpp.grid(column=0, row=15, sticky=W)
         Label_PmppPar=ttk.Label(ModuleParameter_frame, text="[W]")
-        Label_PmppPar.grid(column=2, row=13, sticky=W)
+        Label_PmppPar.grid(column=2, row=15, sticky=W)
         Entry_Pmpp=ttk.Entry(ModuleParameter_frame, background="white", width=8)
-        Entry_Pmpp.grid(column=1, row=13, sticky=W) 
+        Entry_Pmpp.grid(column=1, row=15, sticky=W) 
         
         Label_TkoeffP=ttk.Label(ModuleParameter_frame, text="T_koeff_P:")
-        Label_TkoeffP.grid(column=0, row=14, sticky=W)
+        Label_TkoeffP.grid(column=0, row=16, sticky=W)
         Label_TkoeffPPar=ttk.Label(ModuleParameter_frame, text="[1 / °C]")
-        Label_TkoeffPPar.grid(column=2, row=14, sticky=W)
+        Label_TkoeffPPar.grid(column=2, row=16, sticky=W)
         Entry_TkoeffP=ttk.Entry(ModuleParameter_frame, background="white", width=8)
-        Entry_TkoeffP.grid(column=1, row=14, sticky=W) 
+        Entry_TkoeffP.grid(column=1, row=16, sticky=W) 
         
         Label_Tamb=ttk.Label(ModuleParameter_frame, text="T_amb:")
-        Label_Tamb.grid(column=0, row=15, sticky=W)
+        Label_Tamb.grid(column=0, row=17, sticky=W)
         Label_TambPar=ttk.Label(ModuleParameter_frame, text="[°C]")
-        Label_TambPar.grid(column=2, row=15, sticky=W)
+        Label_TambPar.grid(column=2, row=17, sticky=W)
         Entry_Tamb=ttk.Entry(ModuleParameter_frame, background="white", width=8)
-        Entry_Tamb.grid(column=1, row=15, sticky=W) 
+        Entry_Tamb.grid(column=1, row=17, sticky=W) 
         
         Label_TkoeffI=ttk.Label(ModuleParameter_frame, text="T_koeff_I:")
-        Label_TkoeffI.grid(column=0, row=16, sticky=W)
+        Label_TkoeffI.grid(column=0, row=18, sticky=W)
         Label_TkoeffIPar=ttk.Label(ModuleParameter_frame, text="[1 / °C]")
-        Label_TkoeffIPar.grid(column=2, row=16, sticky=W)
+        Label_TkoeffIPar.grid(column=2, row=18, sticky=W)
         Entry_TkoeffI=ttk.Entry(ModuleParameter_frame, background="white", width=8)
-        Entry_TkoeffI.grid(column=1, row=16, sticky=W) 
+        Entry_TkoeffI.grid(column=1, row=18, sticky=W) 
         
         Label_TkoeffV=ttk.Label(ModuleParameter_frame, text="T_koeff_V:")
-        Label_TkoeffV.grid(column=0, row=17, sticky=W)
+        Label_TkoeffV.grid(column=0, row=19, sticky=W)
         Label_TkoeffVPar=ttk.Label(ModuleParameter_frame, text="[1 / °C]")
-        Label_TkoeffVPar.grid(column=2, row=17, sticky=W)
+        Label_TkoeffVPar.grid(column=2, row=19, sticky=W)
         Entry_TkoeffV=ttk.Entry(ModuleParameter_frame, background="white", width=8)
-        Entry_TkoeffV.grid(column=1, row=17, sticky=W) 
+        Entry_TkoeffV.grid(column=1, row=19, sticky=W) 
         
         Label_zeta=ttk.Label(ModuleParameter_frame, text="zeta:")
-        Label_zeta.grid(column=0, row=18, sticky=W)
+        Label_zeta.grid(column=0, row=20, sticky=W)
         Label_zetaPar=ttk.Label(ModuleParameter_frame, text="[-]")
-        Label_zetaPar.grid(column=2, row=18, sticky=W)
+        Label_zetaPar.grid(column=2, row=20, sticky=W)
         Entry_zeta=ttk.Entry(ModuleParameter_frame, background="white", width=8)
-        Entry_zeta.grid(column=1, row=18, sticky=W) 
+        Entry_zeta.grid(column=1, row=20, sticky=W) 
         
-        
+        Label_Ns=ttk.Label(ModuleParameter_frame, text="Ns:")
+        Label_Ns.grid(column=0, row=20, sticky=W)
+        Label_NsPar=ttk.Label(ModuleParameter_frame, text="[-]")
+        Label_NsPar.grid(column=2, row=20, sticky=W)
+        Entry_Ns=ttk.Entry(ModuleParameter_frame, background="white", width=8)
+        Entry_Ns.grid(column=1, row=20, sticky=W) 
         
         
 # =============================================================================
@@ -1422,6 +1422,7 @@ class Window(tk.Tk):
         simulationName_configfile=parser.get('default', 'simulationName')
        # simulationMode_configfile=parser.get('default', 'simulationMode')
         weatherFile_configfile=parser.get('default', "weatherFile")
+        reflectivityFile_configfile=parser.get('default', "reflectivityFile")
         tilt_configfile=parser.get('default', 'tilt')
         limitAngle_configfile=parser.getfloat('default', 'limitAngle')
         ClearanceHeight_configfile=parser.getfloat('default', 'clearance_height')

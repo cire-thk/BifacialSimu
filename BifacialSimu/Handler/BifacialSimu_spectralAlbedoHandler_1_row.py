@@ -164,7 +164,7 @@ def build_ts_vf_matrix_albedo(pvarray_pv, pvarray_albedo):
     rotation_vec = pvarray_albedo.rotation_vec
     tilted_to_left = rotation_vec > 0
     n_steps = len(rotation_vec)
-    n_ts_surfaces = pvarray_albedo.n_ts_surfaces #pvarray_albedo has same number of ground surfaces as pvarray_pv
+    n_ts_surfaces = pvarray_albedo.n_ts_surfaces #pvarray_albedo has also 5 ground surfaces as pvarray_pv
     vf_matrix = np.zeros((n_ts_surfaces + 1, n_ts_surfaces + 1, n_steps), dtype=float)  # don't forget to include the sky
 
     # Get timeseries objects
@@ -205,12 +205,12 @@ def calculateViewFactorMatrix(simulationDict, dataFrame, j):
         
     # parameters of pvarrray, which contains the albedometer as a horizontal PVrow
     pvarray_parameters = {
-    'n_pvrows': simulationDict['nRows'],            # number of pv rows
+    'n_pvrows': 1,               #ÄNDERN nrows                   # number of pv rows, 1 because albedometer has only 1 surface
     'pvrow_height': 1,                              # height of albedometer (measured at center / torque tube)
     'pvrow_width': 0.05,                            # width of glasdome of albedometer
-    'axis_azimuth': 0,                             # azimuth angle of rotation axis
+    'axis_azimuth': 0.,                             # azimuth angle of rotation axis
     'gcr': simulationDict['gcr'],                   # ground coverage ratio
-    'surface_tilt': 0,                             # tilt of albedometer, 0 = horizontal
+    'surface_tilt': 0.,                             # tilt of albedometer, 0 = horizontal
     'surface_azimuth': simulationDict['azimuth'],   # azimuth of albedometer same to azimuth of pv rows front surface
     'solar_zenith': df.iloc[j]['apparent_zenith'],  # solar zenith out of dataframe
     'solar_azimuth': df.iloc[j]['azimuth'],         # solar azimuth out of dataframe
@@ -227,7 +227,7 @@ def calculateViewFactorMatrix(simulationDict, dataFrame, j):
     'n_pvrows': simulationDict['nRows'],            # number of pv rows
     'pvrow_height': simulationDict['hub_height'],   # height of pvrows (measured at center / torque tube)
     'pvrow_width': simulationDict['moduley'],       # width of pv module
-    'axis_azimuth': 0,                             # azimuth angle of rotation axis
+    'axis_azimuth': 0.,                             # azimuth angle of rotation axis
     'gcr': simulationDict['gcr'],                   # ground coverage ratio
     'surface_tilt': simulationDict['tilt'],         # tilt of pv row
     'surface_azimuth': simulationDict['azimuth'],   # azimuth of pv rows front surface
@@ -244,10 +244,8 @@ def calculateViewFactorMatrix(simulationDict, dataFrame, j):
     # create vf_matrix out of pvarray_albedo and pv_array_pv with selfmade function
     vf_matrix = build_ts_vf_matrix_albedo(pvarray_pv, pvarray_albedo)
     
-    vf_dict = {'vf_matrix':vf_matrix, 'pvarray_albedo': pvarray_albedo, 'pvarray_pv': pvarray_pv}
     
-    #return [vf_matrix, pvarray_albedo, pvarray_pv]
-    return vf_dict
+    return vf_matrix
     
 def calculateAlbedo(simulationDict, dataFrame, resultspath):
     '''
@@ -277,6 +275,11 @@ def calculateAlbedo(simulationDict, dataFrame, resultspath):
     # Intialise arrays
     R_hourly = []     # array to hold R value
     H_hourly = []     # array to hold H value
+    # ÄNDERN bzw kann weg
+    VF_8_2_hourly = []
+    VF_8_4_hourly = []
+    VF_8_5_hourly = []
+    # bis hier
     VF_S_A1 = []      # array to hold view factors from surface s to surface A1
     VF_S_A2 = []      # array to hold view factors from surface s to surface A2
     a_hourly = []     # array to hold albedo
@@ -356,72 +359,48 @@ def calculateAlbedo(simulationDict, dataFrame, resultspath):
         
         # Calculate Viewfactors
         
-        # vf_maritx is created with timestep eqaul to current loop number, which represents the hour after starthour
+        #ÄNDERN 
+        # Viewfactor Berechnung hier
+        # Abzählen der Bodenflächen und Zuordnung zu VF-S-A1 und VF-S-A2 abhängig vom shaded status
+        # jede Bodensurface muss abgefragt werden über surface status und dann muss Flächennummer gespeichert werden für Abfrage VF Matrix
+        # Automatische Ermittlung der Surface number für Unterseite Albedometer
+        # Klären, wie vielte Reihe Albeodmeter bei gerader Anzahl an Reihen -> Albedometer nicht mittig?
+        # Ausprobieren wie Reihen zum Nullpunkt stehen, wenn gerade Anzahl (Nullpunkt in Mitte oder bei 1. Reihe?)
+        # Schleife, welche Surfaces zu Vf 1 oder VF 2 addieren
         
-        vf_dict = calculateViewFactorMatrix(simulationDict, df, j)
-        vf_matrix = vf_dict['vf_matrix']
-        #print(vf_matrix)
-        pvarray_albedo = vf_dict['pvarray_albedo']
-        pvarray_pv = vf_dict['pvarray_pv']
         
-        '''
-        vf_matrix_return = calculateViewFactorMatrix(simulationDict, df, j)
-        vf_matrix = vf_matrix_return[0]
-        #print(vf_matrix)
-        pvarray_albedo = vf_matrix_return[1]
-        pvarray_pv = vf_matrix_return[2]
-        '''
-        n_tsground_pv = pvarray_pv.ts_ground.n_ts_surfaces           # Anzahl der Bodenflächen im pvarray_pv
-        #print("n_tsground_pv", n_tsground_pv)
-        ts_ground_list = pvarray_pv.ts_ground.all_ts_surfaces        # list of all ground surfaces like the geometry of PVrows
-        
-        #TO_DO xminx max entsprechend verschieben, sodass mittlere Reihe in der mitte der Bodenbegrenzungen ist
-        
-        if simulationDict['nRows'] % 2 == 0:
-            # nRows ist gerade
-            # Albedometerfläche-Nummer = Hälfte aller Reihen. Fläche, welche nach unten zeigt. Das ist 3. Fläche einer Reihe
-            addition = ((simulationDict['nRows']/2)-1)*4     # pro Reihe links vom Albedometer werden 4 Flächen hinzuaddiert
-            l = n_tsground_pv + addition + 3                 # Nummer der Albedometerfläche
-        else:
-            # nRows ist ungerade
-            # Albedometerfläche = Fläche der mittigen Reihe, welche nach unten zeigt. Das ist 3. Fläche einer Reihe
-            addition = ((simulationDict['nRows'] - 1)/2)*4   # pro Reihe links vom Albedometer werden 4 Flächen hinzuaddiert
-            l = n_tsground_pv + addition + 3                 # Nummer der Albedometerfläche
-        
-        # Check if GHI is 0, then viewfactors are also 0 because there is no radiation
-        if df.iloc[j]['ghi'] == 0:
-            VF_s_a1 = 0
-            VF_s_a2 = 0
-            
-        else:
-            VF_s_a1 = 0
-            VF_s_a2 = 0
-            
-            # Schleife, welche jede ground surface durchgeht 
-            for ts_surface in ts_ground_list:
-                k = ts_surface.index                   # index number of actuall ground surface
-                
-                # If Abfrage, ob length der ground surface >0 (nur dann ist sie vorhanden)
-                if ts_surface.length > 0:
-                    
-                    # # Abhängig vom Shading status werden Vf für jeweilige ground surface gebildet und auf VF_s_a2 oder VF_s_a1 aufaddiert
-                    if ts_surface.shaded:
-                        #print(vf_matrix[k, l, :][0])
-                        VF_k_l = vf_matrix[k, l, :][0]          # bild Vf between actuall ground surface and albedometer surface
-                        VF_s_a2 =+ VF_k_l                       # Viewfactor from surface S (Albedo measurement) to surface A2 (shaded ground)   
-                    else:
-                        VF_k_l = vf_matrix[k, l, :][0]          # bild Vf between actuall ground surface and albedometer surface
-                        VF_s_a1 =+ VF_k_l                       # Viewfactor from surface S (Albedo measurement) to surface A1 (unshaded ground)
-                   
-        VF_S_A1.append(VF_s_a1)   # add VF_s_a1 of current hour to array with VF of all hours
-        VF_S_A2.append(VF_s_a2)   # add VF_s_a2 of current hour to array with VF of all hours
-            
         #########################################################################        
         
         # Calculate Albedo
         
+        # vf_maritx is created with timestep eqaul to current loop number, which represents the hour after starthour
+        vf_matrix = calculateViewFactorMatrix(simulationDict, df, j)
+        print(vf_matrix)
+        # Ab hier nach oben
+        # Check if GHI is 0, then viewfactors are also 0 because there is no radiation
+        if df.iloc[j]['ghi'] == 0:
+            VF_s_a1 = 0
+            VF_s_a2 = 0
+            VF_8_2 = 0
+            VF_8_4 = 0
+            VF_8_5 = 0
+        else:
+            VF_8_2 = vf_matrix[8, 2, :][0]
+            VF_8_4 = vf_matrix[8, 4, :][0]
+            VF_8_5 = vf_matrix[8, 5, :][0]
+            VF_s_a1 = VF_8_4 + VF_8_5 + VF_8_2   # Viewfactor from surface S (Albedo measurement) to surface A1 (unshaded ground)
+            VF_s_a2 = vf_matrix[8, 0, :][0]      # Viewfactor from surface S (Albedo measurement) to surface A2 (shaded ground)    
+        # Bis hier nach oben    
         a = R * (VF_s_a1 + (1/(H+1)) * VF_s_a2)  # spectral Albedo [-]
         
+        # ÄNDERN Verschieben bzw kann weg
+        VF_8_2_hourly.append(VF_8_2)
+        VF_8_4_hourly.append(VF_8_4)
+        VF_8_5_hourly.append(VF_8_5)
+        # bis hier kann weg
+        VF_S_A1.append(VF_s_a1)
+        VF_S_A2.append(VF_s_a2)
+        # bis hier verschieben
         a_hourly.append(a)
         
         #########################################################################
@@ -434,8 +413,7 @@ def calculateAlbedo(simulationDict, dataFrame, resultspath):
     #########################################################################
     
     # calculated values are saved to new csv
-    # ÄNDERN
-    albedo_results = pd.DataFrame({'datetime':cd, 'spectral Albedo':a_hourly, 'R': R_hourly, 'H': H_hourly, 'VF_s_a1': VF_S_A1, 'VF_s_a2': VF_S_A2})
+    albedo_results = pd.DataFrame({'datetime':cd, 'spectral Albedo':a_hourly, 'R': R_hourly, 'H': H_hourly, 'VF_s_a1': VF_S_A1, 'VF_8_2': VF_8_2_hourly, 'VF_8_4': VF_8_4_hourly, 'VF_8_5': VF_8_5_hourly, 'VF_s_a2': VF_S_A2})
     albedo_results.to_csv(resultspath + '/spectral_Albedo.csv', sep=';', index=False)
     
     #########################################################################

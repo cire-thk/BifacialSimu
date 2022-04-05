@@ -943,6 +943,8 @@ class ViewFactors:
         ####################################################
         
         # function to average the hourly front and back irradiances of the pv rows to daily values
+        # only possible, when the starthour and endhour is 0 o'clock, so whole days are simulated
+        # otherwise, the loop has to be programmed, that it checks, if there are less than 24 hour for a day and reduces the loops the the acutal hours in the first or last day
         
         def daily_mean_irradiance(df_reportVF):
             df1 = df_reportVF  
@@ -957,7 +959,14 @@ class ViewFactors:
             Row_2_back_daily = []   # array to hold daily qabs back values of row 2
             cd = []             # array to hold hourly datetime
 
-            for i in range(365):
+     
+            dtStart = datetime.date(simulationDict['startHour'][0], simulationDict['startHour'][1], simulationDict['startHour'][2])
+            dtEnd = datetime.date(simulationDict['endHour'][0], simulationDict['endHour'][1], simulationDict['endHour'][2])
+
+            delta_days= dtEnd - dtStart
+            #print("delta days", delta_days.days)
+
+            for i in range(delta_days.days):
                 
                 Avg_front_hourly = []     # array to hold hourly row average qabs front values
                 Avg_back_hourly = []     # array to hold hourly row average qabs front values
@@ -1089,9 +1098,9 @@ class ViewFactors:
         if onlyFrontscan == False:
             report = engine.run_full_mode(fn_build_report=Segments_report)
             df_reportVF = pd.DataFrame(report, index=df.index)
-            #df2 = daily_mean_irradiance(df_reportVF)  # erzeugt dataframe mit gemittelten täglichen irradiances
-            #plot_irradiance1(df2)    # Plot mit der durschnittlichen front und back irradiance aller Reihen für jeden Tag
-            #plot_irradiance2(df2)    # Plot mit der front und back irradiance für jede Reihen für jeden Tag
+            df2 = daily_mean_irradiance(df_reportVF)  # erzeugt dataframe mit gemittelten täglichen irradiances
+            plot_irradiance1(df2)    # Plot mit der durschnittlichen front und back irradiance aller Reihen für jeden Tag
+            plot_irradiance2(df2)    # Plot mit der front und back irradiance für jede Reihen für jeden Tag
             
             # Print results as .csv in directory
             df_reportVF.to_csv(resultsPath + "radiation_qabs_results.csv")
