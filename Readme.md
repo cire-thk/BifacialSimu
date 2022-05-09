@@ -367,6 +367,12 @@ There is also a script to convert weather files into TMY formate which can be fo
 
 __Incorrect Timescale on Graphs__ - This is a result of not changing the time zone under the Simulation Control settings. 
 It is also possible to manually amend the axis titles within the matlibplot graphs by using the edit button.
+
+__missingKeyWarning from bifacial_radiance.main__ - This error appears if the load.py and main.py [files](#installation) were not copied from the BifacialSimu GitHub. 
+
+__Cannot load backend 'Qt5Agg'__ - If this error appears, you have to change the IPython Console from 'tk' to 'Qt5', f.e. in spyder.
+> "ImportError: Cannot load backend 'Qt5Agg' which requires the 'qt' interactive framework, as 'tk' is currently running."
+
 ***
 
 ## Program Function
@@ -456,8 +462,19 @@ Jan Schmitt (Graphical User Interface)
 Thank you to all who have contributed so far to this project, it wouldn't have been as successful without their input.
 
 If you wish to assist in further developing this program please contact [Eva-Maria Grommes](https://orcid.org/0000-0002-7826-3754).
+
+
 ***
-## Citation
+## Citation of pvfactors and bifacial_radiance
+BifacialSimu applies parts from [pvfavtors](https://github.com/SunPower/pvfactors) by SunPower:
+>Anoma, M., Jacob, D., Bourne, B. C., Scholl, J. A., Riley, D. M., & Hansen, C. W. (2017). View Factor Model and Validation for Bifacial PV and Diffuse Shade on Single-Axis Trackers. In 44th IEEE Photovoltaic Specialist Conference.
+
+BifacialSimu applies parts from [bifacial_radiance](https://github.com/NREL/bifacial_radiance) by NREL:
+>Ayala Pelaez and Deline, (2020). bifacial_radiance: a python package for modeling bifacial solar photovoltaic systems. Journal of Open Source Software, 5(50), 1865, https://doi.org/10.21105/joss.01865
+
+***
+
+## Citation of BifacialSimu
 If you use BifacialSimu in a published work, please cite:
 
 > Grommes, Eva-Maria (2022). BifacialSimu, https://github.com/cire-thk/BifacialSimu \
