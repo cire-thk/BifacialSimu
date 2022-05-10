@@ -1,6 +1,6 @@
 
 <p align="center"><img src="Lib/logos/logo_BifacialSimu_transparentresized.png" width="300" ></p>
-<p align="center"><a href="https://opensource.org/licenses/BSD-3-Clause"><img src="Lib/readme_pics/license-BSD-3--Clause-blue.svg"</p></a>
+<p align="center"><a href="https://github.com/cire-thk/BifacialSimu/blob/master/LICENSE"><img src="Lib/readme_pics/license-BSD-3--Clause-blue.svg"</p></a>
 
 ***
 # BifacialSimu
@@ -465,11 +465,11 @@ If you wish to assist in further developing this program please contact [Eva-Mar
 
 
 ***
-## Citation of pvfactors and bifacial_radiance
-BifacialSimu applies parts from [pvfavtors](https://github.com/SunPower/pvfactors) by SunPower:
+## Citation and License of pvfactors and bifacial_radiance
+BifacialSimu applies parts from [pvfavtors](https://github.com/SunPower/pvfactors). [Copyright (c) 2017, SunPower Corp](https://github.com/SunPower/pvfactors/blob/master/LICENSE):
 >Anoma, M., Jacob, D., Bourne, B. C., Scholl, J. A., Riley, D. M., & Hansen, C. W. (2017). View Factor Model and Validation for Bifacial PV and Diffuse Shade on Single-Axis Trackers. In 44th IEEE Photovoltaic Specialist Conference.
 
-BifacialSimu applies parts from [bifacial_radiance](https://github.com/NREL/bifacial_radiance) by NREL:
+BifacialSimu applies parts from [bifacial_radiance](https://github.com/NREL/bifacial_radiance). [Copyright (c) 2017-2021, Alliance for Sustainable Energy, LLC](https://github.com/NREL/bifacial_radiance/blob/main/LICENSE):
 >Ayala Pelaez and Deline, (2020). bifacial_radiance: a python package for modeling bifacial solar photovoltaic systems. Journal of Open Source Software, 5(50), 1865, https://doi.org/10.21105/joss.01865
 
 ***
