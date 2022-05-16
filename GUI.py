@@ -158,7 +158,6 @@ ModuleDict = {
 }
 
 
-
 class Window(tk.Tk):
     def __init__(self):
         tk.Tk.__init__(self)
@@ -195,7 +194,27 @@ class Window(tk.Tk):
         ModuleParameter_frame=tk.Frame(my_notebook, width=200, height=60)
         simulationFunction_frame=tk.Frame(frame, width=200, height=60)
         
+        def button1():
+            messagebox.showinfo("Info!", "Text still to be added later")
         
+        
+        # #assigning the info Icon to a variable
+        # Info_image= PhotoImage(file= Image.open(rootPath+'Lib\Button logos\Button-Info-icon.png'))
+        # #inserting random info button to be modified later since below code line not functioning properly
+        # Info1 = Button(namecontrol_frame, image=Info_image,command = button1, borderwidth=0).grid(row=1,column=2)
+
+        # =============================================================================
+        # Error Message from above commands in line 201 and 203
+        # 
+        # FileNotFoundError: [Errno 2] No such file or directory: 
+        # 'C:\\Users\\faris\\OneDrive\\Documents\\GitHub\\BifacialSimuLib\\Button logos\\Button-Info-icon.png'
+        # =============================================================================
+        
+        # inserting info button to Main Control frame without Image to double check position of button and functionality
+        info_button_1 = Button(namecontrol_frame, text="INFO",command = button1, borderwidth=1).grid(row=1,column=2)
+        
+
+
         namecontrol_frame.bind("<Configure>", self._on_frame_configure)
         simulationMode_frame.bind("<Configure>", self._on_frame_configure)
         simulationParameter_frame.bind("<Configure>", self._on_frame_configure)
