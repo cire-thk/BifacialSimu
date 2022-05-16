@@ -50,7 +50,7 @@ from configparser import ConfigParser
 from matplotlib import pyplot as plt
 import matplotlib.dates as dates
 import json
-from PIL import ImageTk, Image
+from PIL import ImageTk,Image
 import datetime
 import csv
 import numpy as np
@@ -186,7 +186,7 @@ class Window(tk.Tk):
             
         #Creating the Frames
         #namecontrol_frame=tk.Frame(frame, width=200, height=60)
-        namecontrol_frame=tk.Frame(my_notebook, width=200, height=60) 
+        namecontrol_frame=tk.Frame(my_notebook, width=200, height=60,bg="blue") 
         #simulationMode_frame=tk.Frame(frame, width=200, height=60)
         simulationMode_frame=tk.Frame(my_notebook, width=200, height=60)
         simulationParameter_frame=tk.Frame(frame, padx=50, height=60)
@@ -198,10 +198,10 @@ class Window(tk.Tk):
             messagebox.showinfo("Info!", "Text still to be added later")
         
         
-        # #assigning the info Icon to a variable
-        # Info_image= PhotoImage(file= Image.open(rootPath+'Lib\Button logos\Button-Info-icon.png'))
-        # #inserting random info button to be modified later since below code line not functioning properly
-        # Info1 = Button(namecontrol_frame, image=Info_image,command = button1, borderwidth=0).grid(row=1,column=2)
+        #assigning the info Icon to a variable
+        Info_image= ImageTk.PhotoImage(Image.open("Lib\Button logos\Button-Info-icon.png"))
+        #inserting random info button to be modified later since below code line not functioning properly
+        Info1 = Button(namecontrol_frame, image=Info_image,command = button1, borderwidth=0).grid(row=1,column=2)
 
         # =============================================================================
         # Error Message from above commands in line 201 and 203
@@ -211,7 +211,7 @@ class Window(tk.Tk):
         # =============================================================================
         
         # inserting info button to Main Control frame without Image to double check position of button and functionality
-        info_button_1 = Button(namecontrol_frame, text="INFO",command = button1, borderwidth=1).grid(row=1,column=2)
+        # info_button_1 = Button(namecontrol_frame, text="INFO",command = button1, borderwidth=1).grid(row=1,column=2)
         
 
 
