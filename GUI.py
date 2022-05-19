@@ -199,7 +199,8 @@ class Window(tk.Tk):
         
         
         #assigning the info Icon to a variable
-        Info_image= ImageTk.PhotoImage(Image.open("Lib\Button logos\Button-Info-icon.png"))
+        self.infoButton= Image.open(rootPath+'\Lib\Button_Images\Button-Info-icon.png')
+        Info_image= self.infoButton
         #inserting random info button to be modified later since below code line not functioning properly
         Info1 = Button(namecontrol_frame, image=Info_image,command = button1, borderwidth=0).grid(row=1,column=2)
 
