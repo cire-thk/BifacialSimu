@@ -188,24 +188,61 @@ class Window(tk.Tk):
         #namecontrol_frame=tk.Frame(frame, width=200, height=60)
         namecontrol_frame=tk.Frame(my_notebook, width=200, height=60) 
         #simulationMode_frame=tk.Frame(frame, width=200, height=60)
-        simulationMode_frame=tk.Frame(my_notebook, width=200, height=60)
+        simulationMode_frame=tk.Frame(my_notebook, width=200, height=60,)
         simulationParameter_frame=tk.Frame(frame, padx=50, height=60)
         #ModuleParameter_frame=tk.Frame(frame, width=200, height=60)
         ModuleParameter_frame=tk.Frame(my_notebook, width=200, height=60)
         simulationFunction_frame=tk.Frame(frame, width=200, height=60)
         
-        # Defining the message box commmand function in Main Control tab
-        def button1():
-            messagebox.showinfo("Info!", "Text still to be added later")
-        
-        #assigning the info Icon to a variable
-        namecontrol_frame.infoButton= PhotoImage(file= rootPath+'\Lib\Button_Images\Button-Info-icon.png')
-        Info_image= namecontrol_frame.infoButton
-        
-        #inserting info button in Main Control tab
-        Info1 = Button(namecontrol_frame, image=Info_image,command = button1, borderwidth=0)
-        Info1.grid(row=0,column=2)
+# =============================================================================
+#         Defining the message box commmand functions:
+# =============================================================================
+        # Main Control tab:
+        def button_MC():
+            messagebox.showinfo("Info!", "Text still to be added later\n"
+                                "\n"
+                                "\n")
+        # Simulation Control tab
+        def button_SC():
+            messagebox.showinfo("Info!", "Text still to be added later to SC\n"
+                                "\n"
+                                "\n")
+        # Module Parameter tab
+        def button_MP():
+            
+            messagebox.showinfo("Info!", )
+        # Simulation Parameter tab
+        def button_SP():
+            f= open(rootPath+"\Lib\Info_Messages\Simulation_Parameters.txt")
+            text_SP= f.read()
+            f.close()
+            
+            messagebox.showinfo("Functions Info!", text_SP) 
+            
+# =============================================================================
+#         assigning the info Button Icon to a variable
+# =============================================================================
 
+        namecontrol_frame.infoButton_MC= PhotoImage(file= rootPath+'\Lib\Button_Images\Button-Info-icon.png')
+        Info_image= namecontrol_frame.infoButton_MC
+        
+# =============================================================================
+#         #inserting info buttons in frames: 
+# =============================================================================
+        # Main Control tab
+        Info_MC = Button(namecontrol_frame, image=Info_image,command = button_MC, borderwidth=0)
+        Info_MC.grid(row=0,column=1)
+        # Simulation Control tab
+        Info_SC = Button(simulationMode_frame, image=Info_image,command = button_SC, borderwidth=0)
+        Info_SC.grid(row=0,column=1)
+        # Module Parameter tab
+        Info_MP = Button(ModuleParameter_frame, image=Info_image,command = button_MP, borderwidth=0)
+        Info_MP.grid(row=0,column=2)
+        # Simulation Parameter tab
+        Info_SP = Button(simulationParameter_frame, image=Info_image,command = button_SP, borderwidth=0)
+        Info_SP.grid(row=0,column=1)
+        
+        
         namecontrol_frame.bind("<Configure>", self._on_frame_configure)
         simulationMode_frame.bind("<Configure>", self._on_frame_configure)
         simulationParameter_frame.bind("<Configure>", self._on_frame_configure)
@@ -1649,7 +1686,7 @@ class Window(tk.Tk):
             #pack the image in the frame
             Label_logo=ttk.Label(simulationParameter_frame, image=self.logo1)
             Label_logo.image=logo
-            Label_logo.grid(row=0,column=1, columnspan=2)
+            Label_logo.grid(row=0,column=2)
         
         logo()
 
