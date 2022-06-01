@@ -1,0 +1,34 @@
+	
+Insert Simulation Name:				names the folder under which the simulation will be saved
+
+Local Weather File:					using a user produced weather file for the prefered location. With the "Insert weather File!", user has to set the
+						path of the desired file location.
+						[with Date format: DD/MM/YYYY, and Time format: HH:MM]
+
+Download Weather File:				downloads data for a required area, which will require the longitudinal and latitudinal coordinates of the desired
+						location to locate the weather file of the region.
+
+Add Path of reflectivity File:				Activated when the "Hourly Spectral Albedo" function is activated in the Simulation Parameter tab.
+						[click info button in Simulation Parameter tab for additional information about this simulation model]
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+

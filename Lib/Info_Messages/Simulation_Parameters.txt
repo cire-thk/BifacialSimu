@@ -6,9 +6,9 @@ Backtracking:					reduces the shadowing effects on modules during extreme low su
 						[a clearance height has to be entered which should represent distance between the module and the ground]
 
 Azimuth of PV surface:				orientation of solar panels [North=0°  East=90°  South=180°  West=270°]
-**Number of modules in row in X/Y-Axis
-**Number of sensors
-**Length of modules in X/Y-Axis
+*Number of modules in row in X/Y-Axis
+*Number of sensors
+*Length of modules in X/Y-Axis
 
 Albedo Calculation: 				The calculation of the reflected diffused irradiation on the front side of the modules and almost the entire irradiance received by the rear side of 
 						the modules.
@@ -16,7 +16,7 @@ Albedo Calculation: 				The calculation of the reflected diffused irradiation on
 Spectral Albedo Model: 				calculates the spectral albedo of the surface selected and is dependent not only on the spectral reflectance of the material (measured and
                          					stored in a separate reflectivity file as a matrix of values) but also on the atmospheric irradiance and how they interact with each other.
                          					This is an effective way of modeling the albedo for simulations; however it is quite computationally intensive and dependent on accurate
-                       					        weather data and comprehensive albedo values.
+                       					weather data and comprehensive albedo values.
 						[Choosing the option Hourly Spectral Albedo requires a seperate Reflectivity file, which should be inserted under the Main Control tab]
 
 Simplified Variable Albedo Model:			The simplified variable albedo model uses the basic albedo value of a surface and implements a calculation based upon the position of the
@@ -33,7 +33,7 @@ Constant Albedo Value:				This is the simplest and therefore least accurate impl
 						according to what the surface is made of, or alternatively a custom numerical value can be entered.
 						[the name of the Surface will not be modified after entering a custom value]
 
-**Check Image in Main Control for reference
+*Check Image in Main Control for reference
 
 
 

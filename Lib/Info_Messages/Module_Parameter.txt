@@ -1,0 +1,68 @@
+The drop-down menu in the top right corner provides a number of pre-programmed modules available to select from. 
+
+By selecting a module, the module parameter section will be filled out, depending upon values provided by the manufacturer. It's important to note here that if no values are provided for any of the rear side, then the electrical simulation will have to be changed to "without rear values" which uses a different simulation mode.
+##Once a module has been selected it is also possible to amend the values in each individual field, this can be useful when comparing similar modules that aren't already in BifacialSimu's database. These settings however will not be saved so make a note of them for future reference.##
+
+There are two main electrical simulation methods that are used in BifacialSimu, both of which are variations on the One Diode Model for calculating the power produced by PV modules. The use of either is dependent on whether the rear side irradiance values for the modules are present, these being determined by the manufacturer.
+
+
+One Diode Model for bifacial PV:		This standard model for photovoltaic simulation uses separate calculations for the front and rear side of the module with these then being added
+					together to calculate the total energy yield of the system. This calculation requires the use of rear side irradiance values, as such if the selected module
+					doesn't have these it will not be possible to use this mode.
+
+
+
+Simplified One Diode Model:		The Simplified One Diode Model should be used when there aren't any values for the rear side of the modules which can be the case depending
+					upon the manufacturers specification. This model then calculates the energy yield of a bifacial module purely using the front side of the
+					module and the bifaciality factor to calculate the rear side yield.
+
+adjustable parameters:			bi_factor		- bifaciality factor
+					n_front		- module efficiency
+					I_sc_f		- short circuit current front side
+					I_sc_r		- short circuit current rear side
+					V_oc_f		- open circuit voltage front side
+					V_oc_r		- open circuit voltage rear side
+					V_mpp_f		- maximum power point voltage front side
+					V_mpp_r		- maximum power point voltage rear side
+					I_mpp_f 		- maximum power point current front side
+					I_mpp_r 		- maximum power point current rear side
+					_mpp 		- maximum power point power
+					T_koeff_P 	- temperature coefficient
+					T_amb 		- ambient temperature
+					T_koeff_I 		- temperature coefficient for short circuit current
+					T_koeff_V 	- temperature coefficient for open circuit voltage
+					zeta 		- open circuit voltage irradiation coefficient
+### Important to note is that when no rear side irradiance values are present (e.g. V_oc_r) then you must select "without rear values". More info to this can be found in Electrical
+### Simulation and within the next section.
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+	
+
+
+
+
+
+
+
+
+
+
+	

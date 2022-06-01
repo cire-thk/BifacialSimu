@@ -199,24 +199,30 @@ class Window(tk.Tk):
 # =============================================================================
         # Main Control tab:
         def button_MC():
-            messagebox.showinfo("Info!", "Text still to be added later\n"
-                                "\n"
-                                "\n")
+            f_MC= open(rootPath+"\Lib\Info_Messages\Main_Control.txt")
+            text_MC= f_MC.read()
+            f_MC.close()
+            messagebox.showinfo("Functions Info!", text_MC)
+            
         # Simulation Control tab
         def button_SC():
-            messagebox.showinfo("Info!", "Text still to be added later to SC\n"
-                                "\n"
-                                "\n")
+            f_SC= open(rootPath+"\Lib\Info_Messages\Simulation_Control.txt")
+            text_SC= f_SC.read()
+            f_SC.close()
+            messagebox.showinfo("Functions Info!", text_SC)
+            
         # Module Parameter tab
         def button_MP():
+            f_MP= open(rootPath+"\Lib\Info_Messages\Module_Parameter.txt")
+            text_MP= f_MP.read()
+            f_MP.close()
+            messagebox.showinfo("Functions Info!", text_MP) 
             
-            messagebox.showinfo("Info!", )
         # Simulation Parameter tab
         def button_SP():
             f= open(rootPath+"\Lib\Info_Messages\Simulation_Parameters.txt")
             text_SP= f.read()
             f.close()
-            
             messagebox.showinfo("Functions Info!", text_SP) 
             
 # =============================================================================
