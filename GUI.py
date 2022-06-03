@@ -164,7 +164,8 @@ class Window(tk.Tk):
     def __init__(self):
         tk.Tk.__init__(self)
         self.geometry("1350x670")
-        
+        self.title('BifacialSimu')
+        self.iconbitmap(rootPath+"\Lib\logos\App_icon.ico")
         yscroll = tk.Scrollbar(self, orient=tk.VERTICAL)
         xscroll = tk.Scrollbar(self, orient=tk.HORIZONTAL)
         yscroll.pack(side=tk.RIGHT, fill=tk.Y)
@@ -1685,7 +1686,6 @@ class Window(tk.Tk):
 
 
 
-        
 
                 # If you get the Error Pyimage X isnt existing restart the Console
 
