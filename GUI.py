@@ -31,13 +31,15 @@ import sys
 import math
 
 import os
+import webbrowser
 try:
     import tkinter as tk
     from tkinter import ttk
     from tkinter import filedialog
     from tkinter import messagebox
     from tkinter.messagebox import showinfo        # Import of showinfo to get the event response of tkinter objects (is not used in the program yet)
-
+    
+    
 except:
     import Tkinter as tk
     import ttk
@@ -202,29 +204,36 @@ class Window(tk.Tk):
             f_MC= open(rootPath+"\Lib\Info_Messages\Main_Control.txt")
             text_MC= f_MC.read()
             f_MC.close()
-            messagebox.showinfo("Functions Info!", text_MC)
-            
+            response=messagebox.askokcancel("Functions Info!", text_MC)
+            if response == 1:
+                webbrowser.open("https://github.com/cire-thk/BifacialSimu#readme",new=1)
+                
         # Simulation Control tab
         def button_SC():
             f_SC= open(rootPath+"\Lib\Info_Messages\Simulation_Control.txt")
             text_SC= f_SC.read()
             f_SC.close()
-            messagebox.showinfo("Functions Info!", text_SC)
-            
+            response=messagebox.askokcancel("Functions Info!", text_SC)
+            if response == 1:
+                webbrowser.open("https://github.com/cire-thk/BifacialSimu#readme",new=1)
+                
         # Module Parameter tab
         def button_MP():
             f_MP= open(rootPath+"\Lib\Info_Messages\Module_Parameter.txt")
             text_MP= f_MP.read()
             f_MP.close()
-            messagebox.showinfo("Functions Info!", text_MP) 
-            
+            response=messagebox.askokcancel("Functions Info!", text_MP) 
+            if response == 1:
+                webbrowser.open("https://github.com/cire-thk/BifacialSimu#readme",new=1)
+               
         # Simulation Parameter tab
         def button_SP():
             f= open(rootPath+"\Lib\Info_Messages\Simulation_Parameters.txt")
             text_SP= f.read()
             f.close()
-            messagebox.showinfo("Functions Info!", text_SP) 
-            
+            response = messagebox.askokcancel("Functions Info!", text_SP) 
+            if response == 1:
+                webbrowser.open("https://github.com/cire-thk/BifacialSimu#readme",new=1)
 # =============================================================================
 #         assigning the info Button Icon to a variable
 # =============================================================================
