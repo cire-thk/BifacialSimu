@@ -31,13 +31,15 @@ import sys
 import math
 
 import os
+import webbrowser
 try:
     import tkinter as tk
     from tkinter import ttk
     from tkinter import filedialog
     from tkinter import messagebox
     from tkinter.messagebox import showinfo        # Import of showinfo to get the event response of tkinter objects (is not used in the program yet)
-
+    
+    
 except:
     import Tkinter as tk
     import ttk
@@ -50,7 +52,7 @@ from configparser import ConfigParser
 from matplotlib import pyplot as plt
 import matplotlib.dates as dates
 import json
-from PIL import ImageTk, Image
+from PIL import ImageTk,Image
 import datetime
 import csv
 import numpy as np
@@ -158,12 +160,12 @@ ModuleDict = {
 }
 
 
-
 class Window(tk.Tk):
     def __init__(self):
         tk.Tk.__init__(self)
         self.geometry("1350x670")
-        
+        self.title('BifacialSimu')
+        self.iconbitmap(rootPath+"\Lib\logos\App_icon.ico")
         yscroll = tk.Scrollbar(self, orient=tk.VERTICAL)
         xscroll = tk.Scrollbar(self, orient=tk.HORIZONTAL)
         yscroll.pack(side=tk.RIGHT, fill=tk.Y)
@@ -189,11 +191,72 @@ class Window(tk.Tk):
         #namecontrol_frame=tk.Frame(frame, width=200, height=60)
         namecontrol_frame=tk.Frame(my_notebook, width=200, height=60) 
         #simulationMode_frame=tk.Frame(frame, width=200, height=60)
-        simulationMode_frame=tk.Frame(my_notebook, width=200, height=60)
+        simulationMode_frame=tk.Frame(my_notebook, width=200, height=60,)
         simulationParameter_frame=tk.Frame(frame, padx=50, height=60)
         #ModuleParameter_frame=tk.Frame(frame, width=200, height=60)
         ModuleParameter_frame=tk.Frame(my_notebook, width=200, height=60)
         simulationFunction_frame=tk.Frame(frame, width=200, height=60)
+        
+# =============================================================================
+#         Defining the message box commmand functions:
+# =============================================================================
+        # Main Control tab:
+        def button_MC():
+            f_MC= open(rootPath+"\Lib\Info_Messages\Main_Control.txt")
+            text_MC= f_MC.read()
+            f_MC.close()
+            response=messagebox.askokcancel("Functions Info!", text_MC)
+            if response == 1:
+                webbrowser.open("https://github.com/cire-thk/BifacialSimu#readme",new=1)
+                
+        # Simulation Control tab
+        def button_SC():
+            f_SC= open(rootPath+"\Lib\Info_Messages\Simulation_Control.txt")
+            text_SC= f_SC.read()
+            f_SC.close()
+            response=messagebox.askokcancel("Functions Info!", text_SC)
+            if response == 1:
+                webbrowser.open("https://github.com/cire-thk/BifacialSimu#readme",new=1)
+                
+        # Module Parameter tab
+        def button_MP():
+            f_MP= open(rootPath+"\Lib\Info_Messages\Module_Parameter.txt")
+            text_MP= f_MP.read()
+            f_MP.close()
+            response=messagebox.askokcancel("Functions Info!", text_MP) 
+            if response == 1:
+                webbrowser.open("https://github.com/cire-thk/BifacialSimu#readme",new=1)
+               
+        # Simulation Parameter tab
+        def button_SP():
+            f= open(rootPath+"\Lib\Info_Messages\Simulation_Parameters.txt")
+            text_SP= f.read()
+            f.close()
+            response = messagebox.askokcancel("Functions Info!", text_SP) 
+            if response == 1:
+                webbrowser.open("https://github.com/cire-thk/BifacialSimu#readme",new=1)
+# =============================================================================
+#         assigning the info Button Icon to a variable
+# =============================================================================
+
+        namecontrol_frame.infoButton_MC= PhotoImage(file= rootPath+'\Lib\Button_Images\Button-Info-icon.png')
+        Info_image= namecontrol_frame.infoButton_MC
+        
+# =============================================================================
+#         #inserting info buttons in frames: 
+# =============================================================================
+        # Main Control tab
+        Info_MC = Button(namecontrol_frame, image=Info_image,command = button_MC, borderwidth=0)
+        Info_MC.grid(row=0,column=1)
+        # Simulation Control tab
+        Info_SC = Button(simulationMode_frame, image=Info_image,command = button_SC, borderwidth=0)
+        Info_SC.grid(row=0,column=1)
+        # Module Parameter tab
+        Info_MP = Button(ModuleParameter_frame, image=Info_image,command = button_MP, borderwidth=0)
+        Info_MP.grid(row=0,column=2)
+        # Simulation Parameter tab
+        Info_SP = Button(simulationParameter_frame, image=Info_image,command = button_SP, borderwidth=0)
+        Info_SP.grid(row=0,column=1)
         
         
         namecontrol_frame.bind("<Configure>", self._on_frame_configure)
@@ -1623,7 +1686,6 @@ class Window(tk.Tk):
 
 
 
-        
 
                 # If you get the Error Pyimage X isnt existing restart the Console
 
@@ -1639,7 +1701,7 @@ class Window(tk.Tk):
             #pack the image in the frame
             Label_logo=ttk.Label(simulationParameter_frame, image=self.logo1)
             Label_logo.image=logo
-            Label_logo.grid(row=0,column=1, columnspan=2)
+            Label_logo.grid(row=0,column=2)
         
         logo()
 

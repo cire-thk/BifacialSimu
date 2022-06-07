@@ -1,0 +1,16 @@
+	
+Insert Simulation Name:	
+Name the folder under which the simulation results will be saved.
+
+Local Weather File:		
+You can choose between your own local weather file or generate a TMY. With the "Insert weather File!", user has to set the path of the desired file location. [with Date format: DD/MM/YYYY, and Time format: HH:MM]
+
+Download Weather File:	
+Downloads data for a required area, which will require the longitudinal and latitudinal coordinates of the desired location to locate the weather file of the region to create a TMY.
+
+Add Path of reflectivity File:	
+Activated when the "Hourly Spectral Albedo" function is activated in the Simulation Parameter tab. [click info button in Simulation Parameter tab for additional information about this simulation model]
+
+
+
+FOR MORE INFORMATION CHECK OUR README SECTION ON GITHUB OR CLICK THE "OK" BUTTON BELOW
