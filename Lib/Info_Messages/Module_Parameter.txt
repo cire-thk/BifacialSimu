@@ -4,13 +4,11 @@ By selecting a module, the module parameter section will be filled out, dependin
 
 There are two main electrical simulation methods that are used in BifacialSimu, both of which are variations on the One Diode Model for calculating the power produced by PV modules. The use of either is dependent on whether the rear side irradiance values for the modules are present, these being determined by the manufacturer.
 
-One Diode Model for bifacial PV:	This standard model for photovoltaic simulation uses separate calculations for the front and rear side of the module with these then being added
-				together to calculate the total energy yield of the system. This calculation requires the use of rear side irradiance values, as such if the selected module
-				doesn't have these it will not be possible to use this mode.
+One Diode Model for bifacial PV:
+This standard model for photovoltaic simulation uses separate calculations for the front and rear side of the module with these then being added together to calculate the total energy yield of the system. This calculation requires the use of rear side irradiance values, as such if the selected module doesn't have these it will not be possible to use this mode.
 
-Simplified One Diode Model:	The Simplified One Diode Model should be used when there aren't any values for the rear side of the modules which can be the case depending
-				upon the manufacturers specification. This model then calculates the energy yield of a bifacial module purely using the front side of the
-				module and the bifaciality factor to calculate the rear side yield.
+Simplified One Diode Model:	
+The Simplified One Diode Model should be used when there aren't any values for the rear side of the modules which can be the case depending upon the manufacturers specification. This model then calculates the energy yield of a bifacial module purely using the front side of the module and the bifaciality factor to calculate the rear side yield.
 
 adjustable parameters:		bi_factor		- bifaciality factor
 				n_front		- module efficiency
@@ -28,5 +26,6 @@ adjustable parameters:		bi_factor		- bifaciality factor
 				T_koeff_I 		- temperature coefficient for short circuit current
 				T_koeff_V 	- temperature coefficient for open circuit voltage
 				zeta 		- open circuit voltage irradiation coefficient
+
 [Important to note is that when no rear side irradiance values are present (e.g. V_oc_r) then you must select "without rear values".]
 FOR MORE INFORMATION CHECK OUR README SECTION ON GITHUB OR CLICK THE "OK" BUTTON BELOW
