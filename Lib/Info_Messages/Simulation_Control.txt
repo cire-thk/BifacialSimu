@@ -1,29 +1,33 @@
 Within this section various simulation modes can be selected accordingly, depending upon the parameters of the array and desired outcome.
 					
-As a rule of thumb, ViewFactors offers a quicker result while Raytracing is more accurate. There are other factors that feed into this however, such as whether there is tracking in the system or if the modules are simply monofacial. The default setting simulates the front side with ViewFactors and the rear with Raytracing, this has the advantage of providing a balance between accuracy and a reduced simulation time. It is especially recommended to use Raytracing for the rear side when simulating a system with tracking as this can be very complex for ViewFactors to handle.
+As a rule of thumb, ViewFactors offers a quicker result while Raytracing is more accurate. There are other factors that feed into this however, such as whether there is tracking in the
+system or if the modules are simply monofacial. The default setting simulates the front side with ViewFactors and the rear with Raytracing, this has the advantage of providing a 
+balance between accuracy and a reduced simulation time. It is especially recommended to use Raytracing for the rear side when simulating a system with tracking as this can be very complex
+for ViewFactors to handle.
 					
-The Time Period of the simulation is set within this section as well as the Time Zone in which the simulation should take place. It's important to note that the Time Zone needs to be manually updated to match the specified Location.
+The Time Period of the simulation is set within this section as well as the Time Zone in which the simulation should take place. It's important to note that the Time Zone needs to be 
+manually updated to match the specified Location.
 
 
-View Factors:	View Factors is a commonly used method for calculating irradiance and is based upon basic geometric calculations and the relationships between the angles of which. This consists in
-		simulation terms of 2D Geometries, in which the PV Arrays are plotted as rows and the ground plotted according to shaded and illuminated areas. A graphical depiction of which can
-		be seen in the Results section with Figure 3. The illuminated and shaded sections naturally change according to the angle of the Sun and at points there may be overlapping which
-		will also be taken into account by the software. The fixed parameters of hub height, module size, number of rows and width of rows remain constant during the simulation and define
-		the previously mentioned geometry. This 2D model means that back surface irradiation can only be calculated vertically and not laterally.
+View Factors:	View Factors is a commonly used method for calculating irradiance and is based upon basic geometric calculations and the relationships between the angles of which.
+		This consists in simulation terms of 2D Geometries, in which the PV Arrays are plotted as rows and the ground plotted according to shaded and illuminated areas. A graphical
+		depiction of which can be seen in the Results section with Figure 3. The illuminated and shaded sections naturally change according to the angle of the Sun and at points 
+		there may be overlapping which will also be taken into account by the software. The fixed parameters of hub height, module size, number of rows and width of rows remain 
+		constant during the simulation and define the previously mentioned geometry. This 2D model means that back surface irradiation can only be calculated vertically and not 
+		laterally.
 
-Ray Tracing:	BifacialSimu builds upon the work previously done by NREL with the tool bifacial_radiance which itself uses the rendering program Radiance to produce accurate Ray Tracing models
-		for PV Simulation.
-		Ray Tracing is a relatively new technique in terms of PV simulation and is a method of rendering light sources either from the source (Forward Ray Tracing) or alternatively from
-		the geometry back to the light source (Reverse Ray Tracing). The latter of which is used within BifacialSimu as this is much more efficient and much simpler to compute.
-		This technique has the advantage of being able to accurately calculate the irradiation in a 3D environment as well as involving the use of complex geometries and how the light rays
-		then interact with them. This is naturally an lot more calculation-intensive and results in longer simulation times however this accuracy is much more important when using systems
-		with tracking where the angles result in extremely complex mathematical calculations.
+Ray Tracing:	BifacialSimu builds upon the work previously done by NREL with the tool bifacial_radiance which itself uses the rendering program Radiance to produce accurate Ray Tracing 
+		models for PV Simulation.
+		Ray Tracing is a relatively new technique in terms of PV simulation and is a method of rendering light sources either from the source (Forward Ray Tracing) or alternatively
+		from the geometry back to the light source (Reverse Ray Tracing). The latter of which is used within BifacialSimu as this is much more efficient and much simpler to compute.
+		This technique has the advantage of being able to accurately calculate the irradiation in a 3D environment as well as involving the use of complex geometries and how the 
+		light rays then interact with them. This is naturally an lot more calculation-intensive and results in longer simulation times however this accuracy is much more important 
+		when using systems with tracking where the angles result in extremely complex mathematical calculations.
 
-		Another aspect of Ray Tracing and where it differs from View Factors is the way in which the irradiation and sky are depicted. For this either a Cumulative Sky model is produced
-		whereby an entire Sky model is produced on an annual basis. As such this simulation mode takes a lot longer than View Factors, with the building of the sky being quite an intense
-		task. This should be taken into consideration when setting up your simulation and especially considering how long the simulation time period should be.
+		Another aspect of Ray Tracing and where it differs from View Factors is the way in which the irradiation and sky are depicted. For this either a Cumulative Sky model is 
+		produced whereby an entire Sky model is produced on an annual basis. As such this simulation mode takes a lot longer than View Factors, with the building of the sky being 
+		quite an intense task. This should be taken into consideration when setting up your simulation and especially considering how long the simulation time period should be.
 
 		Reverse Ray Tracing lends itself well to applications where complex geometries are used i.e. the framing and mounting should be considered, and also if tracking is being
 		implemented. By default BifacialSimu uses Ray Tracing for the rear side as this provides the most accurate results, an important factor when calculating bifacial gain.
 
-FOR MORE INFORMATION CHECK OUR README SECTION ON GITHUB OR CLICK THE "OK" BUTTON BELOW
