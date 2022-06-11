@@ -28,6 +28,6 @@ Ray Tracing:	BifacialSimu builds upon the work previously done by NREL with the 
 		produced whereby an entire Sky model is produced on an annual basis. As such this simulation mode takes a lot longer than View Factors, with the building of the sky being 
 		quite an intense task. This should be taken into consideration when setting up your simulation and especially considering how long the simulation time period should be.
 
-		Reverse Ray Tracing lends itself well to applications where complex geometries are used i.e. the framing and mounting should be considered, and also if tracking is being
-		implemented. By default BifacialSimu uses Ray Tracing for the rear side as this provides the most accurate results, an important factor when calculating bifacial gain.
+Reverse Ray Tracing lends itself well to applications where complex geometries are used i.e. the framing and mounting should be considered, and also if tracking is being implemented. 
+By default BifacialSimu uses Ray Tracing for the rear side as this provides the most accurate results, an important factor when calculating bifacial gain.
 

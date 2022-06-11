@@ -306,7 +306,7 @@ class Window(tk.Tk):
             # global pop_SP
             pop_SP = Toplevel()
             pop_SP.title("Simulatoin Parameter Info!")
-            pop_SP.geometry("1300x650")
+            pop_SP.geometry("1400x700")
             pop_SP.iconbitmap(rootPath+"\Lib\Button_Images\info_logo.ico")
             f= open(rootPath+"\Lib\Info_Messages\Simulation_Parameters.txt")
             text_SP= f.read()
