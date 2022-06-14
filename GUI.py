@@ -32,6 +32,8 @@ import math
 
 import os
 import webbrowser
+from tkinter import *
+
 try:
     import tkinter as tk
     from tkinter import ttk
@@ -197,44 +199,129 @@ class Window(tk.Tk):
         ModuleParameter_frame=tk.Frame(my_notebook, width=200, height=60)
         simulationFunction_frame=tk.Frame(frame, width=200, height=60)
         
+        def github_infopage(option_1):
+            
+            if option_1 == "yes":
+                webbrowser.open("https://github.com/cire-thk/BifacialSimu#readme",new=1)
+            
+            
 # =============================================================================
 #         Defining the message box commmand functions:
 # =============================================================================
         # Main Control tab:
         def button_MC():
-            f_MC= open(rootPath+"\Lib\Info_Messages\Main_Control.txt")
-            text_MC= f_MC.read()
-            f_MC.close()
-            response=messagebox.askokcancel("Functions Info!", text_MC)
-            if response == 1:
-                webbrowser.open("https://github.com/cire-thk/BifacialSimu#readme",new=1)
-                
+            # f_MC= open(rootPath+"\Lib\Info_Messages\Main_Control.txt")
+            # text_MC= f_MC.read()
+            # f_MC.close()
+            # response=messagebox.askokcancel("Functions Info!", text_MC)
+            # if response == 1:
+            #     webbrowser.open("https://github.com/cire-thk/BifacialSimu#readme",new=1)
+            pop = Toplevel()
+            pop.title("Main Control Info!")
+            pop.geometry("1000x400")
+            pop.iconbitmap(rootPath+"\Lib\Button_Images\info_logo.ico")
+            
+            f= open(rootPath+"\Lib\Info_Messages\Main_Control.txt")
+            text_MP = f.read()
+            f.close()
+            # since ° is a unicode character it should be replaced by its character unicode to be read properly from .txt files
+            text_MP=text_MP.replace("Â°", "\u00b0")
+             
+            Info_label = Label(pop, text=text_MP,bg="white", font=("Arial",8),justify="left")
+            Info_label.pack(pady=5)
+            
+            info_frame= Frame(pop, bg="white")
+            info_frame.pack(pady=5)
+            
+            more_info_button = Button(info_frame,text='More Information', command= lambda:github_infopage("yes"))
+            more_info_button.grid(row=0,column=0)
+                                  
+            
+            
+                                  
         # Simulation Control tab
         def button_SC():
-            f_SC= open(rootPath+"\Lib\Info_Messages\Simulation_Control.txt")
-            text_SC= f_SC.read()
-            f_SC.close()
-            response=messagebox.askokcancel("Functions Info!", text_SC)
-            if response == 1:
-                webbrowser.open("https://github.com/cire-thk/BifacialSimu#readme",new=1)
-                
+            # f_SC= open(rootPath+"\Lib\Info_Messages\Simulation_Control.txt")
+            # text_SC= f_SC.read()
+            # f_SC.close()
+            # response=messagebox.askokcancel("Functions Info!", text_SC)
+            # if response == 1:
+            #     webbrowser.open("https://github.com/cire-thk/BifacialSimu#readme",new=1)
+               
+            pop = Toplevel()
+            pop.title("Simulation Control Info!")
+            pop.geometry("1400x700")
+            pop.iconbitmap(rootPath+"\Lib\Button_Images\info_logo.ico")
+            
+            f= open(rootPath+"\Lib\Info_Messages\Simulation_Control.txt")
+            text_MP = f.read()
+            f.close()
+            # since ° is a unicode character it should be replaced by its character unicode to be read properly from .txt files
+            text_MP=text_MP.replace("Â°", "\u00b0")
+             
+            Info_label = Label(pop, text=text_MP,bg="white", font=("Arial",8),justify="left")
+            Info_label.pack(pady=5)
+            
+            info_frame= Frame(pop, bg="white")
+            info_frame.pack(pady=5)
+            
+            more_info_button = Button(info_frame,text='More Information', command= lambda:github_infopage("yes"))
+            more_info_button.grid(row=0,column=0) 
+            
         # Module Parameter tab
         def button_MP():
-            f_MP= open(rootPath+"\Lib\Info_Messages\Module_Parameter.txt")
-            text_MP= f_MP.read()
-            f_MP.close()
-            response=messagebox.askokcancel("Functions Info!", text_MP) 
-            if response == 1:
-                webbrowser.open("https://github.com/cire-thk/BifacialSimu#readme",new=1)
-               
+            # f_MP= open(rootPath+"\Lib\Info_Messages\Module_Parameter.txt")
+            # text_MP= f_MP.read()
+            # f_MP.close()
+            # response=messagebox.askokcancel("Functions Info!", text_MP) 
+            # if response == 1:
+            #     webbrowser.open("https://github.com/cire-thk/BifacialSimu#readme",new=1)
+             pop= Toplevel()
+             pop.title("Main Control Info!")
+             pop.geometry("1300x760")
+             pop.iconbitmap(rootPath+"\Lib\Button_Images\info_logo.ico")
+             f= open(rootPath+"\Lib\Info_Messages\Module_Parameter.txt")
+             text_MP = f.read()
+             f.close()
+             # since ° is a unicode character it should be replaced by its character unicode to be read properly from .txt files
+             text_MP=text_MP.replace("Â°", "\u00b0")
+              
+             Info_label = Label(pop, text=text_MP,bg="white", font=("Arial",8),justify="left")
+             Info_label.pack(pady=5)
+             
+             info_frame= Frame(pop, bg="white")
+             info_frame.pack(pady=5)
+             
+             more_info_button = Button(info_frame,text='More Information', command= lambda:github_infopage("yes"))
+             more_info_button.grid(row=0,column=0)
+             
         # Simulation Parameter tab
         def button_SP():
+            # f= open(rootPath+"\Lib\Info_Messages\Simulation_Parameters.txt")
+            # text_SP= f.read()
+            # f.close()
+            # response = messagebox.askokcancel("Functions Info!", text_SP) 
+            # if response == 1:
+            #     webbrowser.open("https://github.com/cire-thk/BifacialSimu#readme",new=1)
+            # global pop_SP
+            pop_SP = Toplevel()
+            pop_SP.title("Simulatoin Parameter Info!")
+            pop_SP.geometry("1400x700")
+            pop_SP.iconbitmap(rootPath+"\Lib\Button_Images\info_logo.ico")
             f= open(rootPath+"\Lib\Info_Messages\Simulation_Parameters.txt")
             text_SP= f.read()
             f.close()
-            response = messagebox.askokcancel("Functions Info!", text_SP) 
-            if response == 1:
-                webbrowser.open("https://github.com/cire-thk/BifacialSimu#readme",new=1)
+            # since ° is a unicode character it should be replaced by its character unicode to be read properly from .txt files
+            text_SP=text_SP.replace("Â°", "\u00b0")
+             
+            SP_Info = Label(pop_SP, text=text_SP,bg="white", font=("Arial",8),justify="left")
+            SP_Info.pack(pady=5)
+            
+            info_frame= Frame(pop_SP, bg="white")
+            info_frame.pack(pady=5)
+            
+            more_info_button = Button(info_frame,text='More Information', command= lambda:github_infopage("yes"))
+            more_info_button.grid(row=0,column=0)
 # =============================================================================
 #         assigning the info Button Icon to a variable
 # =============================================================================
@@ -1239,7 +1326,7 @@ class Window(tk.Tk):
         # Tilt
         Label_Tilt=ttk.Label(simulationParameter_frame, text="Fixed Tilt of the PV surface:")
         Label_Tilt.grid(column=0, row=2, sticky=W)
-        Label_TiltPar=ttk.Label(simulationParameter_frame, text="[Deg°]")
+        Label_TiltPar=ttk.Label(simulationParameter_frame, text="[Deg °]")
         Label_TiltPar.grid(column=2, row=2, sticky=W)
         Entry_Tilt=ttk.Entry(simulationParameter_frame, background="white", width=10)
         Entry_Tilt.grid(column=1, row=2, sticky=W)
