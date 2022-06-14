@@ -233,7 +233,7 @@ class Window(tk.Tk):
             info_frame= Frame(pop, bg="white")
             info_frame.pack(pady=5)
             
-            more_info_button = Button(info_frame,text='More Infomation', command= lambda:github_infopage("yes"))
+            more_info_button = Button(info_frame,text='More Information', command= lambda:github_infopage("yes"))
             more_info_button.grid(row=0,column=0)
                                   
             
@@ -265,7 +265,7 @@ class Window(tk.Tk):
             info_frame= Frame(pop, bg="white")
             info_frame.pack(pady=5)
             
-            more_info_button = Button(info_frame,text='More Infomation', command= lambda:github_infopage("yes"))
+            more_info_button = Button(info_frame,text='More Information', command= lambda:github_infopage("yes"))
             more_info_button.grid(row=0,column=0) 
             
         # Module Parameter tab
@@ -292,7 +292,7 @@ class Window(tk.Tk):
              info_frame= Frame(pop, bg="white")
              info_frame.pack(pady=5)
              
-             more_info_button = Button(info_frame,text='More Infomation', command= lambda:github_infopage("yes"))
+             more_info_button = Button(info_frame,text='More Information', command= lambda:github_infopage("yes"))
              more_info_button.grid(row=0,column=0)
              
         # Simulation Parameter tab
@@ -320,7 +320,7 @@ class Window(tk.Tk):
             info_frame= Frame(pop_SP, bg="white")
             info_frame.pack(pady=5)
             
-            more_info_button = Button(info_frame,text='More Infomatino', command= lambda:github_infopage("yes"))
+            more_info_button = Button(info_frame,text='More Information', command= lambda:github_infopage("yes"))
             more_info_button.grid(row=0,column=0)
 # =============================================================================
 #         assigning the info Button Icon to a variable
@@ -1326,7 +1326,7 @@ class Window(tk.Tk):
         # Tilt
         Label_Tilt=ttk.Label(simulationParameter_frame, text="Fixed Tilt of the PV surface:")
         Label_Tilt.grid(column=0, row=2, sticky=W)
-        Label_TiltPar=ttk.Label(simulationParameter_frame, text="[Deg°]")
+        Label_TiltPar=ttk.Label(simulationParameter_frame, text="[Deg °]")
         Label_TiltPar.grid(column=2, row=2, sticky=W)
         Entry_Tilt=ttk.Entry(simulationParameter_frame, background="white", width=10)
         Entry_Tilt.grid(column=1, row=2, sticky=W)
