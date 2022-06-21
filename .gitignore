@@ -1,1 +1,6 @@
 "" 
+BifacialSimu\Controller\__pycache__\*.pyc
+BifacialSimu\Handler\Controller\__pycache__\*.pyc
+_pycache_\*.pyc
+Plots\.DS_Store
+Lib\.DS_Store
