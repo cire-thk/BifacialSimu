@@ -1079,8 +1079,6 @@ class Window(tk.Tk):
         Entry_latitude.grid(column=1, row=7, sticky=W)        
         
         #Setting UTC offset of Longitude and Latitude coordinates
-        Entry_longitude.insert(0, "-/+0.000000")
-        Entry_latitude.insert(0, "-/+0.000000")
         Calculate_UTC= ttk.Button(namecontrol_frame,text= "Set UTC offset", command=lambda: Set_UTC_offset())
         Calculate_UTC.grid(column=2, row=6,sticky=W)
   
