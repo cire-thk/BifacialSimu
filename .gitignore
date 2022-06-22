@@ -8,4 +8,4 @@ BifacialSimu/Handler/__pycache__/*.cpython-39.pyc
 
 Plots/.DS_Store
 Lib/.DS_Store
-_pycache_
+__pycache__/
