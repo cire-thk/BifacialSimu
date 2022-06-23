@@ -165,7 +165,7 @@ ModuleDict = {
 class Window(tk.Tk):
     def __init__(self):
         tk.Tk.__init__(self)
-        self.geometry("1350x670")
+        self.geometry("1600x800")
         self.title('BifacialSimu')
         self.iconbitmap(rootPath+"\Lib\logos\App_icon.ico")
         yscroll = tk.Scrollbar(self, orient=tk.VERTICAL)
@@ -277,7 +277,7 @@ class Window(tk.Tk):
             # if response == 1:
             #     webbrowser.open("https://github.com/cire-thk/BifacialSimu#readme",new=1)
              pop= Toplevel()
-             pop.title("Main Control Info!")
+             pop.title("Module Parameter Info!")
              pop.geometry("1300x760")
              pop.iconbitmap(rootPath+"\Lib\Button_Images\info_logo.ico")
              f= open(rootPath+"\Lib\Info_Messages\Module_Parameter.txt")
@@ -320,6 +320,7 @@ class Window(tk.Tk):
             info_frame= Frame(pop_SP, bg="white")
             info_frame.pack(pady=5)
             
+
             more_info_button = Button(info_frame,text='More Information', command= lambda:github_infopage("yes"))
             more_info_button.grid(row=0,column=0)
 # =============================================================================
@@ -1044,18 +1045,24 @@ class Window(tk.Tk):
             Entry_reflectivityfile.delete(0, END)
             Entry_reflectivityfile.insert(0, filename)   
             SimulationDict["spectralReflectancefile"]=Entry_reflectivityfile.get()
-        
+            
+        def Set_UTC_offset():
+            Longitude= float(Entry_longitude.get())
+            offset_result= round(Longitude*24/360)
+            Entry_utcoffset.delete(0,END)
+            Entry_utcoffset.insert(0, int(offset_result))
+                     
         #Changing the weatherfile
         Lab_weatherfile=ttk.Label(namecontrol_frame, text="Add Path of weatherfile:")
-        Lab_weatherfile.grid(row=4, column=0)
+        Lab_weatherfile.grid(row=4, column=0, sticky=W)
         Entry_weatherfile=ttk.Entry(namecontrol_frame, background="white", width=25)
         Entry_weatherfile.grid(row=4, column=1)
         Button_weatherfile=ttk.Button(namecontrol_frame, text="Insert Weatherfile!", command=InsertWeatherfile)
-        Button_weatherfile.grid(row=4, column=2)
+        Button_weatherfile.grid(row=4, column=2,sticky = W)
         
         #Changing the reflectivityfile
         Lab_reflectivityfile=ttk.Label(namecontrol_frame, text="Add Path of reflectivityfile:")
-        Lab_reflectivityfile.grid(row=5, column=0)
+        Lab_reflectivityfile.grid(row=5, column=0, sticky=W)
         Entry_reflectivityfile=ttk.Entry(namecontrol_frame, background="white", width=25)
         Entry_reflectivityfile.grid(row=5, column=1)
         Button_reflectivityfile=ttk.Button(namecontrol_frame, text="Insert Reflectivityfile!", command=InsertReflectivityfile)
@@ -1066,12 +1073,14 @@ class Window(tk.Tk):
         Label_latitude=ttk.Label(namecontrol_frame, text="Enter Latitude:")
         Label_longitude.grid(column=0, row=6, sticky=W)
         Label_latitude.grid(column=0, row=7, sticky=W)
-        Entry_longitude=ttk.Entry(namecontrol_frame, background="white", width=10)
+        Entry_longitude=ttk.Entry(namecontrol_frame,background="white", width=10)
         Entry_latitude=ttk.Entry(namecontrol_frame, background="white", width=10)
         Entry_longitude.grid(column=1, row=6, sticky=W)
         Entry_latitude.grid(column=1, row=7, sticky=W)        
         
-        
+        #Setting UTC offset of Longitude and Latitude coordinates
+        Calculate_UTC= ttk.Button(namecontrol_frame,text= "Set UTC offset", command=lambda: Set_UTC_offset())
+        Calculate_UTC.grid(column=2, row=6,sticky=W)
   
 # =============================================================================
 #     Parameter of the Simulation Parameter Frame
