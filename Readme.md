@@ -64,11 +64,15 @@ Even if you already have another python environment installed it is still recomm
 − For Mac OS X: follow the installation instructions [here](https://docs.anaconda.com/anaconda/install/mac-os/)  
 − For other operating systems: follow the installation instructions regarding your system [here](https://docs.anaconda.com/anaconda/install/ )
 
-Check, if these standard python packages have been installed:  
+Install these packages in Anaconda:  
 − [Pvlib](https://pvlib-python.readthedocs.io/en/stable/index.html)  
-− [Pvfactors](https://sunpower.github.io/pvfactors/ ) 
+> pip install pvlib
 
-You can find these packages in the Anaconda navigator under “Environments” using the search bar in the upper right corner. 
+− [Pvfactors](https://sunpower.github.io/pvfactors/ ) 
+> pip install pvfactors
+
+
+Now check if they have been installed correctly. You can find these packages in the Anaconda navigator under “Environments” using the search bar in the upper right corner. 
 The newest version number will be highlighted in blue and you can update the package regarding the manual [here](https://docs.anaconda.com/anaconda/navigator/tutorials/manage-packages/)  
 
 You can check the current version of:\
@@ -103,11 +107,8 @@ Make sure to download and insert the jaloxa Windows Binaries into the Radiance b
 
 __Installation of bifacial_radiance__   
 Install bifacial_radiance, a NREL supported tool for simulation bifacial PV systems, which is used in BifacialSimu to calculate Ray Tracing. 
-An installation manual is shown at the online documentation of [bifacial_radiance](https://bifacial-radiance.readthedocs.io/en/latest/installation.html). 
-Because the video is a few years old, you should also read the video description, where there is updated information regarding the installation steps. 
-It is important to do all steps explained in the video for an error-free installation of bifacial_radiance. 
-
-<p align="center"><img src="Lib/readme_pics/Bifacial_Radiance_Readme.png" width="500"><br/></p>  
+You can install bifacial_radiance using:
+> pip install bifacial_radiance
 
 __Gencumulativesky scripts__  
 Copy gencumulativesky.exe from /bifacial_radiance/data/ into the Radiance Folder:
@@ -455,7 +456,7 @@ This model then calculates the energy yield of a bifacial module purely using th
 
 ***
 ## Getting Support
-If you have any usage question about BifacialSimu, you can contact the author [Eva-Maria Grommes](https://orcid.org/0000-0002-7826-3754). If you would like to contribute to the programm, we are using the same process as pvlib (#getting-support):
+If you have any usage question about BifacialSimu, you can contact the author [Eva-Maria Grommes](https://orcid.org/0000-0002-7826-3754). If you would like to contribute to the programm, we are using the same process as pvlib:
 
 
 1. Create a GitHub issue and get initial feedback from users and maintainers. If the issue is a bug report, please include the code needed to reproduce the problem.
