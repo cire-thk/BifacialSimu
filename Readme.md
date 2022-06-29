@@ -453,6 +453,22 @@ The Simplified One Diode Model should be used when there aren't any values for t
 This model then calculates the energy yield of a bifacial module purely using the front side of the module and the bifaciality factor to calculate the rear side yield.
 
 ***
+## Getting Support
+If you have any usage question about BifacialSimu, you can contact the author [Eva-Maria Grommes](https://orcid.org/0000-0002-7826-3754). If you would like to contribute to the programm, we are using the same process as pvlib:
+
+
+1. Create a GitHub issue and get initial feedback from users and maintainers. If the issue is a bug report, please include the code needed to reproduce the problem.
+
+2. Obtain the latest version of BifacialSimz: Fork the BifacialSimu project to your GitHub account, __git clone__ your fork to your computer.
+
+3. Make some or all of your changes/additions and __git commit__ them to your local repository.
+
+4. Share your changes with us via a pull request: __git push__ your local changes to your GitHub fork, then go to GitHub make a pull request.
+
+If you suspect that you found a bug or you have a general suggestion, then please open an Issue in the [BifacialSimu issue section](https://github.com/cire-thk/BifacialSimu/issues).
+
+
+***
 ## Contribution
 The development of this program was assisted by the following people:
 
@@ -463,8 +479,6 @@ Felix Schemann (Variable Albedo, Ray Tracing)
 Jan Schmitt (Graphical User Interface)  
 
 Thank you to all who have contributed so far to this project, it wouldn't have been as successful without their input.
-
-If you wish to assist in further developing this program please contact [Eva-Maria Grommes](https://orcid.org/0000-0002-7826-3754).
 
 
 ***
