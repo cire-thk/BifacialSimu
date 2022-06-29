@@ -1,0 +1,10 @@
+Metadata-Version: 2.1
+Name: bifacialsimu
+Version: 1.0.0
+Summary: Simualtion tool for energies released by bifacial photovoltaic models
+Home-page: https://github.com/cire-thk/BifacialSimu
+Author: Eva-Maria Grommes
+Author-email: Eva-Maria.Grommes@th-koeln.de
+Keywords: Bifacialsimu,bifacial simulation,energy yield of bifacial PV technology
+Description-Content-Type: text/markdown
+License-File: LICENSE
