@@ -19,9 +19,10 @@ A defining feature of which is the capability to combine both View Factors and R
 7. [Results](#results)
 8. [Troubleshooting](#troubleshooting)
 9. [Program Function](#program-function)
-10. [Contribution](#contribution)
-11. [Citation](#citation)
-12. [License](#license)
+10. [Getting Support](#getting-support)
+11. [Contribution](#contribution)
+12. [Citation](#citation)
+13. [License](#license)
 
 ***
 ## Introduction
@@ -454,7 +455,7 @@ This model then calculates the energy yield of a bifacial module purely using th
 
 ***
 ## Getting Support
-If you have any usage question about BifacialSimu, you can contact the author [Eva-Maria Grommes](https://orcid.org/0000-0002-7826-3754). If you would like to contribute to the programm, we are using the same process as pvlib:
+If you have any usage question about BifacialSimu, you can contact the author [Eva-Maria Grommes](https://orcid.org/0000-0002-7826-3754). If you would like to contribute to the programm, we are using the same process as pvlib (#getting-support):
 
 
 1. Create a GitHub issue and get initial feedback from users and maintainers. If the issue is a bug report, please include the code needed to reproduce the problem.
