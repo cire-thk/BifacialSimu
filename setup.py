@@ -23,7 +23,7 @@ setup(
     
 
     # Define the library name, this is what is used along with `pip install`.
-    name='bifacialsimu',
+    name='BifacialSimu',
 
     # Define the author of the repository.
     author='Eva-Maria Grommes',
@@ -40,7 +40,7 @@ setup(
 
     # Here is a small description of the library. This appears
     # when someone searches for the library on https://pypi.org/search.
-    description='Simualtion tool for energies released by bifacial photovoltaic models',
+    description='Hollistic Simulation of large-scale Bifacial Photovoltaic Systems',
 
     # I have a long description but that will just be my README
     # file, note the variable up above where I read the file.
@@ -70,10 +70,11 @@ setup(
         # 'pyqt5==5.12.3'
         # 'pyqtwebengine==5.12.1'
         'pvfactors==1.5.2'
+        #und pvfactors - welche Version?  
     ],
 
     # Here are the keywords of my library.
-    keywords='Bifacialsimu, bifacial simulation,  energy yield of bifacial PV technology',
+    keywords='Bifacialsimu, bifacial simulation,  energy yield of bifacial PV systems, albedo',
 
     # here are the packages I want "build."
     packages=['BifacialSimu_src'],
