@@ -1,11 +1,14 @@
-from setuptools import setup
+from setuptools import setup,find_packages,Extension
 from setuptools import find_packages
-
+from codecs import open
+from os import path
 
 # ======== WAS CAUSING AN ERROR, COMMENTED OUT FOR NOW ========================
 # # Load the README file.
-# with open(file="Readme.md", mode="r") as readme_handle:
-#     long__description = readme_handle.read()
+here = path.abspath(path.dirname(__file__))
+
+with open(path.join(here, 'Readme.md'), encoding='utf-8') as f:
+    long_description = f.read()
 
 # ERORR GIVE:
 # Traceback (most recent call last):
@@ -41,7 +44,7 @@ setup(
 
     # I have a long description but that will just be my README
     # file, note the variable up above where I read the file.
-    # long_description=long__description,
+    long_description=long_description,
 
     # This will specify that the long description is MARKDOWN.
     long_description_content_type="text/markdown",
@@ -63,16 +66,17 @@ setup(
         'seaborn==0.11.2',
         'Shapely==1.8.2',
         'tqdm==4.62.3',
-        'bifacial_radiance==0.4.1',#content changed!      
+        'bifacial_radiance==0.4.1',#content changed!
+        # 'pyqt5==5.12.3'
+        # 'pyqtwebengine==5.12.1'
+        'pvfactors==1.5.2'
     ],
 
     # Here are the keywords of my library.
     keywords='Bifacialsimu, bifacial simulation,  energy yield of bifacial PV technology',
 
     # here are the packages I want "build."
-    packages=find_packages(
-        include=["src",'src*']
-        ),
+    packages=['BifacialSimu_src'],
     
     # I also have some package data, like photos and JSON files, so
     # I want to include those as well.
