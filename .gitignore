@@ -12,9 +12,9 @@ __pycache__/
 .Bifacial_venv/
 .pytest_cache/
 
- =============Folders are still essential to upload for now ===================
+
  #packaging and distribution
  #build/
  #dist/
  #bifacialsimu.egg-info/
- ==============================================================================
+ 
