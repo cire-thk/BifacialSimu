@@ -26,9 +26,9 @@ import datetime
 import csv
 import matplotlib.pyplot as plt
 from pvlib import spectrum, irradiance, atmosphere
-from pvfactors.geometry import OrderedPVArray
-from pvfactors.viewfactors.vfmethods import VFTsMethods
-from pvfactors.config import DISTANCE_TOLERANCE
+from Vendor.pvfactors.geometry.__init__ import OrderedPVArray
+from Vendor.pvfactors.viewfactors.vfmethods import VFTsMethods
+from Vendor.pvfactors.config import DISTANCE_TOLERANCE
 
 
 def getReflectivityData(simulationDict):

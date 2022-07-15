@@ -26,9 +26,9 @@ import datetime
 import csv
 import matplotlib.pyplot as plt
 from pvlib import spectrum, irradiance, atmosphere
-from pvfactors.geometry import OrderedPVArray
-from pvfactors.viewfactors.vfmethods import VFTsMethods
-from pvfactors.config import DISTANCE_TOLERANCE
+from Vendor.pvfactors.geometry.__init__ import OrderedPVArray
+from Vendor.pvfactors.viewfactors.vfmethods import VFTsMethods
+from Vendor.pvfactors.config import DISTANCE_TOLERANCE
 
 
 def getReflectivityData(simulationDict):
@@ -146,7 +146,7 @@ def modellingSpectralIrradiance(simulationDict, dataFrame, j):
 def build_ts_vf_matrix_albedo(pvarray_pv, pvarray_albedo):
     """
     Calculate timeseries view factor matrix for the two given ordered pv arrays
-    copied from pvfactors.viewfactors.calculator.VFCalculator.build_ts_vf_matrix with little change
+    copied from Vendor.pvfactors.viewfactors.calculator.VFCalculator.build_ts_vf_matrix with little change
     
     Parameters
     ----------

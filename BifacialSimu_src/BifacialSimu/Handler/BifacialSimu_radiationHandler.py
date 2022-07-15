@@ -28,14 +28,12 @@ import matplotlib.pyplot as plt #display shadows
 import matplotlib.dates as mdates
 import numpy as np
 import warnings
-import bifacial_radiance
-from bifacial_radiance import *
 import datetime
-from pvfactors.viewfactors.aoimethods import faoi_fn_from_pvlib_sandia #to calculate AOI reflection losses
-from pvfactors.engine import PVEngine
-from pvfactors.irradiance import HybridPerezOrdered
-from pvfactors.geometry import OrderedPVArray
-from pvfactors.viewfactors import VFCalculator
+from Vendor.pvfactors.viewfactors.aoimethods import faoi_fn_from_pvlib_sandia #to calculate AOI reflection losses
+from Vendor.pvfactors.engine import PVEngine
+from Vendor.pvfactors.irradiance.__init__ import HybridPerezOrdered
+from Vendor.pvfactors.geometry.__init__ import OrderedPVArray
+from Vendor.pvfactors.viewfactors.__init__ import VFCalculator
 import numpy
 import dateutil.tz
 import sys
@@ -47,8 +45,8 @@ import math
 #import math
 #import pvlib #for electrical output simulation
 
-
-
+# DEPENDENCIES AFTER VENDORING
+from Vendor.bifacial_radiance.main import RadianceObj, AnalysisObj
 
 
     
@@ -69,7 +67,7 @@ class RayTrace:
     def createDemo(simulationDict, resultsPath):
         # Create a RadianceObj 'object'
         simulationName = simulationDict['simulationName']
-        demo = bifacial_radiance.RadianceObj(name = simulationName, path = resultsPath) # Create a RadianceObj 'object'
+        demo = RadianceObj(name = simulationName, path = resultsPath) # Create a RadianceObj 'object'
         
         return demo
 
