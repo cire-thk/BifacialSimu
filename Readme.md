@@ -1,6 +1,6 @@
 
-<p align="center"><img src="Lib/logos/logo_BifacialSimu_transparentresized.png" width="300" ></p>
-<p align="center"><a href="https://github.com/cire-thk/BifacialSimu/blob/master/LICENSE"><img src="Lib/readme_pics/license-BSD-3--Clause-blue.svg"</p></a>
+<p align="center"><img src="BifacialSimu_src/Lib/logos/logo_BifacialSimu_transparentresized.png" width="300" ></p>
+<p align="center"><a href="https://github.com/cire-thk/BifacialSimu/blob/master/LICENSE"><img src="BifacialSimu_src/Lib/readme_pics/license-BSD-3--Clause-blue.svg"</p></a>
 
 ***
 # BifacialSimu
@@ -31,7 +31,22 @@ This Readme guide will assist with the installation and operation of the program
 ***
 ## Prerequisites
 BifacialSimu is run within a Python environment and dependent on a variety of libraries, most of which are contained within the installation of Anaconda. 
-The program [Radiance](https://github.com/NREL/Radiance/releases) and python tool [bifacial_radiance](https://github.com/NREL/bifacial_radiance) are both necessary in order to run BifacialSimu. 
+The program [Radiance](https://github.com/NREL/Radiance/releases) is necessary in order to run BifacialSimu. Besides that relies BifacialSimu on following libraries:
+>bifacial_radiance==0.4.1  
+>ipython==8.4.0   
+>matplotlib==3.4.3  
+>numpy==1.20.3  
+>pandas==1.3.4  
+>Pillow==9.1.1  
+>pvfactors==1.5.2   
+>pvlib==0.9.1  
+>python_dateutil==2.8.2  
+>pytz==2021.3  
+>requests==2.26.0  
+>seaborn==0.11.2  
+>Shapely==1.8.2  
+>tqdm==4.62.3  
+
 The installation process of which can be found in the following section.
 ***
 ## Installation
@@ -52,7 +67,7 @@ A useful resource for the installation is this [video](https://www.youtube.com/w
 These steps are described below in detail as well, including the intallation of pv_factors, another important tool used by BifacialSimu.
 
 __Installation of Anaconda__
-<p align="center"><img src="Lib/readme_pics/Anaconda_Readme.png" width="300"><br/></p>
+<p align="center"><img src="BifacialSimu_src/Lib/readme_pics/Anaconda_Readme.png" width="300"><br/></p>
 
 Anaconda is a Python/R data science distribution, which can be used to run python and related packages. 
 Even if you already have another python environment installed it is still recommended to use Anaconda.  
@@ -73,52 +88,28 @@ You can check the current version of:\
 
 Important! Make sure to update Anaconda regularly to keep your python packages updated! 
 
-__Copy pvfactors scripts__  
-Since some changes were made in the original scripts of pvfactors, copy the pvfactors scripts (.py python files)  
-− pvarray and  
-− pvground 
-
-from the GitHub folder  
-> C:\GitHub\bifacialSimu\Skripts\pvfactors 
-
-to the local installation folder of pvfactors.  
-Normally, this has following path: 
-> C:\Users\USER\anaconda3\Lib\site-packages\pvfactors\geometry. 
-
 __Installation of Radiance__  
 for Mac OS X: The installation of XQuartz is required for Radiance to run, this emulates a Windows environment for the program.
 
-<p align="center"><img src="Lib/readme_pics/XQuartz_Readme.png" width="500"><br/></p>
+<p align="center"><img src="BifacialSimu_src/Lib/readme_pics/XQuartz_Readme.png" width="500"><br/></p>
 
 An in-depth guide and the installation of Radiance can be found on the [Radiance Github Page](https://github.com/NREL/Radiance/releases). 
 Make sure to download the correct package according to your operating system.
 
-<p align="center"><img src="Lib/readme_pics/Radiance_Readme.png" width="500"><br/></p>
+<p align="center"><img src="BifacialSimu_src/Lib/readme_pics/Radiance_Readme.png" width="500"><br/></p>
 
 Make sure to download and insert the jaloxa Windows Binaries into the Radiance bin folder, these can be downloaded [here](http://www.jaloxa.eu/resources/radiance/radwinexe.shtml).
 
-__Installation of bifacial_radiance__   
-Install bifacial_radiance, a NREL supported tool for simulation bifacial PV systems, which is used in BifacialSimu to calculate Ray Tracing. 
-An installation manual is shown at the online documentation of [bifacial_radiance](https://bifacial-radiance.readthedocs.io/en/latest/installation.html). 
-Because the video is a few years old, you should also read the video description, where there is updated information regarding the installation steps. 
-It is important to do all steps explained in the video for an error-free installation of bifacial_radiance. 
+__Install BifacialSimu__
 
-<p align="center"><img src="Lib/readme_pics/Bifacial_Radiance_Readme.png" width="500"><br/></p>  
+To install BifacialSimu and Copies of [bifacial_radiance](https://github.com/NREL/bifacial_radiance) and [pvfavtors](https://github.com/SunPower/pvfactors), navigate to your local GitHub folder or download BifacialSimu on GitHub. 
+In spyder for example you can navigate using __cd__:
+> cd C:\Users\XXX\XXX\GitHub\bifacialSimu
 
-__Gencumulativesky scripts__  
-Copy gencumulativesky.exe from /bifacial_radiance/data/ into the Radiance Folder:
-> ...radiance/bin/  
+Now use:
+> pip install . 
 
-__Copy bifacial_radiance scripts__   
-Since some changes were made in the original scripts of bifacial_radiance, copy the bifacial_radiance scripts (python files)   
->load  
->main
-
-from the GitHub folder 
->C:\GitHub\bifacialSimu\Skripts\bifacialRadiance  
-
-to the local installation folder of bifacial_radiance. Normally, this has following path: 
->C:\Users\USER\anaconda3\Lib\site-packages\bifacial_radiance.  
+After a sucessfull installation, you can run the GUI.py in the BifacialSimu\BifacialSimu_src folder.
 
 __Run BifacialSimu__  
 − Open Spyder within the Anaconda Navigator  
@@ -132,26 +123,26 @@ This section serves as a Quick Start and also a way of checking that everything 
 As a first step, initiate the GUI by running the GUI.py file within your Python operating environment (Spyder or similar) as per the installation instructions. 
 This will then open the Graphical User Interface in a separate window and should look as per below.
 
-<p align="center"><img src="Lib/readme_pics/GUI.png" width="1000"><br/></p>
+<p align="center"><img src="BifacialSimu_src/Lib/readme_pics/GUI.png" width="1000"><br/></p>
 
 By clicking on the button "set default!" all active fields should be filled and ready to simulate. 
 Check that these match the below picture 
 
-<p align="center"><img src="Lib/readme_pics/GUI_default.png" width="1000"><br/></p>
+<p align="center"><img src="BifacialSimu_src/Lib/readme_pics/GUI_default.png" width="1000"><br/></p>
 
 Before starting the simulation check the Simulation Control and Module Parameter tabs. 
 It may also be advantageous to reduce the simulation time period for this test to one or two days in order to reduce actual simulation time, as per the below example, to one day.
 
-<p align="center"><img src="Lib/readme_pics/Sim_Ctrl_enddate.png" width="500"><br/></p>
+<p align="center"><img src="BifacialSimu_src/Lib/readme_pics/Sim_Ctrl_enddate.png" width="500"><br/></p>
 
 Now check under Module Parameters that all relevant parameters have been filled in, this is also where you can choose a module with the drop down box.
 
-<p align="center"><img src="Lib/readme_pics/Mod_Par_default.png" width="500"><br/></p>
+<p align="center"><img src="BifacialSimu_src/Lib/readme_pics/Mod_Par_default.png" width="500"><br/></p>
 
 The simulation can now be carried out by clicking on the button "Start Simulation!" under Main Control. 
 This may take a while depending upon your computer's specifications, please have patience.
 
-<p align="center"><img src="Lib/readme_pics/GUI_start_sim.png" width="1000"><br/></p>
+<p align="center"><img src="BifacialSimu_src/Lib/readme_pics/GUI_start_sim.png" width="1000"><br/></p>
 
 Once this has completed a variety of graphs will be produced which can be further analysed and exported. Incidentally, the data for these graphs will have been saved in the designated outputs folder produced for this specific simulation which can be found in the same folder as the installation of BifacialSimu:
 
@@ -219,7 +210,7 @@ The first step should be to enter the title of your simulation in the field "Ins
 
 To use a weather file which has been produced from the location that you are simulating you need to select "Local weather File!" within the Main Control tab.  
 
-<p align="center"><img src="Lib/readme_pics/Main_Control.png" width="500"><br/></p>  
+<p align="center"><img src="BifacialSimu_src/Lib/readme_pics/Main_Control.png" width="500"><br/></p>  
 
 Using the "Insert Weatherfile!" button you can point to the file on your computer. 
 This will need to be in TMY format, further tips on this can be found in the section [Troubleshooting](#troubleshooting).  
@@ -228,7 +219,7 @@ If you don't have the data for the area, you can choose the option "Download wea
 
 The time period of your simulation will then need to match that of the weather data. This should be set within the Simulation Control tab as per the below image.  
 
-<p align="center"><img src="Lib/readme_pics/start_end_utc.png" width="500"><br/></p>  
+<p align="center"><img src="BifacialSimu_src/Lib/readme_pics/start_end_utc.png" width="500"><br/></p>  
 
 Another important point is to update the Time Zone to match the location in which the simulation is taking place.
 This is done within the field "UTC offset" as a + or - value e.g. "+1" for Paris or "-5" for New York. 
@@ -239,7 +230,7 @@ __Simulation Parameter - Tracking__
 
 There are two options for solar tracking within the system which can be chosen for the simulation:  
 
-<p align="center"><img src="Lib/readme_pics/Tracking.png" width="500"><br/></p>
+<p align="center"><img src="BifacialSimu_src/Lib/readme_pics/Tracking.png" width="500"><br/></p>
 
 The first is Single Axis Tracking which will amend the angle of the panels in the horizontal plane to acheive higher efficiencies.
 Once this is activated the "Limit Angle of Tracking System" should be set; this is the maximum angle that the modules can rotate to.  
@@ -251,7 +242,7 @@ For this a clearance height has to be entered which should represent distance be
 
 __Simulation Parameter - Albedo__  
 
-<p align="center"><img src="Lib/readme_pics/albedo_modes.png" width="500"><br/></p>
+<p align="center"><img src="BifacialSimu_src/Lib/readme_pics/albedo_modes.png" width="500"><br/></p>
 
 Essentially, the choice of albedo simulation mode will depend upon the data available for your simulation. 
 You can select from the above four options. 
@@ -261,11 +252,11 @@ The simplest option is to choose "Average measured Albedo" and then choose an op
 This will then take a constant value and implement it in the simulation calculations. 
 It is also possible to manually enter a value here based upon literature sources or otherwise, however this will not be saved and therefore should be taken note of.
 
-<p align="center"><img src="Lib/readme_pics/albedo_modes_drop.png" width="500"><br/></p>
+<p align="center"><img src="BifacialSimu_src/Lib/readme_pics/albedo_modes_drop.png" width="500"><br/></p>
 
 If you choose to use the option "Hourly Spectral Albedo" you will need a separate "Reflectivity File" which should be inserted under the section Main Control as per the below picture.
 
-<p align="center"><img src="Lib/readme_pics/Main_Control.png" width="500"><br/></p>  
+<p align="center"><img src="BifacialSimu_src/Lib/readme_pics/Main_Control.png" width="500"><br/></p>  
 
 ---
 
@@ -278,7 +269,7 @@ This has the advantage of balancing quick simulation results with an improved ac
 Currently it is not possible to utilise Ray Tracing for simulations with a fixed tilt, this is however not disadvantageous, due to how View Factors works with static calculations.  
 Each Simulation mode can be selected by clicking on it, with the possibility to simulate the surfaces individually if so desired.  
 
-<p align="center"><img src="Lib/readme_pics/Simulation_Modes.png" width="500"><br/></p>  
+<p align="center"><img src="BifacialSimu_src/Lib/readme_pics/Simulation_Modes.png" width="500"><br/></p>  
 
 Be aware that when selecting View Factors the simulation will be much quicker than Ray Tracing however with a higher degree of inaccuracy.  
 
@@ -291,12 +282,12 @@ This example will show you how to choose and customise the solar module to be si
 The first step is to go onto the tab Module Parameter.
 There will be a drop-down menu in the top right corner as per the picture below, with a number of pre-programmed modules available to select from. 
 
-<p align="center"><img src="Lib/readme_pics/Module_Parameter_drop.png" width="500"><br/></p>
+<p align="center"><img src="BifacialSimu_src/Lib/readme_pics/Module_Parameter_drop.png" width="500"><br/></p>
 
 By selecting a module, the module parameter section will be filled out, depending upon values provided by the manufacturer.
 It's important to note here that if no values are provided for any of the rear side, then the electrical simulation will have to be changed to "without rear values" which uses a different simulation mode. More on this can be found in the section [Program Function](#program-function) under the heading Electrical Simulation.  
 
-<p align="center"><img src="Lib/readme_pics/Module_Parameter_mode.png" width="500"><br/></p>
+<p align="center"><img src="BifacialSimu_src/Lib/readme_pics/Module_Parameter_mode.png" width="500"><br/></p>
 
 Once a module has been selected it is also possible to amend the values in each individual field, this can be useful when comparing similar modules that aren't already in BifacialSimu's database. 
 These settings however will not be saved so make a note of them for future reference.  
@@ -307,41 +298,45 @@ Once a simulation has successfully completed, various graphs will be automatical
 The data for all of these graphs can be found in the simulation results located in the Output folder. 
 These graphs will vary depending upon the simulation mode chosen and as such below is a representation of what these could be.   
 
-<p align="center"><img src="Lib/readme_pics/Figure_1.png" width="700"><br/></p>  
+<p align="center"><img src="BifacialSimu_src/Lib/readme_pics/Figure_1.png" width="700"><br/></p>  
 
 This graph represents the relationship between the Diffuse Horizontal Irradiance (dhi) and the Direct Normal Irradiance (dni) over the course of one day. 
 This is shown with the timescale on the x-axis and Watts per square metre on the y-axis.  
 
  ---
 
-<p align="center"><img src="Lib/readme_pics/Figure_2.png" width="700"><br/></p>  
+<p align="center"><img src="BifacialSimu_src/Lib/readme_pics/Figure_2.png" width="700"><br/></p>  
 
 The graph above portrays the Back and Front Side Irradiance with both the total incident irradiance (qinc) and the total absorbed irradiance (qabs) on the respective graphs. 
-This can be a useful comparison tool however make sure to inspect the y-axis for the scale of the results as this could be misleading.  
+This
+can be a useful comparison tool however make sure to inspect the y-axis for the scale of the results as this could be misleading.  
 
 ---
 
-<p align="center"><img src="Lib/readme_pics/Figure_3.png" width="700"><br/></p>  
+<p align="center"><img src="BifacialSimu_src/Lib/readme_pics/Figure_3.png" width="700"><br/></p>  
 
 Here is a representation of the PV Array in a ViewFactors simulation. Effectively a graphical drawing of the angles of the modules produced by the integrated pv_factors tool. 
 More informatino on this can be found later in [Program Functions](#program-functions).  
 
 ---
 
-<p align="center"><img src="Lib/readme_pics/Figure_5.png" width="700"><br/></p>  
+
+<p align="center"><img src="BifacialSimu_src/Lib/readme_pics/Figure_5.png" width="700"><br/></p>  
 
 This particular graph shows the Bifacial Power Output in a time series with days on the x-axis and power output on the y-axis. 
 The Bifacial Gain is then also protrayed as a percentage, giving a clear indication of how much extra power is being produced by the bifacial modules.  
 
 ---
 
-<p align="center"><img src="Lib/readme_pics/Figure_6.png" width="700"><br/></p>  
+<p align="center"><img src="BifacialSimu_src/Lib/readme_pics/Figure_6.png" width="700"><br/></p>  
 
 The absolute irradiance on the modules is shown in this graph over the entire simulation period, being displayed in terms of days.  
 
+
 ---
 
-<p align="center"><img src="Lib/readme_pics/Figure_7.png" width="700"><br/></p>  
+<p align="center"><img src="BifacialSimu_src/Lib/readme_pics/Figure_7.png" width="700"><br/></p>  
+
 
 This graph also displays the total irradiance of the system, this time broken down into the Global Horizontal Irradiance (ghi), Diffuse Horizontal Irradiance (dhi) and Direct Normal Irradiance (dni).
 
