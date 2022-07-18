@@ -9,3 +9,12 @@ BifacialSimu/Handler/__pycache__/*.cpython-39.pyc
 Plots/.DS_Store
 Lib/.DS_Store
 __pycache__/
+.Bifacial_venv/
+.pytest_cache/
+
+
+ #packaging and distribution
+ #build/
+ #dist/
+ #bifacialsimu.egg-info/
+ 
