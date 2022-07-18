@@ -28,6 +28,8 @@ A defining feature of which is the capability to combine both View Factors and R
 This program was developed as part of the doctorate work by [Eva-Maria Grommes](https://orcid.org/0000-0002-7826-3754) and developed with the assistance of [other students from the TH Köln](#contribution). 
 It is intended to provide a free, effective tool to simulate the energy yield of bifacial PV technology, thereby proving their advantages and applications. 
 This Readme guide will assist with the installation and operation of the program, providing a quick start to simulating bifacial modules.
+Basically it is devided into three different simulations, in which each you can choose between different calculation models as displayed below:
+<p align="center"><img src="BifacialSimu_src/Lib/readme_pics/Simulation_procedure_BifacialSimu.jpg" width="500"><br/></p>
 ***
 ## Prerequisites
 BifacialSimu is run within a Python environment and dependent on a variety of libraries, most of which are contained within the installation of Anaconda. 
