@@ -31,6 +31,7 @@ This Readme guide will assist with the installation and operation of the program
 Basically it is devided into three different simulations, in which each you can choose between different calculation models as displayed below:
 <p align="center"><img src="BifacialSimu_src/Lib/readme_pics/Simulation_procedure_BifacialSimu.jpg" width="500"><br/></p>
 ***
+
 ## Prerequisites
 BifacialSimu is run within a Python environment and dependent on a variety of libraries, most of which are contained within the installation of Anaconda. 
 The program [Radiance](https://github.com/NREL/Radiance/releases) is necessary in order to run BifacialSimu. Besides that relies BifacialSimu on following libraries:
