@@ -55,7 +55,7 @@ import BifacialSimu_radiationHandler
 
 # electric-calculation Klasse
     
-    # Funktionen für 1-Dioden-Modell
+    # Functions for One-Diode Model
 
 class Electrical_simulation:
     """
@@ -604,7 +604,6 @@ class Electrical_simulation:
         ax1.set_ylabel('W')
         f.savefig("P_bi_hourly" + datetime.datetime.now().strftime("%Y-%m-%d-%H-%M") + ".png", dpi = dpi)
         plt.show()
-        #sns wird entfernt da die Plots in der GUI ansonsten nicht richtig angezeigt werden können außerhalb der Konsole
         #plt.show(sns)
          
         ####################################################
@@ -1101,7 +1100,7 @@ class Electrical_simulation:
                         
                             
                     ##################################
-                    ###Same procedure for back side###
+                    ###Same procedure for rear side###
                     ##################################
                     I = 0
                     V = 0
@@ -1213,7 +1212,6 @@ class Electrical_simulation:
         ax1.set_ylabel('W')
         f.savefig("P_bi_hourly" + datetime.datetime.now().strftime("%Y-%m-%d-%H-%M") + ".png", dpi = dpi)
         plt.show()
-        #sns wird entfernt da die Plots in der GUI ansonsten nicht richtig angezeigt werden können außerhalb der Konsole
         #plt.show(sns)
         
         

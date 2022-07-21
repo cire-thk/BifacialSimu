@@ -17,12 +17,6 @@ overview:
     Command to run the simulation
     
 """
-    
-# Start-Befehl für Simulation
-
-# Später: Aufruf der GUI
-
-# -*- coding: utf-8 -*-
 
 # Import modules
 #import matplotlib
@@ -72,7 +66,7 @@ Radiobutton = tk.Radiobutton
 IntVar = tk.IntVar
 PhotoImage = tk.PhotoImage
 
-# Importieren der nötigen Module und Pfade
+# Import of needed paths
 # Path handling
 rootPath = os.path.realpath(".")
 print(rootPath)
@@ -85,8 +79,7 @@ import BifacialSimu_simulationController
 import BifacialSimu_dataHandler
 
 
-
-# Eingabe von Simulationsvariablen und Einstellungen für die Simulationsmethode
+# Entry of simulation variables and settings for different simulation modes
 
 """
         Sets the mode for simulation: str
@@ -135,8 +128,6 @@ SimulationDict = {
 }
 
 # is in Function StartSimulation()
-# Calculate the height of the PV rows, measured at the bottom edge for the use in Viewfactors, PV*Sol and PVSyst
-#SimulationDict['clearance_height']  = (SimulationDict['hub_height'] - (math.sin(SimulationDict['tilt'])*SimulationDict['moduley']/2)) #height of the PV rows, measured at their center [m]
 
 ModuleDict = {
     'bi_factor': 0.694, #bifacial factor
@@ -156,9 +147,6 @@ ModuleDict = {
     'T_koeff_V': 0.0005, #Temperaturkoeffizient for U_oc [1/°C] #SG
     'zeta': 0.06 #Bestrahlungskoeffizient für Leerlaufspannung [-]
     
-    #'inverter': pvlib.pvsystem.retrieve_sam('cecinverter')['ABB__MICRO_0_25_I_OUTD_US_208_208V__CEC_2014_'],
-    #'module': pvlib.pvsystem.retrieve_sam('SandiaMod')['Canadian_Solar_CS5P_220M___2009_'],
-    #'P_sys': 360, #system nominal power [KWp]
 }
 
 
@@ -499,7 +487,7 @@ class Window(tk.Tk):
 
 
 # =============================================================================
-#           Modul Parameter
+#           Module Parameter
 # =============================================================================
 
             if len(Entry_bi_factor.get()) !=0:
@@ -848,10 +836,7 @@ class Window(tk.Tk):
 #                 os.rename(resultsPath + "/electrical_simulation.csv", resultsPath + "electrical_simulation_" + datetime.datetime.now().strftime("%Y-%m-%d-%H-%M") + ".csv") 
 #                 
 # =============================================================================
-            
-                
-
-            
+# Entries for default settings
             
         def setdefault():
             Entry_Tilt.config(state="normal")
@@ -923,7 +908,7 @@ class Window(tk.Tk):
             Entry_albedo.insert(0,str(a['Albedo']))
        
         
-
+# Entry for delete button
             
         def clearall():
             Entry_Name.delete(0, END)
@@ -972,14 +957,7 @@ class Window(tk.Tk):
 
             
            # Combo_Module.delete(0,END)
-                
-
-
-
-        
-        
-
-        
+       
          
         #Changing the Name of the Simulation
         Entry_Name=ttk.Entry(namecontrol_frame, width=20, background="white")
@@ -1104,9 +1082,6 @@ class Window(tk.Tk):
             if r.get()==4:
                 SimulationDict["simulationMode"]=5
                     
-            
-            
-
         
         #Changing the Simulation Mode 1 to 5
         
@@ -1392,7 +1367,7 @@ class Window(tk.Tk):
         Entry_nModsx.grid(column=1, row=9, sticky=W)
         Entry_nModsy.grid(column=1, row=10, sticky=W)
 
-        #sensory
+        #sensors
         Label_sensors=ttk.Label(simulationParameter_frame, text="Number of Sensors:")
         Label_sensors.grid(column=0, row=11, sticky=W)
         Label_sensorsPar=ttk.Label(simulationParameter_frame, text="[-]")
@@ -1616,7 +1591,7 @@ class Window(tk.Tk):
 # =============================================================================
      
         def getAlbedoJSONlist():
-            """ Einfügen der Albedo Namen aus Albedo.json aus der Quelle: User’s Guide for Albedo Data Sets; von Bill Marion
+            """ Insert Albedo name from Albedo.json from following ressource: User’s Guide for Albedo Data Sets; von Bill Marion
             """
             
            # jsonfile = ('module2.json')
@@ -1631,7 +1606,7 @@ class Window(tk.Tk):
             self.jsondata_albedo = jsondata_albedo
        
         def comboclick_albedo(event):
-            """ einfügen der Albedo Werte bei Auswahl aus der Combobox
+            """ Insert Albedo value from Combobox
             """
             
           
@@ -1874,7 +1849,7 @@ class Window(tk.Tk):
             ax3.legend()
             ax3.set_ylabel('Power Output\n[W/m²]', size=17)
             ax3.set_xlabel("Time", size=17)
-            ax3.set_title('Bifacial Output Power\nBifacial Gain: '+ str(Bifacial_gain*100) + " %", size=18)
+            ax3.set_title('Bifacial Output Power\Bifacial Gain: '+ str(Bifacial_gain*100) + " %", size=18)
             
             plt.grid(True, which="minor")
             plt.tight_layout()

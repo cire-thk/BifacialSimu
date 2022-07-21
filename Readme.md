@@ -78,18 +78,6 @@ Even if you already have another python environment installed it is still recomm
 − For Mac OS X: follow the installation instructions [here](https://docs.anaconda.com/anaconda/install/mac-os/)  
 − For other operating systems: follow the installation instructions regarding your system [here](https://docs.anaconda.com/anaconda/install/ )
 
-Check, if these standard python packages have been installed:  
-− [Pvlib](https://pvlib-python.readthedocs.io/en/stable/index.html)  
-− [Pvfactors](https://sunpower.github.io/pvfactors/ ) 
-
-You can find these packages in the Anaconda navigator under “Environments” using the search bar in the upper right corner. 
-The newest version number will be highlighted in blue and you can update the package regarding the manual [here](https://docs.anaconda.com/anaconda/navigator/tutorials/manage-packages/)  
-
-You can check the current version of:\
-− [Pvlib](https://sunpower.github.io/pvfactors/)  
-− [Pvfactors](https://sunpower.github.io/pvfactors/whatsnew.html)
-
-Important! Make sure to update Anaconda regularly to keep your python packages updated! 
 
 __Installation of Radiance__  
 for Mac OS X: The installation of XQuartz is required for Radiance to run, this emulates a Windows environment for the program.
@@ -112,12 +100,27 @@ In spyder for example you can navigate using __cd__:
 Now use:
 > pip install . 
 
+Check, if these standard python packages have been installed:  
+− [Pvlib](https://pvlib-python.readthedocs.io/en/stable/index.html)  
+− [Pvfactors](https://sunpower.github.io/pvfactors/ ) 
+
+You can find these packages in the Anaconda navigator under “Environments” using the search bar in the upper right corner. 
+The newest version number will be highlighted in blue and you can update the package regarding the manual [here](https://docs.anaconda.com/anaconda/navigator/tutorials/manage-packages/)  
+
+You can check the current version of:\
+− [Pvlib](https://sunpower.github.io/pvfactors/)  
+− [Pvfactors](https://sunpower.github.io/pvfactors/whatsnew.html)
+
+Important! Make sure to update Anaconda regularly to keep your python packages updated! 
+
 After a sucessfull installation, you can run the GUI.py in the BifacialSimu\BifacialSimu_src folder.
 
 __Run BifacialSimu__  
 − Open Spyder within the Anaconda Navigator  
 − Open the GUI.py file in spyder   
 − Run the GUI.py file. 
+
+
 
 ***
 ## Quick Start
@@ -456,6 +459,7 @@ Frederik Klag (Ray Tracing)
 Sebastian Nows (Ray Tracing)  
 Felix Schemann (Variable Albedo, Ray Tracing)  
 Jan Schmitt (Graphical User Interface)  
+Fares Aoun (Installation Procedure)
 
 Thank you to all who have contributed so far to this project, it wouldn't have been as successful without their input.
 
