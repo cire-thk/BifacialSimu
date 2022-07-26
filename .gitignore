@@ -1,10 +1,20 @@
+BifacialSimu/Controller/__pycache__/*.cpython-37.pyc
+BifacialSimu/Controller/__pycache__/*.cpython-38.pyc
+BifacialSimu/Controller/__pycache__/*.cpython-39.pyc
+BifacialSimu/Handler/__pycache__/*.cpython-37.pyc
+BifacialSimu/Handler/__pycache__/*.cpython-38.pyc
+BifacialSimu/Handler/__pycache__/*.cpython-39.pyc
 
-rumprobieren.py
-__pycache__/GUI.cpython-37.pyc
-Archiv/GUI_Cologne.py
-BifacialSimu/Controller/__pycache__/BifacialSimu_simulationController.cpython-37.pyc
-BifacialSimu/Handler/__pycache__/BifacialSimu_calculationHandler.cpython-37.pyc
-BifacialSimu/Handler/__pycache__/BifacialSimu_dataHandler.cpython-37.pyc
-BifacialSimu/Handler/__pycache__/BifacialSimu_radiationHandler.cpython-37.pyc
-BifacialSimu/Handler/__pycache__/BifacialSimu_spectralAlbedoHandler.cpython-37.pyc
-GUI_Cologne.py
+
+Plots/.DS_Store
+Lib/.DS_Store
+__pycache__/
+.Bifacial_venv/
+.pytest_cache/
+
+
+ #packaging and distribution
+ #build/
+ #dist/
+ #bifacialsimu.egg-info/
+ 
