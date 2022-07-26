@@ -1,24 +1,14 @@
 from setuptools import setup,find_packages,Extension
 from setuptools import find_packages
-from codecs import open
-from os import path
+from pathlib import Path
 
-# ======== WAS CAUSING AN ERROR, COMMENTED OUT FOR NOW ========================
 # # Load the README file.
-here = path.abspath(path.dirname(__file__))
+here = Path(__file__).parent
 
-with open(path.join(here, 'Readme.md'), encoding='utf-8') as f:
-    long_description = f.read()
+file = open("Readme.md", encoding="utf8")
+long_description = file.read()
 
-# ERORR GIVE:
-# Traceback (most recent call last):
-#   File "C:\Users\faris\OneDrive\Documents\GitHub\BifacialSimu\setup.py", line 7, in <module>
-#     long__description = readme_handle.read()
-#   File "C:\Users\faris\anaconda3\lib\encodings\cp1252.py", line 23, in decode
-#     return codecs.charmap_decode(input,self.errors,decoding_table)[0]
-# UnicodeDecodeError: 'charmap' codec can't decode byte 0x9d in position 4073: character maps to <undefined>
-# =============================================================================
-
+    
 setup(
     
 
@@ -40,14 +30,14 @@ setup(
 
     # Here is a small description of the library. This appears
     # when someone searches for the library on https://pypi.org/search.
-    description='Hollistic Simulation of large-scale Bifacial Photovoltaic Systems',
+    description='Holistic Simulation of large-scale Bifacial Photovoltaic Systems',
 
     # I have a long description but that will just be my README
     # file, note the variable up above where I read the file.
     long_description=long_description,
 
     # This will specify that the long description is MARKDOWN.
-    long_description_content_type="text/markdown",
+    long_description_content_type='text/markdown',
 
     # Here is the URL where you can find the code, in this case on GitHub.
     url='https://github.com/cire-thk/BifacialSimu',
@@ -70,7 +60,6 @@ setup(
         # 'pyqt5==5.12.3'
         # 'pyqtwebengine==5.12.1'
         'pvfactors==1.5.2'
-        #und pvfactors - welche Version?  
     ],
 
     # Here are the keywords of my library.
