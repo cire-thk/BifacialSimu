@@ -94,7 +94,7 @@ Make sure to download and insert the jaloxa Windows Binaries into the Radiance b
 __Install BifacialSimu__
 
 To install BifacialSimu and Copies of [bifacial_radiance](https://github.com/NREL/bifacial_radiance) and [pvfavtors](https://github.com/SunPower/pvfactors), you can use:
-> pip install BifacialSimu==1.0.0
+> pip install BifacialSimu
 
 If that does not work for you, navigate to your local GitHub folder or download BifacialSimu on GitHub. 
 In spyder for example you can navigate using __cd__:
