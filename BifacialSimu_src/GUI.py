@@ -28,6 +28,7 @@ import os
 import webbrowser
 from tkinter import *
 
+
 try:
     import tkinter as tk
     from tkinter import ttk
@@ -55,7 +56,7 @@ import numpy as np
 import pandas as pd
 #import time
 #import pickle
-
+import threading #for using multiple threads to make the GUI responsive during simulations
 
 # aliases for Tkinter functions
 END = tk.END
@@ -365,6 +366,7 @@ class Window(tk.Tk):
         my_notebook.add(namecontrol_frame, text="Main Control")
         my_notebook.add(simulationMode_frame, text="Simulation Control")
         my_notebook.add(ModuleParameter_frame, text="Module Parameter")
+
         
         # Starting the simulation
         def StartSimulation():
@@ -1792,8 +1794,7 @@ class Window(tk.Tk):
         
         logo2()
         
-
-
+        
 
 
         # activates the first Radiobuttons to disable ttk.Entry fields and write in the Dict
@@ -1809,12 +1810,16 @@ class Window(tk.Tk):
 #         Control Buttons for the Simulation    
 # =============================================================================
         
-        Button_startSimulation=ttk.Button(simulationFunction_frame, text="Start Simulation!", command=StartSimulation)
+        Simulator=threading.Thread(target=StartSimulation) #start or stop Simulation in Thread
+
+        Button_startSimulation=ttk.Button(simulationFunction_frame, text="Start Simulation!", command=Simulator.start)
         Button_startSimulation.grid(column=2,row=1)
         Button_setDefault=ttk.Button(simulationFunction_frame, text="set default!", command=setdefault)
         Button_setDefault.grid(column=0,row=1)
         Button_clear=ttk.Button(simulationFunction_frame, text="clear!", command=clearall)
         Button_clear.grid(column=1,row=1)
+        Button_stopSimulation=ttk.Button(simulationFunction_frame, text="Stop Simulation!", command=Simulator._stop())
+        Button_stopSimulation.grid(column=2,row=2)
 
 
 

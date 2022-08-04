@@ -10,15 +10,11 @@ authors:
   - name: Eva-Maria Grommes^[corresponding author]
     orcid: 0000-0002-7826-3754
     affiliation: 1
-  - name: Sarah Glaubitz^[co-first author]
-    affiliation: 2
   - name: Ulf Blieske^[co-first author]
     affiliation: 1
 affiliations:
  - name: Cologne Institute for Renewable Energy (CIRE), University of Applied Science Cologne, Cologne, Germany
    index: 1
- - name: Independent Researcher
-   index: 2
 date: 22 April 2022
 bibliography: paper.bib
 ---
