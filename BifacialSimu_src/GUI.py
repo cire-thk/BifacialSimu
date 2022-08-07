@@ -1,4 +1,4 @@
-# -*- coding: utf-8 -*-
+#  -*- coding: utf-8 -*-
 """
 Created on Mon Jun  7 11:39:16 2021
 @author:        
@@ -75,14 +75,15 @@ PhotoImage = tk.PhotoImage
 # Importieren der nötigen Module und Pfade
 # Path handling
 rootPath = os.path.realpath(".")
-print(rootPath)
+# print(rootPath)
+
 # Include paths
-sys.path.append(rootPath + "/BifacialSimu/Controller")
-sys.path.append(rootPath + "/BifacialSimu/Handler")
+# sys.path.append(rootPath + "/BifacialSimu/Controller")
+# sys.path.append(rootPath + "/BifacialSimu/Handler")
 
 # Include modules
-import BifacialSimu_simulationController
-import BifacialSimu_dataHandler
+from BifacialSimu import Controller
+
 
 
 
@@ -558,7 +559,7 @@ class Window(tk.Tk):
 #             Defining the Path for the Results    
 # =============================================================================
                 
-            resultsPath = BifacialSimu_dataHandler.DataHandler().setDirectories()
+            resultsPath = Controller.DataHandler().setDirectories()
             print('created resultsPath at: ' + resultsPath)     
             
             
@@ -566,7 +567,7 @@ class Window(tk.Tk):
 #             Starting the Simulation with the defined Dictionaries
 # =============================================================================
             
-            BifacialSimu_simulationController.startSimulation(SimulationDict, ModuleDict, resultsPath)
+            Controller.startSimulation(SimulationDict, ModuleDict, resultsPath)
 
 
 # =============================================================================
