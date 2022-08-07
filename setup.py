@@ -82,7 +82,16 @@ setup(
     # I also have some package data, like photos and JSON files, so
     # I want to include those as well.
     include_package_data=True,
-    
+      
+    classifiers=[
+           # Here I'll specify the version of Python it uses.
+          'Programming Language :: Python',
+          'Programming Language :: Python :: 3',
+          'Programming Language :: Python :: 3.9',
+          
+          # I can say what phase of development my library is in.
+          'Development Status :: 1 - Alpha',
+          ]
 # ==================== ADDTIONAL PACKAGE INFO =================================
 # 
 #     # # here we specify any package data.
