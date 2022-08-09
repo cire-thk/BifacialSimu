@@ -1,3 +1,6 @@
 """View factor calculator"""
 
-from Vendor.pvfactors.viewfactors.calculator import VFCalculator
+from .calculator import *
+from .aoimethods import *
+from .vfmethods import *
+

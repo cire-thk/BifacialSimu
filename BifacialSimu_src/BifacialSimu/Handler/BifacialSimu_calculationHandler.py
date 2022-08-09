@@ -18,8 +18,8 @@ overview:
 
 """
 
-from IPython import get_ipython
-get_ipython().magic('reset -sf')
+# from IPython import get_ipython
+# get_ipython().magic('reset -sf')
 
 import pandas as pd #pandas = can read .csv as input
 import matplotlib.pyplot as plt #display shadows
@@ -50,7 +50,7 @@ except ImportError:
 #sys.path.append(rootPath + "/BifacialSimu/Handler")
 
 
-import BifacialSimu_radiationHandler 
+from . import BifacialSimu_radiationHandler 
 
 
 # electric-calculation Klasse
@@ -1302,7 +1302,8 @@ class Electrical_simulation:
         
         #Plot for Bifacial Power Output + Bifacial Gain
         GUI.Window.makePlotBifacialRadiance(resultsPath,Bifacial_gain)   
-
+    
+        return Bifacial_gain*100
 
     def simulate_doubleDiodeBi(moduleDict, simulationDict, df_reportVF, df_reportRT, df_report, df, resultsPath):
         """
