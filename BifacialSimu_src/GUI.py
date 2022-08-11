@@ -1836,7 +1836,7 @@ class Window(tk.Tk):
            # timestamp_end=
             idx=pd.date_range(timestamp_start, periods=timestamp_end, freq="1H")
             
-            P_bi=data["P_bi "]
+            P_bi=data["P_bi"]
             
            
             fig3, ax3= plt.subplots()
