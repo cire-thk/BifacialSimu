@@ -14,17 +14,19 @@ rootPath = os.path.realpath("../../")
 import unittest
 import pandas as pd
 from BifacialSimu.Handler.BifacialSimu_calculationHandler import Electrical_simulation
-from BifacialSimu.Handler.BifacialSimu_radiationHandler import ViewFactors, RayTrace
+from BifacialSimu.Handler import BifacialSimu_radiationHandler
+from BifacialSimu.Handler import BifacialSimu_dataHandler
 from BifacialSimu.Handler.BifacialSimu_dataHandler import DataHandler
+from Vendor.bifacial_radiance.main import RadianceObj
 from bifacial_radiance import *
 from Vendor.pvfactors.engine import PVEngine
 from Vendor.pvfactors import geometry
 
 
 simulationDict={
-    
+    'clearance_height': 0.4, #value was found missing! should be added later!
     'simulationName' : 'NREL_best_field_row_2',
-    'simulationMode' : 1, 
+    'simulationMode' : 2, 
     'localFile' : True, # Decide wether you want to use a  weather file or try to download one for the coordinates
     'weatherFile' : (rootPath +'/WeatherData/Golden_USA/SRRLWeatherdata Nov_Dez_2.csv'), #weather file in TMY format 
     'spectralReflectancefile' : (rootPath + '/ReflectivityData/interpolated_reflectivity.csv'),
@@ -35,7 +37,7 @@ simulationDict={
     'tilt' : 10, #tilt of the PV surface [deg]
     'singleAxisTracking' : True, # singleAxisTracking or not
     'backTracking' : False, # Solar backtracking is a tracking control program that aims to minimize PV panel-on-panel shading 
-    'ElectricalMode_simple': False, # simple electrical Simulation after PVSyst, use if rear module parameters are missing
+    'ElectricalMode_simple': 0, # simple electrical Simulation after PVSyst, use if rear module parameters are missing
     'limitAngle' : 60, # limit Angle for singleAxisTracking
     'hub_height' : 1.3, # Height of the rotation axis of the tracker [m]
     'azimuth' : 180, #azimuth of the PV surface [deg] 90°: East, 135° : South-East, 180°:South
@@ -85,16 +87,22 @@ simulationDict={
 
 resultsPath = DataHandler().setDirectories()
 
-demo=0
-metdata=0
-dataFrame={}
-onlyFrontscan=False
-onlyBackscan=False
-VF=ViewFactors
-
-df_reportVF=VF.simulateViewFactors(demo, metdata, dataFrame, resultsPath, onlyFrontscan=False)
-df_reportRT = RayTrace.simulateRayTrace(demo, metdata, resultsPath, dataFrame, onlyBackscan)
+simulationName = simulationDict['simulationName']
+# demo = RadianceObj(name = simulationName, path = resultsPath)
+metdata, demo = DataHandler().getWeatherData(simulationDict, resultsPath)
+dataFrame = pd.DataFrame()
+onlyFrontscan=True
+onlyBackscan=True
+# df=pd.Dataframe()
+# df = DataHandler().passEPWtoDF(metdata, simulationDict, resultsPath)
+df = BifacialSimu_dataHandler.DataHandler().passEPWtoDF(metdata, simulationDict, resultsPath)
+df_reportRT = pd.DataFrame()
+df_reportVF = pd.DataFrame()
+df_reportVF, df= BifacialSimu_radiationHandler.ViewFactors.simulateViewFactors(simulationDict, demo, metdata,  df, resultsPath, onlyFrontscan = False)
 df_report = Electrical_simulation.build_simulationReport(df_reportVF, df_reportRT, simulationDict, resultsPath)
+
+# df_reportVF=ViewFactors.simulateViewFactors(simulationDict, demo, metdata, dataFrame, resultsPath, onlyFrontscan)
+# df_reportRT = RayTrace.simulateRayTrace(simulationDict,demo, metdata, resultsPath, dataFrame, onlyBackscan)
 
 moduleDict={
 		"bi_factor": 0.694,
