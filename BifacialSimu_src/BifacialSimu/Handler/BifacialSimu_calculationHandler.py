@@ -43,14 +43,15 @@ except ImportError:
     print('We suggest you install seaborn using conda or pip and rerun this cell')
 
 # Path handling
-#rootPath = os.path.dirname(os.path.dirname(os.path.realpath(".")))
+rootPath = rootPath = os.path.realpath("../../")
+
+from BifacialSimu.Handler import BifacialSimu_radiationHandler 
 
 # Include paths
 
 #sys.path.append(rootPath + "/BifacialSimu/Handler")
 
 
-from . import BifacialSimu_radiationHandler 
 
 
 # electric-calculation Klasse
@@ -666,7 +667,9 @@ class Electrical_simulation:
         print("Bifacial Gain: " + str(Bifacial_gain*100) + " %")
         
         #Plot for Bifacial Power Output + Bifacial Gain
-        GUI.Window.makePlotBifacialRadiance(resultsPath,Bifacial_gain)         
+        GUI.Window.makePlotBifacialRadiance(resultsPath,Bifacial_gain)     
+        
+        return Bifacial_gain*100
         
         
     def simulate_doubleDiode(moduleDict, simulationDict, df_reportVF, df_reportRT, df_report, df, resultsPath):
@@ -2135,3 +2138,4 @@ class Electrical_simulation:
             
             #Plot for Bifacial Power Output + Bifacial Gain
             GUI.Window.makePlotBifacialRadiance(resultsPath,Bifacial_gain)         
+            return Bifacial_gain*100
