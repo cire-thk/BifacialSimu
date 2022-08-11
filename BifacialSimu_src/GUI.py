@@ -100,6 +100,7 @@ from BifacialSimu import Controller
 
 # simulation parameters and variables
 SimulationDict = {
+'clearance_height': 0.4, #value was found missing! should be added later!
 'simulationName' : 'NREL_best_field_row_2',
 'simulationMode' : 1, 
 'localFile' : True, # Decide wether you want to use a  weather file or try to download one for the coordinates
