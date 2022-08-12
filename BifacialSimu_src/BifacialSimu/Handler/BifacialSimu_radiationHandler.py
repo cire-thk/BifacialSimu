@@ -1184,8 +1184,8 @@ class ViewFactors:
         save_view_factor(4, 12, vf_matrix, df.index)
         
         
-        f, ax = plt.subplots(figsize=(10, 3))
-        pvarray.plot_at_idx(0, ax, with_surface_index=True)
-        plt.show()
+        # f, ax = plt.subplots(figsize=(10, 3))
+        # pvarray.plot_at_idx(0, ax, with_surface_index=True)
+        # plt.show()
         
         return df_reportVF, df
