@@ -29,11 +29,6 @@ import matplotlib.dates as mdates
 import numpy as np
 import warnings
 import datetime
-from Vendor.pvfactors.viewfactors.aoimethods import faoi_fn_from_pvlib_sandia #to calculate AOI reflection losses
-from Vendor.pvfactors.engine import PVEngine
-from Vendor.pvfactors import irradiance
-from Vendor.pvfactors import geometry
-from Vendor.pvfactors import viewfactors
 import numpy
 import dateutil.tz
 import sys
@@ -47,7 +42,9 @@ import math
 
 # DEPENDENCIES AFTER VENDORING
 from Vendor.bifacial_radiance.main import RadianceObj, AnalysisObj
-
+from Vendor.pvfactors.viewfactors.aoimethods import faoi_fn_from_pvlib_sandia #to calculate AOI reflection losses
+from Vendor.pvfactors.engine import PVEngine
+from Vendor.pvfactors import irradiance, geometry, viewfactors
 
     
 class RayTrace:
@@ -1184,8 +1181,8 @@ class ViewFactors:
         save_view_factor(4, 12, vf_matrix, df.index)
         
         
-        # f, ax = plt.subplots(figsize=(10, 3))
-        # pvarray.plot_at_idx(0, ax, with_surface_index=True)
-        # plt.show()
+        f, ax = plt.subplots(figsize=(10, 3))
+        pvarray.plot_at_idx(0, ax, with_surface_index=True)
+        plt.show()
         
         return df_reportVF, df
