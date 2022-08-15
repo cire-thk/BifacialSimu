@@ -26,9 +26,9 @@ import datetime
 import csv
 import matplotlib.pyplot as plt
 from pvlib import spectrum, irradiance, atmosphere
-from Vendor.pvfactors.geometry.__init__ import OrderedPVArray
-from Vendor.pvfactors.viewfactors.vfmethods import VFTsMethods
-from Vendor.pvfactors.config import DISTANCE_TOLERANCE
+from Vendor.pvfactors import geometry
+from Vendor.pvfactors import viewfactors
+from Vendor.pvfactors import config
 
 
 def getReflectivityData(simulationDict):
@@ -158,7 +158,7 @@ def build_ts_vf_matrix_albedo(pvarray_pv, pvarray_albedo):
     vf_matrix: np.ndarray, Timeseries view factor matrix, with 3 dimensions:[n_surfaces, n_surfaces, n_timesteps]
     """
     
-    vf_ts_methods = VFTsMethods()
+    vf_ts_methods = viewfactors.VFTsMethods()
     
     # Initialize matrix
     rotation_vec = pvarray_albedo.rotation_vec
@@ -181,7 +181,7 @@ def build_ts_vf_matrix_albedo(pvarray_pv, pvarray_albedo):
     vf_matrix[:-1, -1, :] = 1. - np.sum(vf_matrix[:-1, :-1, :], axis=1)
     # This is not completely accurate yet, we need to set the sky vf to zero when the surfaces have zero length
     for i, ts_surf in enumerate(pvarray_pv.all_ts_surfaces):
-        vf_matrix[i, -1, :] = np.where(ts_surf.length > DISTANCE_TOLERANCE, vf_matrix[i, -1, :], 0.)
+        vf_matrix[i, -1, :] = np.where(ts_surf.length > config.DISTANCE_TOLERANCE, vf_matrix[i, -1, :], 0.)
 
     return vf_matrix
 
@@ -219,7 +219,7 @@ def calculateViewFactorMatrix(simulationDict, dataFrame, j):
     }
     
     # creat an OrderedPVArray with pvarray_parameters for albedometer
-    pvarray_albedo = OrderedPVArray.fit_from_dict_of_scalars(pvarray_parameters)
+    pvarray_albedo = geometry.OrderedPVArray.fit_from_dict_of_scalars(pvarray_parameters)
         
     
     # parameters of pvarrray, which contains parameters like in radiationHandler
@@ -238,7 +238,7 @@ def calculateViewFactorMatrix(simulationDict, dataFrame, j):
     }
     
     # creat an OrderedPVArray with simulationParemeters for the PVrowy like in radiationHandler
-    pvarray_pv = OrderedPVArray.fit_from_dict_of_scalars(simulationParameter)
+    pvarray_pv = geometry.OrderedPVArray.fit_from_dict_of_scalars(simulationParameter)
      
       
     # create vf_matrix out of pvarray_albedo and pv_array_pv with selfmade function

@@ -28,11 +28,8 @@ sys.path.append(rootPath)
 sys.path.append(rootPath + "/BifacialSimu/Handler")'''
 
 import pandas as pd
-import BifacialSimu_calculationHandler
-import BifacialSimu_radiationHandler
-import BifacialSimu_dataHandler
-import BifacialSimu_spectralAlbedoHandler
-import BifacialSimu_spectralAlbedoHandler_1_row
+import sys
+from BifacialSimu.Handler import * #much easier handling Directories using __init__.py files (avoids import errors)
 
 # Overarching procedure to perform bifacial irrdiance and electrical simulations  
 def startSimulation(simulationDict, moduleDict, resultsPath):

@@ -1,4 +1,4 @@
-# -*- coding: utf-8 -*-
+#  -*- coding: utf-8 -*-
 """
 Created on Mon Jun  7 11:39:16 2021
 @author:        
@@ -70,14 +70,15 @@ PhotoImage = tk.PhotoImage
 # Import of needed paths
 # Path handling
 rootPath = os.path.realpath(".")
-print(rootPath)
+# print(rootPath)
+
 # Include paths
-sys.path.append(rootPath + "/BifacialSimu/Controller")
-sys.path.append(rootPath + "/BifacialSimu/Handler")
+# sys.path.append(rootPath + "/BifacialSimu/Controller")
+# sys.path.append(rootPath + "/BifacialSimu/Handler")
 
 # Include modules
-import BifacialSimu_simulationController
-import BifacialSimu_dataHandler
+from BifacialSimu import Controller
+
 
 
 # Entry of simulation variables and settings for different simulation modes
@@ -93,6 +94,7 @@ import BifacialSimu_dataHandler
 
 # simulation parameters and variables
 SimulationDict = {
+'clearance_height': 0.4, #value was found missing! should be added later!
 'simulationName' : 'NREL_best_field_row_2',
 'simulationMode' : 1, 
 'localFile' : True, # Decide wether you want to use a  weather file or try to download one for the coordinates
@@ -548,7 +550,7 @@ class Window(tk.Tk):
 #             Defining the Path for the Results    
 # =============================================================================
                 
-            resultsPath = BifacialSimu_dataHandler.DataHandler().setDirectories()
+            resultsPath = Controller.DataHandler().setDirectories()
             print('created resultsPath at: ' + resultsPath)     
             
             
@@ -556,7 +558,7 @@ class Window(tk.Tk):
 #             Starting the Simulation with the defined Dictionaries
 # =============================================================================
             
-            BifacialSimu_simulationController.startSimulation(SimulationDict, ModuleDict, resultsPath)
+            Controller.startSimulation(SimulationDict, ModuleDict, resultsPath)
 
 
 # =============================================================================

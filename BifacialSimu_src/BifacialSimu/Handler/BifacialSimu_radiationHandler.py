@@ -19,7 +19,7 @@ overview:
 """
 
 
-
+'Might have to remove IPython functions from this file. IPython should be used in GUI.py only'
 from IPython import get_ipython
 get_ipython().magic('reset -sf')
 
@@ -29,11 +29,6 @@ import matplotlib.dates as mdates
 import numpy as np
 import warnings
 import datetime
-from Vendor.pvfactors.viewfactors.aoimethods import faoi_fn_from_pvlib_sandia #to calculate AOI reflection losses
-from Vendor.pvfactors.engine import PVEngine
-from Vendor.pvfactors.irradiance.__init__ import HybridPerezOrdered
-from Vendor.pvfactors.geometry.__init__ import OrderedPVArray
-from Vendor.pvfactors.viewfactors.__init__ import VFCalculator
 import numpy
 import dateutil.tz
 import sys
@@ -47,7 +42,9 @@ import math
 
 # DEPENDENCIES AFTER VENDORING
 from Vendor.bifacial_radiance.main import RadianceObj, AnalysisObj
-
+from Vendor.pvfactors.viewfactors.aoimethods import faoi_fn_from_pvlib_sandia #to calculate AOI reflection losses
+from Vendor.pvfactors.engine import PVEngine
+from Vendor.pvfactors import irradiance, geometry, viewfactors
 
     
 class RayTrace:
@@ -506,7 +503,7 @@ class ViewFactors:
         except ImportError:
             print('We suggest you install seaborn using conda or pip and rerun this cell')
         
-        irradiance_model = HybridPerezOrdered(rho_front=simulationParameter['rho_front_pvrow'], rho_back=simulationParameter['rho_back_pvrow']) #choose an irradiance model
+        irradiance_model = irradiance.HybridPerezOrdered(rho_front=simulationParameter['rho_front_pvrow'], rho_back=simulationParameter['rho_back_pvrow']) #choose an irradiance model
         # Add dictionary for discretization 
         
         rowSegments = {}
@@ -689,7 +686,7 @@ class ViewFactors:
         # Run full bifacial simulation
         
         # Create ordered PV array and fit engine
-        pvarray = OrderedPVArray.init_from_dict(simulationParameter)
+        pvarray = geometry.OrderedPVArray.init_from_dict(simulationParameter)
         engine = PVEngine(pvarray)
 
         engine.fit(df.index, df.dni, df.dhi,
@@ -1157,7 +1154,7 @@ class ViewFactors:
         # Calculate ViewFactors for Day of Consideration
         
         # Instantiate calculator
-        vf_calculator = VFCalculator()
+        vf_calculator = viewfactors.VFCalculator()
         
         # Calculate view factor matrix of the pv array
         vf_matrix = vf_calculator.build_ts_vf_matrix(pvarray)

@@ -18,8 +18,8 @@ overview:
 
 """
 
-from IPython import get_ipython
-get_ipython().magic('reset -sf')
+# from IPython import get_ipython
+# get_ipython().magic('reset -sf')
 
 import pandas as pd #pandas = can read .csv as input
 import matplotlib.pyplot as plt #display shadows
@@ -43,14 +43,15 @@ except ImportError:
     print('We suggest you install seaborn using conda or pip and rerun this cell')
 
 # Path handling
-#rootPath = os.path.dirname(os.path.dirname(os.path.realpath(".")))
+rootPath = rootPath = os.path.realpath("../../")
+
+from BifacialSimu.Handler import BifacialSimu_radiationHandler 
 
 # Include paths
 
 #sys.path.append(rootPath + "/BifacialSimu/Handler")
 
 
-import BifacialSimu_radiationHandler 
 
 
 # electric-calculation Klasse
@@ -400,6 +401,8 @@ class Electrical_simulation:
         #Plot for Bifacial Power Output + Bifacial Gain
         GUI.Window.makePlotBifacialRadiance(resultsPath,Bifacial_gain)
         
+        return Bifacial_gain*100
+        
     def simulate_simpleBifacial(moduleDict, simulationDict, df_reportVF, df_reportRT, df_report, df, resultsPath):
         """
         Applies a simplified version of the electrical simulation after PVSyst. Uses bifaciality factor to calculate rear efficiency and fill factors.
@@ -665,7 +668,9 @@ class Electrical_simulation:
         print("Bifacial Gain: " + str(Bifacial_gain*100) + " %")
         
         #Plot for Bifacial Power Output + Bifacial Gain
-        GUI.Window.makePlotBifacialRadiance(resultsPath,Bifacial_gain)         
+        GUI.Window.makePlotBifacialRadiance(resultsPath,Bifacial_gain)     
+        
+        return Bifacial_gain*100
         
         
     def simulate_doubleDiode(moduleDict, simulationDict, df_reportVF, df_reportRT, df_report, df, resultsPath):
@@ -1302,7 +1307,8 @@ class Electrical_simulation:
         
         #Plot for Bifacial Power Output + Bifacial Gain
         GUI.Window.makePlotBifacialRadiance(resultsPath,Bifacial_gain)   
-
+    
+        return Bifacial_gain*100
 
     def simulate_doubleDiodeBi(moduleDict, simulationDict, df_reportVF, df_reportRT, df_report, df, resultsPath):
         """
@@ -1368,6 +1374,9 @@ class Electrical_simulation:
         T_koeff_I = moduleDict['T_koeff_I'] 
         T_koeff_V = moduleDict['T_koeff_V'] 
         T_amb = moduleDict['T_amb']
+        
+        # Note for later!:
+        # moduleDict['Ns'] is not defined in moduleDict! (This can gave an error) 
         Ns = moduleDict['Ns']      #Number of cells in module
         
         k = 1.3806503 * 10**(-23)       #Boltzmann constant [J/K]
@@ -2132,3 +2141,4 @@ class Electrical_simulation:
             
             #Plot for Bifacial Power Output + Bifacial Gain
             GUI.Window.makePlotBifacialRadiance(resultsPath,Bifacial_gain)         
+            return Bifacial_gain*100

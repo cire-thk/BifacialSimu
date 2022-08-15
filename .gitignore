@@ -11,10 +11,11 @@ Lib/.DS_Store
 __pycache__/
 .Bifacial_venv/
 .pytest_cache/
-
+Outputs/
 
  #packaging and distribution
- #build/
- #dist/
- #bifacialsimu.egg-info/
+ build/
+ dist/
+ bifacialsimu.egg-info/
+.pytest_cache/
  
