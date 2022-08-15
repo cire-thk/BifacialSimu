@@ -401,6 +401,8 @@ class Electrical_simulation:
         #Plot for Bifacial Power Output + Bifacial Gain
         GUI.Window.makePlotBifacialRadiance(resultsPath,Bifacial_gain)
         
+        return Bifacial_gain*100
+        
     def simulate_simpleBifacial(moduleDict, simulationDict, df_reportVF, df_reportRT, df_report, df, resultsPath):
         """
         Applies a simplified version of the electrical simulation after PVSyst. Uses bifaciality factor to calculate rear efficiency and fill factors.
@@ -1374,6 +1376,9 @@ class Electrical_simulation:
         T_koeff_I = moduleDict['T_koeff_I'] 
         T_koeff_V = moduleDict['T_koeff_V'] 
         T_amb = moduleDict['T_amb']
+        
+        # Note for later!:
+        # moduleDict['Ns'] is not defined in moduleDict! (This can gave an error) 
         Ns = moduleDict['Ns']      #Number of cells in module
         
         k = 1.3806503 * 10**(-23)       #Boltzmann constant [J/K]
