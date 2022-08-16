@@ -354,10 +354,9 @@ This graph also displays the total irradiance of the system, this time broken do
 ## Troubleshooting
 Here you can find some general troubleshooting measures which may help when running into problems with the simulation.
 
-__GUI unresponsive during simulation__ - During a simulation the GUI window and parameters can no longer be amended, it will be possible to see whether the simulation is operating correctly by observing the terminal within your Python environment where the program is running.
+__name 'rootPath' is not defined__ - If you get this error, the rootPath was not set beforehand. If you run the GUI.py again, it won't show the error.
 
 __Program unresponsive__ - If the simulation is itself unresponsive and no longer operating correctly it is possible to stop the program within the environment and reload. 
-Unfortunately this will result in the loss of previously defined simulation parameters.
 
 __temp_air Error__ - If the simulation produces this error it may be a sign that the "load" and "main" files from BifacialSimu haven't been copied into the installation of bifacial_radiance correctly. These files should overwrite the files in the bifacial_radiance Lib folder. It is also important that they are installed in the correct location, check within the anaconda installation of bifacial_radiance. 
 An example path would be: 
@@ -371,8 +370,6 @@ There is also a script to convert weather files into TMY formate which can be fo
 
 __Incorrect Timescale on Graphs__ - This is a result of not changing the time zone under the Simulation Control settings. 
 It is also possible to manually amend the axis titles within the matlibplot graphs by using the edit button.
-
-__missingKeyWarning from bifacial_radiance.main__ - This error appears if the load.py and main.py [files](#installation) were not copied from the BifacialSimu GitHub. 
 
 __Cannot load backend 'Qt5Agg'__ - If this error appears, you have to change the IPython Console from 'tk' to 'Qt5', f.e. in spyder.
 > "ImportError: Cannot load backend 'Qt5Agg' which requires the 'qt' interactive framework, as 'tk' is currently running."
@@ -463,6 +460,7 @@ Sebastian Nows (Ray Tracing)
 Felix Schemann (Variable Albedo, Ray Tracing)  
 Jan Schmitt (Graphical User Interface)  
 Fares Aoun (Installation Procedure)
+Jan Steinke (Threading)
 
 Thank you to all who have contributed so far to this project, it wouldn't have been as successful without their input.
 

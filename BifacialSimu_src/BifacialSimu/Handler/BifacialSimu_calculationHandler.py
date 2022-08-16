@@ -43,14 +43,15 @@ except ImportError:
     print('We suggest you install seaborn using conda or pip and rerun this cell')
 
 # Path handling
-#rootPath = os.path.dirname(os.path.dirname(os.path.realpath(".")))
+rootPath = rootPath = os.path.realpath("../../")
+
+from BifacialSimu.Handler import BifacialSimu_radiationHandler 
 
 # Include paths
 
 #sys.path.append(rootPath + "/BifacialSimu/Handler")
 
 
-from . import BifacialSimu_radiationHandler 
 
 
 # electric-calculation Klasse
@@ -301,16 +302,17 @@ class Electrical_simulation:
         # Plot total qinc front and back for every row
       
         
-        f, (ax1) = plt.subplots(1, figsize=(12, 3))
+        f = plt.Figure(figsize=(12, 3))
+        ax1 = f.subplots(1)
         ax1.locator_params(tight=True, nbins=6)
-        plt.plot(P_bi_hourly)
+        ax1.plot(P_bi_hourly)
         ax1.set_title('Bifacial output Power hourly')
         ax1.set_xlabel('Hour')
         ax1.set_ylabel('W')
         f.savefig("P_bi_hourly" + datetime.datetime.now().strftime("%Y-%m-%d-%H-%M") + ".png", dpi = dpi)
-        plt.show()
+        #plt.show()()
         #sns wird entfernt da die Plots in der GUI ansonsten nicht richtig angezeigt werden können außerhalb der Konsole
-        #plt.show(sns)
+        ##plt.show()(sns)
         
         
         ####################################################
@@ -399,6 +401,8 @@ class Electrical_simulation:
         
         #Plot for Bifacial Power Output + Bifacial Gain
         GUI.Window.makePlotBifacialRadiance(resultsPath,Bifacial_gain)
+        
+        return Bifacial_gain*100
         
     def simulate_simpleBifacial(moduleDict, simulationDict, df_reportVF, df_reportRT, df_report, df, resultsPath):
         """
@@ -596,15 +600,16 @@ class Electrical_simulation:
         # Plot total qinc front and back for every row
       
         
-        f, (ax1) = plt.subplots(1, figsize=(12, 3))
+        f = plt.Figure(figsize=(12, 3))
+        ax1 = f.subplots(1)
         ax1.locator_params(tight=True, nbins=6)
-        plt.plot(P_bi_hourly)
+        f.plot(P_bi_hourly)
         ax1.set_title('Bifacial output Power hourly')
         ax1.set_xlabel('Hour')
         ax1.set_ylabel('W')
         f.savefig("P_bi_hourly" + datetime.datetime.now().strftime("%Y-%m-%d-%H-%M") + ".png", dpi = dpi)
-        plt.show()
-        #plt.show(sns)
+        #plt.show()()
+        ##plt.show()(sns)
          
         ####################################################
         # Monofacial performance Calculation
@@ -665,7 +670,9 @@ class Electrical_simulation:
         print("Bifacial Gain: " + str(Bifacial_gain*100) + " %")
         
         #Plot for Bifacial Power Output + Bifacial Gain
-        GUI.Window.makePlotBifacialRadiance(resultsPath,Bifacial_gain)         
+        GUI.Window.makePlotBifacialRadiance(resultsPath,Bifacial_gain)     
+        
+        return Bifacial_gain*100
         
         
     def simulate_doubleDiode(moduleDict, simulationDict, df_reportVF, df_reportRT, df_report, df, resultsPath):
@@ -867,7 +874,8 @@ class Electrical_simulation:
                        
                        
                        #The P-V and I-V curve is plotted with the values since the last Rs, Rp adjustment
-                       f, (ax1) = plt.subplots(1, figsize=(6, 6))
+                       f = plt.Figure(figsize=(6, 6))
+                       ax1 = f.subplots(1)
                        ax1.locator_params(tight=True, nbins=6)
                        ax1.plot(Vfplt[-round(V_oc_f0 * 10):], Ifplt[-round(V_oc_f0 * 10):], color = "red")
                        ax1.set_title('P-V I-V Curve front side', fontsize=14)
@@ -877,7 +885,7 @@ class Electrical_simulation:
                        ax2.plot(Vfplt[-round(V_oc_f0 * 10):], Pfplt[-round(V_oc_f0 * 10):], color = "blue")
                        ax2.set_ylabel('Power [W]', fontsize=14, color = 'blue')
                        f.savefig("P-V_I-V_Curve_front" + datetime.datetime.now().strftime("%Y-%m-%d-%H-%M") + ".png", dpi = dpi)
-                       plt.show()
+                       #plt.show()()
  
                        #Rs and Rp have been calculated so the script quits the loop 
                        break
@@ -972,7 +980,7 @@ class Electrical_simulation:
                        ax2.plot(Vrplt[-round(V_oc_r0 * 10):], Prplt[-round(V_oc_r0 * 10):], color = "blue")
                        ax2.set_ylabel('Power [W]', fontsize=14, color = 'blue')
                        f.savefig("P-V_I-V_Curve_back" + datetime.datetime.now().strftime("%Y-%m-%d-%H-%M") + ".png", dpi = dpi)
-                       plt.show()                       
+                       #plt.show()()                       
                        
                        
                        break
@@ -1204,15 +1212,16 @@ class Electrical_simulation:
         # Plot total qinc front and back for every row
       
         
-        f, (ax1) = plt.subplots(1, figsize=(12, 3))
+        f = plt.Figure(figsize=(12, 3))
+        ax1 = f.subplots(1)
         ax1.locator_params(tight=True, nbins=6)
-        plt.plot(P_bi_hourly)
+        f.plot(P_bi_hourly)
         ax1.set_title('Bifacial output Power hourly')
         ax1.set_xlabel('Hour')
         ax1.set_ylabel('W')
         f.savefig("P_bi_hourly" + datetime.datetime.now().strftime("%Y-%m-%d-%H-%M") + ".png", dpi = dpi)
-        plt.show()
-        #plt.show(sns)
+        #plt.show()()
+        ##plt.show()(sns)
         
         
         ####################################################
@@ -1369,6 +1378,9 @@ class Electrical_simulation:
         T_koeff_I = moduleDict['T_koeff_I'] 
         T_koeff_V = moduleDict['T_koeff_V'] 
         T_amb = moduleDict['T_amb']
+        
+        # Note for later!:
+        # moduleDict['Ns'] is not defined in moduleDict! (This can gave an error) 
         Ns = moduleDict['Ns']      #Number of cells in module
         
         k = 1.3806503 * 10**(-23)       #Boltzmann constant [J/K]
@@ -1514,7 +1526,7 @@ class Electrical_simulation:
                        ax2.plot(Vfplt[-round(V_oc_f0 * 10):], Pfplt[-round(V_oc_f0 * 10):], color = "blue")
                        ax2.set_ylabel('Power [W]', fontsize=14, color = 'blue')
                        f.savefig("P-V_I-V_Curve_front" + datetime.datetime.now().strftime("%Y-%m-%d-%H-%M") + ".png", dpi = dpi)
-                       plt.show()
+                       #plt.show()()
  
                        #Rs and Rp have been calculated so the script quits the loop 
                        break
@@ -1760,16 +1772,17 @@ class Electrical_simulation:
         # Plot total qinc front and back for every row
       
         
-        f, (ax1) = plt.subplots(1, figsize=(12, 3))
+        f = plt.Figure(figsize=(12, 3))
+        ax1 = f.subplots(1)
         ax1.locator_params(tight=True, nbins=6)
-        plt.plot(P_bi_hourly)
+        f.plot(P_bi_hourly)
         ax1.set_title('Bifacial output Power hourly')
         ax1.set_xlabel('Hour')
         ax1.set_ylabel('W')
         f.savefig("P_bi_hourly" + datetime.datetime.now().strftime("%Y-%m-%d-%H-%M") + ".png", dpi = dpi)
-        plt.show()
+        #plt.show()()
         #sns wird entfernt da die Plots in der GUI ansonsten nicht richtig angezeigt werden können außerhalb der Konsole
-        #plt.show(sns)
+        ##plt.show()(sns)
         
         
         ####################################################
@@ -2062,16 +2075,17 @@ class Electrical_simulation:
             # Plot total qinc front and back for every row
           
             
-            f, (ax1) = plt.subplots(1, figsize=(12, 3))
+            f = plt.Figure(figsize=(12, 3))
+            ax1 = f.subplots(1)
             ax1.locator_params(tight=True, nbins=6)
-            plt.plot(P_bi_hourly)
+            f.plot(P_bi_hourly)
             ax1.set_title('Bifacial output Power hourly')
             ax1.set_xlabel('Hour')
             ax1.set_ylabel('W')
             f.savefig("P_bi_hourly" + datetime.datetime.now().strftime("%Y-%m-%d-%H-%M") + ".png", dpi = dpi)
-            plt.show()
+            #plt.show()()
             #sns wird entfernt da die Plots in der GUI ansonsten nicht richtig angezeigt werden können außerhalb der Konsole
-            #plt.show(sns)
+            ##plt.show()(sns)
              
             ####################################################
             # Monofacial performance Calculation
@@ -2133,3 +2147,4 @@ class Electrical_simulation:
             
             #Plot for Bifacial Power Output + Bifacial Gain
             GUI.Window.makePlotBifacialRadiance(resultsPath,Bifacial_gain)         
+            return Bifacial_gain*100
