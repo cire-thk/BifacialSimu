@@ -598,12 +598,10 @@ class Electrical_simulation:
         print ("\n")'''
         
         # Plot total qinc front and back for every row
-      
-        
         f = plt.Figure(figsize=(12, 3))
         ax1 = f.subplots(1)
         ax1.locator_params(tight=True, nbins=6)
-        f.plot(P_bi_hourly)
+        #f.plot(P_bi_hourly)
         ax1.set_title('Bifacial output Power hourly')
         ax1.set_xlabel('Hour')
         ax1.set_ylabel('W')

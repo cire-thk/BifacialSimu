@@ -63,9 +63,7 @@ A useful resource for the installation is this [video](https://www.youtube.com/w
 2. Install Radiance
 3. Install Radiance executables (jaloxa)
 4. Check Environment Variables
-5. Install pvlib
-6. Install bifacial_radiance
-7. Install gencumulativesky.exe
+5. Install BifacialSimu
 
 These steps are described below in detail as well, including the intallation of pv_factors, another important tool used by BifacialSimu.
 
@@ -102,6 +100,9 @@ In spyder for example you can navigate using __cd__:
 
 Now use:
 > pip install . 
+
+You can also use:
+> pip install BifacialSimu
 
 Check, if these standard python packages have been installed:  
 − [Pvlib](https://pvlib-python.readthedocs.io/en/stable/index.html)  
@@ -161,6 +162,12 @@ Providing that everything has been installed correctly and is functioning proper
 
 If, however, any error messages have occured or the simulation doesn't complete please refer to the [Troubleshooting](#troubleshooting) section found later in this document.
 ***
+
+## Standard Tests
+You can find standard test in the following folder:
+> BifacialSimu_src\Tests
+
+Running those tests, you are able to test the most important functions of BifacialSimu.
 
 ## GUI
 
