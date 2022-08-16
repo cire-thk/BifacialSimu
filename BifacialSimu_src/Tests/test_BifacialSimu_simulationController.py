@@ -93,8 +93,8 @@ class TestElectricalModes(unittest.TestCase):
     
     def test_simulate_simpleBifacial(self):
         df = DataHandler().passEPWtoDF(metdata, simulationDict, resultsPath)
-        simulationDict['simulationMode'] = 2
-        simulationDict['ElectricalMode_simple'] = 0
+        simulationDict['simulationMode'] = 2        #front and back simulation with View Factors
+        simulationDict['ElectricalMode_simple'] = 0 #One diode front and bi factor
         df_reportVF, df= ViewFactors.simulateViewFactors(simulationDict, demo, metdata,  df, resultsPath, onlyFrontscan)
         test_result= Electrical_simulation.simulate_simpleBifacial(moduleDict, simulationDict, df_reportVF, df_reportRT, df_report, df, resultsPath)
 
@@ -102,8 +102,8 @@ class TestElectricalModes(unittest.TestCase):
 
     def test_oneDiode(self):
         df = DataHandler().passEPWtoDF(metdata, simulationDict, resultsPath)
-        simulationDict['simulationMode'] = 2
-        simulationDict['ElectricalMode_simple'] = 1
+        simulationDict['simulationMode'] = 2        #front and back simulation with View Factors
+        simulationDict['ElectricalMode_simple'] = 1 #One diode front and back
         df_reportVF, df = ViewFactors.simulateViewFactors(simulationDict, demo, metdata,  df, resultsPath, onlyFrontscan = False)
         test_result= Electrical_simulation.simulate_oneDiode(moduleDict, simulationDict, df_reportVF, df_reportRT, df_report, df, resultsPath)
         
