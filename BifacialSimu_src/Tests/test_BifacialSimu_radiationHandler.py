@@ -2,9 +2,11 @@ import os
 rootPath = os.path.realpath("../")
 
 import unittest
+import csv
 import pandas as pd
 from BifacialSimu.Handler.BifacialSimu_radiationHandler import ViewFactors, RayTrace
 from BifacialSimu.Handler.BifacialSimu_dataHandler import DataHandler
+
 simulationDict={
     'clearance_height': 0.4, #value was found missing! should be added later!
     'simulationName' : 'NREL_best_field_row_2',
@@ -49,20 +51,48 @@ resultsPath = DataHandler().setDirectories()
  
 metdata, demo = DataHandler().getWeatherData(simulationDict, resultsPath)
 
-df = DataHandler().passEPWtoDF(metdata, simulationDict, resultsPath)
 df_reportRT = pd.DataFrame()
 df_reportVF = pd.DataFrame()
 df_report = pd.DataFrame()
 dataFrame = pd.DataFrame()
+
+'Importing known results. To be used later in unittest output comparison'
+df_csv= pd.read_csv(rootPath + "/Tests/Data.csv", index_col=('timestamp'))
+df_csv=df_csv.reset_index(drop=True)
+report_VF = pd.read_csv(rootPath + "/Tests/radiation_qabs_results.csv")
+report_VF= report_VF.reset_index(drop=True)
+VF_csv = pd.read_csv(rootPath + "/Tests/view_factors_4_12.csv")
+VF_csv = VF_csv.reset_index(drop=True)
+
+
+'The 4 lines below were used to manually compare results in unittest. Results are still giving illogical results.'
+'Compare results are sometimes giving False values even though the compared values are identically equal!'
+# df = DataHandler().passEPWtoDF(metdata, simulationDict, resultsPath)
+# df_reportVF, df = ViewFactors.simulateViewFactors(simulationDict, demo, metdata,  df, resultsPath, onlyFrontscan)
+# compare = df_csv==df #Compare values are appearing illogically False
+# result= df.equals(df_csv) #why False??
+
 
 class TestSimulationMethodes (unittest.TestCase):
     
     def test_SimulateViewFactors (self):
         df = DataHandler().passEPWtoDF(metdata, simulationDict, resultsPath)
         simulationDict['simulationMode'] = 2
-        df_reportVF, df= ViewFactors.simulateViewFactors(simulationDict, demo, metdata,  df, resultsPath, onlyFrontscan)
+        df_reportVF, df, view_factors_results= ViewFactors.simulateViewFactors(simulationDict, demo, metdata,  df, resultsPath, onlyFrontscan)
         
+        #Must drop Index to avoid the Error:
+            #ValueError: Can only compare identically-labeled DataFrame objects
+        df_reportVF= df_reportVF.reset_index(drop=True)
+        df=df.reset_index(drop=True)
+        view_factors_results=view_factors_results.reset_index(drop=True)
         
+        result1= df.equals(df_csv)
+        result2= report_VF.equals(df_reportVF)
+        result3= view_factors_results.equals(VF_csv)
+        
+        self.assertEqual(result1, True)
+        self.assertEqual(result2, True)
+        self.assertEqual(result3, True)
         
 
 
