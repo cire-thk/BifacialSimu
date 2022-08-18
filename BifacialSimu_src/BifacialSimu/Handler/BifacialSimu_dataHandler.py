@@ -16,19 +16,12 @@ overview:
 
 """
 
-
-# Klasse zum Importieren/Umwandeln von benötigten Daten
-    
-    # Funktion zum einlesen/umwandeln von Exceldateien?    
-
-
-# Klasse zum Exportieren/Umwandeln von benötigten Daten
-
-    # Funktion zum zusammenführen von Radiaton-Daten
-    # Funktion zum Exportieren von Radiation-Daten
-    # Funktion zum Exportieren von Grafiken
-    # Funktion zum Exportieren eines Berichts?
- 
+# Import/transformation of needed data
+# Import/transformation of Excel sheets
+    # function to merge radiation data
+    # function to export radiation data
+    # function to export graphics and plots
+    # function to create reports
 
 
 import datetime

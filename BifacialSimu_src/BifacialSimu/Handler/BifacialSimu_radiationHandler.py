@@ -520,16 +520,16 @@ class ViewFactors:
         df_inputs = df.iloc[dayUnderConsideration * 24:(dayUnderConsideration + 1) * 24, :] #rows to look at in .csv
         
         # Plot the data for displaying direct and diffuse irradiance
-        #print("\n Direct and Diffuse irradiance:") 
-        
-        f, (ax1) = plt.subplots(1, figsize=(12, 3))
+        print("\n Direct and Diffuse irradiance:")
+        f = plt.Figure(figsize=(12, 3))
+        ax1 = f.subplots(1)
         df_inputs[['dni', 'dhi']].plot(ax=ax1)
         ax1.locator_params(tight=True, nbins=6)
         ax1.set_ylabel('W/m2')
         f.savefig("Direct_Diffuse_irradiance.png", dpi = dpi)
-        plt.show()
+        #plt.show()
         #not used to show Plot in own Window
-        #plt.show(sns)
+        ##plt.show()(sns)
         
         # Calculate tracking angles if single axis tracking is enabled
         if simulationDict['singleAxisTracking'] == True:
@@ -641,7 +641,7 @@ class ViewFactors:
             ax.set_ylabel('Variable albedo')
             ax.legend(bbox_to_anchor=(0., 1.02, 1, 0.1), loc='lower left', ncol=2, borderaxespad=0.)
             plt.ylim(0,0.4)
-            plt.show()
+            #plt.show()()
         
         ####################################################
         
@@ -710,7 +710,7 @@ class ViewFactors:
         ax.set_xlim(-3,20)
         #f.savefig(resultsPath +"/Segment_Division" + datetime.now().strftime("%Y-%m-%d-%H-%M") + ".png", dpi = dpi)
         f.savefig("Segment_Division.png", dpi = dpi)
-        plt.show(sns)
+        #plt.show()(sns)
         """
         ####################################################
         #AOI reflection losses
@@ -724,8 +724,9 @@ class ViewFactors:
         # Helper functions for plotting and simulation with reflection losses
         def plot_irradiance(df_reportVF):
         
-             # Plot irradiance
-            f, ax = plt.subplots(nrows=1, ncols=2, figsize=(12, 4))
+            # Plot irradiance
+            f = plt.Figure(figsize=(12, 4))
+            ax = f.subplots(nrows=1, ncols=2)
             
             # Plot back surface irradiance
             df_reportVF[['qinc_back', 'qabs_back']].plot(ax=ax[0])
@@ -736,7 +737,7 @@ class ViewFactors:
             df_reportVF[['qinc_front', 'qabs_front']].plot(ax=ax[1])
             ax[1].set_title('Front surface irradiance')
             ax[1].set_ylabel('W/m2')
-            plt.show()
+            #plt.show()()
             
             
         ##### Without backscan #####   
@@ -744,18 +745,20 @@ class ViewFactors:
             
                 
             # Plot irradiance
-            f, ax = plt.subplots(figsize=(12, 4))
+            f = plt.Figure(figsize=(12, 4))
+            ax = f.subplots()
                     
             # Plot front surface irradiance
             df_reportVF[['qinc_front', 'qabs_front']].plot(ax=ax)
             ax.set_title('Front surface irradiance')
             ax.set_ylabel('W/m2')
-            plt.show()
+            #plt.show()()
         
         
         def plot_aoi_losses(df_reportVF):
                 # plotting AOI losses
-                f, ax = plt.subplots(figsize=(5.5, 4))
+                f = plt.Figure(figsize=(5.5, 4))
+                ax = f.subplots()
                 df_reportVF[['aoi_losses_back_%']].plot(ax=ax)
                 df_reportVF[['aoi_losses_front_%']].plot(ax=ax)
                 
@@ -763,21 +766,22 @@ class ViewFactors:
                 ax.set_ylabel('%')
                 ax.legend(['AOI losses back PV row', 'AOI losses front PV row'])
                 ax.set_title('AOI losses')
-                plt.show()
+                #plt.show()()
         
         
         ##### Without backscan #####
         def plot_aoi_losses_front(df_reportVF):
             
             # plotting AOI losses
-            f, ax = plt.subplots(figsize=(5.5, 4))
+            f = plt.Figure(figsize=(5.5, 4))
+            ax = f.subplots()
             df_reportVF[['aoi_losses_front_%']].plot(ax=ax)
             
             # Adjust axes
             ax.set_ylabel('%')
             ax.legend(['AOI losses front PV row'])
             ax.set_title('AOI losses')
-            plt.show()
+            #plt.show()()
             
            
             
@@ -1047,7 +1051,8 @@ class ViewFactors:
             plt.rc ('xtick', labelsize = 11) #Schriftgröße der x-Tick-Labels
             plt.rc ('ytick', labelsize = 11) #Schriftgröße der y-Tick-Labels
             plt.rc ('legend', fontsize = 11) #Schriftgröße der Legende
-            fig, ax = plt.subplots(figsize=(12, 4), dpi=200)
+            fig = plt.Figure(figsize=(12, 4), dpi=200)
+            ax = fig.subplots()
             width = 1
                        
             y1 = df2['Average front surface irradiance']
@@ -1060,15 +1065,16 @@ class ViewFactors:
             ax.xaxis.set_major_locator(mdates.MonthLocator())
             ax.xaxis.set_major_formatter(mdates.DateFormatter('%b'))
             ax.legend(bbox_to_anchor=(0., 1.02, 1, 0.1), loc='lower left', ncol=2, borderaxespad=0.)
-            plt.xlim(0,len(y1)-1)
+            #plt.xlim(0,len(y1)-1)
             
             
-            plt.show()
+            #plt.show()()
             
             
         def plot_irradiance2(df2):
             # Plot surface irradiance for every row
-            fig, ax = plt.subplots(figsize=(12, 4), dpi=200)
+            fig = plt.Figure(figsize=(12, 4), dpi=200)
+            ax = fig.subplots()
             
             width = 1
                        
@@ -1084,8 +1090,8 @@ class ViewFactors:
             ax.xaxis.set_major_formatter(mdates.DateFormatter('%b'))
             ax.legend(bbox_to_anchor=(0., 1.02, 1, 0.1), loc='lower left', ncol=3, borderaxespad=0.)
             ax.set_ylabel('Rear surface irradiance in $\mathregular{W/m^2}$')
-            plt.xlim(0,len(y1)-1)
-            plt.show()
+            #plt.xlim(0,len(y1)-1)
+            #plt.show()()
         
         
         # Run full simulation
@@ -1110,7 +1116,7 @@ class ViewFactors:
             ax[1].set_ylabel('W/m2')
             ax[2].set_ylabel('W/m2')
             #f.savefig("row0-3_qinc.png", dpi = dpi)
-            plt.show(sns)
+            #plt.show()(sns)
             """
             
             
@@ -1134,7 +1140,7 @@ class ViewFactors:
             ax[1].set_ylabel('W/m2')
             ax[2].set_ylabel('W/m2')
             f.savefig("row0-3_qinc.png", dpi = dpi)
-            plt.show(sns)
+            #plt.show()(sns)
             """
         
         df_reportVF=df_reportVF.set_index(pd.date_range(start = dtStart - datetime.timedelta(hours=1), end = dtEnd, freq='H', closed='right'))
@@ -1182,8 +1188,9 @@ class ViewFactors:
         view_factors_results = save_view_factor(4, 12, vf_matrix, df.index)
         
         
-        f, ax = plt.subplots(figsize=(10, 3))
+        f = plt.Figure(figsize=(10, 3))
+        ax = f.subplots()
         pvarray.plot_at_idx(0, ax, with_surface_index=True)
-        plt.show()
+        #plt.show()()
         
         return df_reportVF, df, view_factors_results

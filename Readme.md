@@ -31,6 +31,7 @@ This Readme guide will assist with the installation and operation of the program
 Basically it is devided into three different simulations, in which each you can choose between different calculation models as displayed below:
 <p align="center"><img src="BifacialSimu_src/Lib/readme_pics/Simulation_procedure_BifacialSimu.jpg" width="500"><br/></p>
 ***
+
 ## Prerequisites
 BifacialSimu is run within a Python environment and dependent on a variety of libraries, most of which are contained within the installation of Anaconda. 
 The program [Radiance](https://github.com/NREL/Radiance/releases) is necessary in order to run BifacialSimu. Besides that relies BifacialSimu on following libraries:
@@ -62,9 +63,7 @@ A useful resource for the installation is this [video](https://www.youtube.com/w
 2. Install Radiance
 3. Install Radiance executables (jaloxa)
 4. Check Environment Variables
-5. Install pvlib
-6. Install bifacial_radiance
-7. Install gencumulativesky.exe
+5. Install BifacialSimu
 
 These steps are described below in detail as well, including the intallation of pv_factors, another important tool used by BifacialSimu.
 
@@ -77,18 +76,6 @@ Even if you already have another python environment installed it is still recomm
 − For Mac OS X: follow the installation instructions [here](https://docs.anaconda.com/anaconda/install/mac-os/)  
 − For other operating systems: follow the installation instructions regarding your system [here](https://docs.anaconda.com/anaconda/install/ )
 
-Check, if these standard python packages have been installed:  
-− [Pvlib](https://pvlib-python.readthedocs.io/en/stable/index.html)  
-− [Pvfactors](https://sunpower.github.io/pvfactors/ ) 
-
-You can find these packages in the Anaconda navigator under “Environments” using the search bar in the upper right corner. 
-The newest version number will be highlighted in blue and you can update the package regarding the manual [here](https://docs.anaconda.com/anaconda/navigator/tutorials/manage-packages/)  
-
-You can check the current version of:\
-− [Pvlib](https://sunpower.github.io/pvfactors/)  
-− [Pvfactors](https://sunpower.github.io/pvfactors/whatsnew.html)
-
-Important! Make sure to update Anaconda regularly to keep your python packages updated! 
 
 __Installation of Radiance__  
 for Mac OS X: The installation of XQuartz is required for Radiance to run, this emulates a Windows environment for the program.
@@ -104,12 +91,31 @@ Make sure to download and insert the jaloxa Windows Binaries into the Radiance b
 
 __Install BifacialSimu__
 
-To install BifacialSimu and Copies of [bifacial_radiance](https://github.com/NREL/bifacial_radiance) and [pvfavtors](https://github.com/SunPower/pvfactors), navigate to your local GitHub folder or download BifacialSimu on GitHub. 
+To install BifacialSimu and Copies of [bifacial_radiance](https://github.com/NREL/bifacial_radiance) and [pvfavtors](https://github.com/SunPower/pvfactors), you can use:
+> pip install BifacialSimu
+
+If that does not work for you, navigate to your local GitHub folder or download BifacialSimu on GitHub. 
 In spyder for example you can navigate using __cd__:
 > cd C:\Users\XXX\XXX\GitHub\bifacialSimu
 
 Now use:
 > pip install . 
+
+You can also use:
+> pip install BifacialSimu
+
+Check, if these standard python packages have been installed:  
+− [Pvlib](https://pvlib-python.readthedocs.io/en/stable/index.html)  
+− [Pvfactors](https://sunpower.github.io/pvfactors/ ) 
+
+You can find these packages in the Anaconda navigator under “Environments” using the search bar in the upper right corner. 
+The newest version number will be highlighted in blue and you can update the package regarding the manual [here](https://docs.anaconda.com/anaconda/navigator/tutorials/manage-packages/)  
+
+You can check the current version of:\
+− [Pvlib](https://sunpower.github.io/pvfactors/)  
+− [Pvfactors](https://sunpower.github.io/pvfactors/whatsnew.html)
+
+Important! Make sure to update Anaconda regularly to keep your python packages updated! 
 
 After a sucessfull installation, you can run the GUI.py in the BifacialSimu\BifacialSimu_src folder.
 
@@ -117,6 +123,8 @@ __Run BifacialSimu__
 − Open Spyder within the Anaconda Navigator  
 − Open the GUI.py file in spyder   
 − Run the GUI.py file. 
+
+
 
 ***
 ## Quick Start
@@ -154,6 +162,12 @@ Providing that everything has been installed correctly and is functioning proper
 
 If, however, any error messages have occured or the simulation doesn't complete please refer to the [Troubleshooting](#troubleshooting) section found later in this document.
 ***
+
+## Standard Tests
+You can find standard test in the following folder:
+> BifacialSimu_src\Tests
+
+Running those tests, you are able to test the most important functions of BifacialSimu.
 
 ## GUI
 
@@ -347,10 +361,9 @@ This graph also displays the total irradiance of the system, this time broken do
 ## Troubleshooting
 Here you can find some general troubleshooting measures which may help when running into problems with the simulation.
 
-__GUI unresponsive during simulation__ - During a simulation the GUI window and parameters can no longer be amended, it will be possible to see whether the simulation is operating correctly by observing the terminal within your Python environment where the program is running.
+__name 'rootPath' is not defined__ - If you get this error, the rootPath was not set beforehand. If you run the GUI.py again, it won't show the error.
 
 __Program unresponsive__ - If the simulation is itself unresponsive and no longer operating correctly it is possible to stop the program within the environment and reload. 
-Unfortunately this will result in the loss of previously defined simulation parameters.
 
 __temp_air Error__ - If the simulation produces this error it may be a sign that the "load" and "main" files from BifacialSimu haven't been copied into the installation of bifacial_radiance correctly. These files should overwrite the files in the bifacial_radiance Lib folder. It is also important that they are installed in the correct location, check within the anaconda installation of bifacial_radiance. 
 An example path would be: 
@@ -364,8 +377,6 @@ There is also a script to convert weather files into TMY formate which can be fo
 
 __Incorrect Timescale on Graphs__ - This is a result of not changing the time zone under the Simulation Control settings. 
 It is also possible to manually amend the axis titles within the matlibplot graphs by using the edit button.
-
-__missingKeyWarning from bifacial_radiance.main__ - This error appears if the load.py and main.py [files](#installation) were not copied from the BifacialSimu GitHub. 
 
 __Cannot load backend 'Qt5Agg'__ - If this error appears, you have to change the IPython Console from 'tk' to 'Qt5', f.e. in spyder.
 > "ImportError: Cannot load backend 'Qt5Agg' which requires the 'qt' interactive framework, as 'tk' is currently running."
@@ -455,6 +466,8 @@ Frederik Klag (Ray Tracing)
 Sebastian Nows (Ray Tracing)  
 Felix Schemann (Variable Albedo, Ray Tracing)  
 Jan Schmitt (Graphical User Interface)  
+Fares Aoun (Installation Procedure)
+Jan Steinke (Threading)
 
 Thank you to all who have contributed so far to this project, it wouldn't have been as successful without their input.
 

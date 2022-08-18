@@ -56,7 +56,7 @@ from BifacialSimu.Handler import BifacialSimu_radiationHandler
 
 # electric-calculation Klasse
     
-    # Funktionen für 1-Dioden-Modell
+    # Functions for One-Diode Model
 
 class Electrical_simulation:
     """
@@ -302,16 +302,17 @@ class Electrical_simulation:
         # Plot total qinc front and back for every row
       
         
-        f, (ax1) = plt.subplots(1, figsize=(12, 3))
+        f = plt.Figure(figsize=(12, 3))
+        ax1 = f.subplots(1)
         ax1.locator_params(tight=True, nbins=6)
-        plt.plot(P_bi_hourly)
+        ax1.plot(P_bi_hourly)
         ax1.set_title('Bifacial output Power hourly')
         ax1.set_xlabel('Hour')
         ax1.set_ylabel('W')
         f.savefig("P_bi_hourly" + datetime.datetime.now().strftime("%Y-%m-%d-%H-%M") + ".png", dpi = dpi)
-        plt.show()
+        #plt.show()()
         #sns wird entfernt da die Plots in der GUI ansonsten nicht richtig angezeigt werden können außerhalb der Konsole
-        #plt.show(sns)
+        ##plt.show()(sns)
         
         
         ####################################################
@@ -597,18 +598,16 @@ class Electrical_simulation:
         print ("\n")'''
         
         # Plot total qinc front and back for every row
-      
-        
-        f, (ax1) = plt.subplots(1, figsize=(12, 3))
+        f = plt.Figure(figsize=(12, 3))
+        ax1 = f.subplots(1)
         ax1.locator_params(tight=True, nbins=6)
-        plt.plot(P_bi_hourly)
+        #f.plot(P_bi_hourly)
         ax1.set_title('Bifacial output Power hourly')
         ax1.set_xlabel('Hour')
         ax1.set_ylabel('W')
         f.savefig("P_bi_hourly" + datetime.datetime.now().strftime("%Y-%m-%d-%H-%M") + ".png", dpi = dpi)
-        plt.show()
-        #sns wird entfernt da die Plots in der GUI ansonsten nicht richtig angezeigt werden können außerhalb der Konsole
-        #plt.show(sns)
+        #plt.show()()
+        ##plt.show()(sns)
          
         ####################################################
         # Monofacial performance Calculation
@@ -873,7 +872,8 @@ class Electrical_simulation:
                        
                        
                        #The P-V and I-V curve is plotted with the values since the last Rs, Rp adjustment
-                       f, (ax1) = plt.subplots(1, figsize=(6, 6))
+                       f = plt.Figure(figsize=(6, 6))
+                       ax1 = f.subplots(1)
                        ax1.locator_params(tight=True, nbins=6)
                        ax1.plot(Vfplt[-round(V_oc_f0 * 10):], Ifplt[-round(V_oc_f0 * 10):], color = "red")
                        ax1.set_title('P-V I-V Curve front side', fontsize=14)
@@ -883,7 +883,7 @@ class Electrical_simulation:
                        ax2.plot(Vfplt[-round(V_oc_f0 * 10):], Pfplt[-round(V_oc_f0 * 10):], color = "blue")
                        ax2.set_ylabel('Power [W]', fontsize=14, color = 'blue')
                        f.savefig("P-V_I-V_Curve_front" + datetime.datetime.now().strftime("%Y-%m-%d-%H-%M") + ".png", dpi = dpi)
-                       plt.show()
+                       #plt.show()()
  
                        #Rs and Rp have been calculated so the script quits the loop 
                        break
@@ -978,7 +978,7 @@ class Electrical_simulation:
                        ax2.plot(Vrplt[-round(V_oc_r0 * 10):], Prplt[-round(V_oc_r0 * 10):], color = "blue")
                        ax2.set_ylabel('Power [W]', fontsize=14, color = 'blue')
                        f.savefig("P-V_I-V_Curve_back" + datetime.datetime.now().strftime("%Y-%m-%d-%H-%M") + ".png", dpi = dpi)
-                       plt.show()                       
+                       #plt.show()()                       
                        
                        
                        break
@@ -1106,7 +1106,7 @@ class Electrical_simulation:
                         
                             
                     ##################################
-                    ###Same procedure for back side###
+                    ###Same procedure for rear side###
                     ##################################
                     I = 0
                     V = 0
@@ -1210,16 +1210,16 @@ class Electrical_simulation:
         # Plot total qinc front and back for every row
       
         
-        f, (ax1) = plt.subplots(1, figsize=(12, 3))
+        f = plt.Figure(figsize=(12, 3))
+        ax1 = f.subplots(1)
         ax1.locator_params(tight=True, nbins=6)
-        plt.plot(P_bi_hourly)
+        f.plot(P_bi_hourly)
         ax1.set_title('Bifacial output Power hourly')
         ax1.set_xlabel('Hour')
         ax1.set_ylabel('W')
         f.savefig("P_bi_hourly" + datetime.datetime.now().strftime("%Y-%m-%d-%H-%M") + ".png", dpi = dpi)
-        plt.show()
-        #sns wird entfernt da die Plots in der GUI ansonsten nicht richtig angezeigt werden können außerhalb der Konsole
-        #plt.show(sns)
+        #plt.show()()
+        ##plt.show()(sns)
         
         
         ####################################################
@@ -1524,7 +1524,7 @@ class Electrical_simulation:
                        ax2.plot(Vfplt[-round(V_oc_f0 * 10):], Pfplt[-round(V_oc_f0 * 10):], color = "blue")
                        ax2.set_ylabel('Power [W]', fontsize=14, color = 'blue')
                        f.savefig("P-V_I-V_Curve_front" + datetime.datetime.now().strftime("%Y-%m-%d-%H-%M") + ".png", dpi = dpi)
-                       plt.show()
+                       #plt.show()()
  
                        #Rs and Rp have been calculated so the script quits the loop 
                        break
@@ -1770,16 +1770,17 @@ class Electrical_simulation:
         # Plot total qinc front and back for every row
       
         
-        f, (ax1) = plt.subplots(1, figsize=(12, 3))
+        f = plt.Figure(figsize=(12, 3))
+        ax1 = f.subplots(1)
         ax1.locator_params(tight=True, nbins=6)
-        plt.plot(P_bi_hourly)
+        f.plot(P_bi_hourly)
         ax1.set_title('Bifacial output Power hourly')
         ax1.set_xlabel('Hour')
         ax1.set_ylabel('W')
         f.savefig("P_bi_hourly" + datetime.datetime.now().strftime("%Y-%m-%d-%H-%M") + ".png", dpi = dpi)
-        plt.show()
+        #plt.show()()
         #sns wird entfernt da die Plots in der GUI ansonsten nicht richtig angezeigt werden können außerhalb der Konsole
-        #plt.show(sns)
+        ##plt.show()(sns)
         
         
         ####################################################
@@ -2072,16 +2073,17 @@ class Electrical_simulation:
             # Plot total qinc front and back for every row
           
             
-            f, (ax1) = plt.subplots(1, figsize=(12, 3))
+            f = plt.Figure(figsize=(12, 3))
+            ax1 = f.subplots(1)
             ax1.locator_params(tight=True, nbins=6)
-            plt.plot(P_bi_hourly)
+            f.plot(P_bi_hourly)
             ax1.set_title('Bifacial output Power hourly')
             ax1.set_xlabel('Hour')
             ax1.set_ylabel('W')
             f.savefig("P_bi_hourly" + datetime.datetime.now().strftime("%Y-%m-%d-%H-%M") + ".png", dpi = dpi)
-            plt.show()
+            #plt.show()()
             #sns wird entfernt da die Plots in der GUI ansonsten nicht richtig angezeigt werden können außerhalb der Konsole
-            #plt.show(sns)
+            ##plt.show()(sns)
              
             ####################################################
             # Monofacial performance Calculation

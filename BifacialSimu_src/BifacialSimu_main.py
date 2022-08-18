@@ -17,9 +17,7 @@ overview:
     
 """
     
-# Start-Befehl für Simulation
 
-# Später: Aufruf der GUI
 
 # -*- coding: utf-8 -*-
 
@@ -27,7 +25,6 @@ overview:
 import sys, os
 import math
 
-# Importieren der nötigen Module und Pfade
 # Path handling
 rootPath = os.path.realpath(".")
 print(rootPath)
@@ -39,8 +36,6 @@ sys.path.append(rootPath + "/BifacialSimu/Handler")
 import BifacialSimu_simulationController
 
 
-# Eingabe von Simulationsvariablen und Einstellungen für die Simulationsmethode
-    # Als Klasse oder Funktion oder Bibiliothek oder einfach nur so?
 """
         Sets the mode for simulation: str
         mode 1 : front simulation with PVfactors, back simulation with Raytracing
