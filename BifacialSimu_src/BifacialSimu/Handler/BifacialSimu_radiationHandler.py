@@ -1177,12 +1177,13 @@ class ViewFactors:
             result.to_csv("view_factors_" + str(i) + "_" + str(j) + ".csv")
             #print("\n View Factors:")
             #print('View factor from surface {} to surface {}: {}'.format(i, j, np.around(vf, decimals=2))) # in case the matrix should be printed in the console
+            return result
         
-        save_view_factor(4, 12, vf_matrix, df.index)
+        view_factors_results = save_view_factor(4, 12, vf_matrix, df.index)
         
         
         f, ax = plt.subplots(figsize=(10, 3))
         pvarray.plot_at_idx(0, ax, with_surface_index=True)
         plt.show()
         
-        return df_reportVF, df
+        return df_reportVF, df, view_factors_results
