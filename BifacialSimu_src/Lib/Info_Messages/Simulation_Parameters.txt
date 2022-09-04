@@ -1,5 +1,5 @@
 
-Single Axis Tracking:		adjusts the panels rotation around the horizantal axis to achieve higher efficiencies.
+Single Axis Tracking:		adjusts the panels rotation around the horizontal axis to achieve higher efficiencies.
 				[Once this is activated the "Limit Angle of Tracking System" should be set, which corresponds to the maximum angle that the modules can
 				rotate to]
 
@@ -22,7 +22,7 @@ Simplified Variable Albedo Model:	The simplified variable albedo model uses the 
 				the underlying ground.
 
 Hourly Albedo Measurement Data:	It is also possible to use previously measured hourly albedo values for further simulations, this can be useful for validation
-				bifacial gain of a new module within BifacialSimu or alternatively then a way to find out how other modules would function in this particular
+				bifacial gain of a new module within BifacialSimu or alternative way to find out how other modules would function in this particular
 				scenario.
 				[the use of hourly measured albedo values is not possible with fixed tilt simulations at this point in time]
 
