@@ -13,9 +13,10 @@ __pycache__/
 .pytest_cache/
 Outputs/
 
- #packaging and distribution
- build/
- dist/
- bifacialsimu.egg-info/
+#packaging and distribution
+build/
+dist/
+BifacialSimu.egg-info/
 .pytest_cache/
+
  
