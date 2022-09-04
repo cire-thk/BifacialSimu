@@ -58,7 +58,7 @@ dataFrame = pd.DataFrame()
 
 'Importing known results. To be used later in unittest output comparison'
 df_csv= pd.read_csv(rootPath + "/Tests/Data.csv", index_col=('timestamp'))
-df_csv=df_csv.reset_index(drop=True)
+df_csv= df_csv.reset_index(drop=True)
 report_VF = pd.read_csv(rootPath + "/Tests/radiation_qabs_results.csv")
 report_VF= report_VF.reset_index(drop=True)
 VF_csv = pd.read_csv(rootPath + "/Tests/view_factors_4_12.csv")
@@ -67,10 +67,12 @@ VF_csv = VF_csv.reset_index(drop=True)
 
 'The 4 lines below were used to manually compare results in unittest. Results are still giving illogical results.'
 'Compare results are sometimes giving False values even though the compared values are identically equal!'
-# df = DataHandler().passEPWtoDF(metdata, simulationDict, resultsPath)
-# df_reportVF, df = ViewFactors.simulateViewFactors(simulationDict, demo, metdata,  df, resultsPath, onlyFrontscan)
-# compare = df_csv==df #Compare values are appearing illogically False
-# result= df.equals(df_csv) #why False??
+df = DataHandler().passEPWtoDF(metdata, simulationDict, resultsPath)
+df_reportVF, df,view_factors_results = ViewFactors.simulateViewFactors(simulationDict, demo, metdata,  df, resultsPath, onlyFrontscan)
+df=df.reset_index(drop=True)
+
+compare = df_csv==df #Compare values are appearing illogically False
+result= df.equals(df_csv) #why False??
 
 
 class TestSimulationMethodes (unittest.TestCase):
