@@ -88,7 +88,7 @@ def startSimulation(simulationDict, moduleDict, resultsPath):
         
     if simulationDict['simulationMode'] == 2:
         print('Front and back simulation with ViewFactors')
-        df_reportVF, df = BifacialSimu_radiationHandler.ViewFactors.simulateViewFactors(simulationDict, demo, metdata,  df, resultsPath, onlyFrontscan = False)
+        df_reportVF, df, test = BifacialSimu_radiationHandler.ViewFactors.simulateViewFactors(simulationDict, demo, metdata,  df, resultsPath, onlyFrontscan = False)
         
         if simulationDict['ElectricalMode_simple'] == 0:      
             BifacialSimu_calculationHandler.Electrical_simulation.simulate_simpleBifacial(moduleDict, simulationDict, df_reportVF, df_reportRT, df_report, df, resultsPath)
@@ -102,7 +102,7 @@ def startSimulation(simulationDict, moduleDict, resultsPath):
     
     if simulationDict['simulationMode'] == 4 or simulationDict['simulationMode'] == 1:
         print('Front simulation with ViewFactors')
-        df_reportVF, df = BifacialSimu_radiationHandler.ViewFactors.simulateViewFactors(simulationDict, demo, metdata,  df, resultsPath, onlyFrontscan = True)
+        df_reportVF, df, test = BifacialSimu_radiationHandler.ViewFactors.simulateViewFactors(simulationDict, demo, metdata,  df, resultsPath, onlyFrontscan = True)
         
         if simulationDict['ElectricalMode_simple'] == 0:      
             BifacialSimu_calculationHandler.Electrical_simulation.simulate_simpleBifacial(moduleDict, simulationDict, df_reportVF, df_reportRT, df_report, df, resultsPath)
