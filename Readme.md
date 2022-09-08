@@ -30,6 +30,10 @@ It is intended to provide a free, effective tool to simulate the energy yield of
 This Readme guide will assist with the installation and operation of the program, providing a quick start to simulating bifacial modules.
 Basically it is devided into three different simulations, in which each you can choose between different calculation models as displayed below:
 <p align="center"><img src="BifacialSimu_src/Lib/readme_pics/Simulation_procedure_BifacialSimu.jpg" width="500"><br/></p>
+
+The general architechture and functions are displayed in the following figure:
+<p align="center"><img src="BifacialSimu_src/Lib/readme_pics/BifacialSimu Architecture_Functions.jpg" width="800"><br/></p>
+
 ***
 
 ## Prerequisites
@@ -470,6 +474,17 @@ Fares Aoun (Installation Procedure)
 Jan Steinke (Threading)
 
 Thank you to all who have contributed so far to this project, it wouldn't have been as successful without their input.
+
+***
+
+> The Contribution guide is still a work in progress. If you have ideas how to improve it, please share them with us.
+
+We are always happy if you would like to contribute to BifacialSimu. For example you could:
+* Create GitHub issues and contribute to the discussions about how to solve them
+* Read issues and pull requests that other poeple created and contribute on how to solve them
+* Write unit tests for functions in BifacialSimu 
+* Improve the documentation
+* If you would like to contribute a new function to BifacialSimu, it is manditory that you provide a unit test with it
 
 If you wish to assist in further developing this program please contact [Eva-Maria Grommes](https://orcid.org/0000-0002-7826-3754).
 
