@@ -37,6 +37,8 @@ The general architechture and functions are displayed in the following figure:
 ***
 
 ## Prerequisites
+Unfortnatly, BifacialSimu is not supported by Linux at the moment. We are working on this issue. If you want to contribute to solving this issue, please contact us.
+
 BifacialSimu is run within a Python environment and dependent on a variety of libraries, most of which are contained within the installation of Anaconda. 
 The program [Radiance](https://github.com/NREL/Radiance/releases) is necessary in order to run BifacialSimu. Besides that relies BifacialSimu on following libraries:
 >bifacial_radiance==0.4.1  
