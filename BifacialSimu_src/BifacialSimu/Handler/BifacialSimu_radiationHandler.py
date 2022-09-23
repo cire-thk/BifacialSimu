@@ -559,7 +559,7 @@ class ViewFactors:
             
             df = df.join(d['surf_tilt'])
 
-            df['timestamp'] = df['corrected_timestamp'].dt.strftime('%m-%d %H:%M%')
+            df['timestamp'] = df['corrected_timestamp'].dt.strftime('%Y %m-%d %H:%M')
             df['timestamp'] = pd.to_datetime(df['timestamp'])
             #df['timestamp'] = df['timestamp'].dt.tz_localize(None)
             df = df.set_index('timestamp')
@@ -574,9 +574,9 @@ class ViewFactors:
             
             df = df.reset_index()
             
-            df['time'] = df['corrected_timestamp'].dt.strftime('%m_%d_%H')
+            df['time'] = df['corrected_timestamp'].dt.strftime('%Y %m_%d_%H')
             df = df.set_index('time')
-            df['timestamp'] = df['corrected_timestamp'].dt.strftime('%m-%d %H:%M%')
+            df['timestamp'] = df['corrected_timestamp'].dt.strftime('%Y %m-%d %H:%M%')
             df['timestamp'] = pd.to_datetime(df['timestamp'])  
             #df['timestamp'] = df['timestamp'].dt.tz_localize(None)
             df = df.set_index('timestamp')
