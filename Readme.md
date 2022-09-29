@@ -1,6 +1,8 @@
-
 <p align="center"><img src="BifacialSimu_src/Lib/logos/logo_BifacialSimu_transparentresized.png" width="300" ></p>
 <p align="center"><a href="https://github.com/cire-thk/BifacialSimu/blob/master/LICENSE"><img src="BifacialSimu_src/Lib/readme_pics/license-BSD-3--Clause-blue.svg"</p></a>
+
+
+<p align="center"><a href="https://zenodo.org/badge/latestdoi/337985109"><img src="https://zenodo.org/badge/337985109.svg" alt="DOI"</p></a>
 
 ***
 # BifacialSimu
@@ -504,7 +506,7 @@ BifacialSimu applies parts from [bifacial_radiance](https://github.com/NREL/bifa
 ## Citation of BifacialSimu
 If you use BifacialSimu in a published work, please cite:
 
-> Grommes, Eva-Maria (2022). BifacialSimu, https://github.com/cire-thk/BifacialSimu \
+> Grommes, Eva-Maria (2022). BifacialSimu, https://github.com/cire-thk/BifacialSimu, doi:10.5281/zenodo.7125382. \
 
 > E. Grommes, U. Blieske, J. Müller-Ost , "The Impact of Albedo Measurements on Power Density Calculations of Bifacial Modules," 37th European Photovoltaic Solar Energy Conference and Exhibition, 2020, pp.1228 - 1232, doi:  10.4229/EUPVSEC20202020-5BO.6.5. \
 

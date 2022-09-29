@@ -1,0 +1,39 @@
+{
+    "description": "Holistic Simulation of large-scale Bifacial Photovoltaic Systems", 
+    "license": "other-open", 
+    "title": "cire-thk/BifacialSimu: JOSS", 
+    "version": "1.1.1", 
+    "upload_type": "software", 
+    "publication_date": "2022-09-29", 
+    "creators": [
+        {
+            "affiliation": "University of Applied Sciences Cologne", 
+            "name": "Eva-Maria Grommes",
+            "orcid": "0000-0002-7826-3754"
+        }, 
+        {
+            "affiliation": "University of Applied Sciences Cologne", 
+            "name": "Ulf Blieske"
+        }
+      
+    ], 
+    "access_right": "open", 
+    "related_identifiers": [
+        {
+            "scheme": "url", 
+            "identifier": "https://github.com/cire-thk/BifacialSimu/tree/1.1.1", 
+            "relation": "isSupplementTo"
+        }, 
+        {
+            "scheme": "doi", 
+            "identifier": "10.5281/zenodo.7125381", 
+            "relation": "isVersionOf"
+        }
+    ],
+
+    "keywords": [
+        "Bifacial Photovoltaic",
+        "Albedo",
+        "Simulation"
+      ],
+}
