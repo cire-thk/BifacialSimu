@@ -1,6 +1,8 @@
 from setuptools import setup,find_packages,Extension
 from setuptools import find_packages
 from pathlib import Path
+import versioneer 
+
 
 # # Load the README file.
 here = Path(__file__).parent
@@ -26,7 +28,8 @@ setup(
     #   - MAJOR VERSION 1
     #   - MINOR VERSION 0
     #   - MAINTENANCE VERSION 0
-    version='1.0.0',
+    version= versioneer.get_version() ,
+    cmdclass=versioneer.get_cmdclass(),
 
     # Here is a small description of the library. This appears
     # when someone searches for the library on https://pypi.org/search.

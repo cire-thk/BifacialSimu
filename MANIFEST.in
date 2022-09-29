@@ -1,1 +1,3 @@
 graft BifacialSimu_src
+include versioneer.py 
+
