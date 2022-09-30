@@ -58,6 +58,10 @@ import pandas as pd
 #import time
 #import pickle
 import threading #for using multiple threads to make the GUI responsive during simulations
+from BifacialSimu_src import globals
+
+globals.initialize()
+
 
 # aliases for Tkinter functions
 END = tk.END
@@ -152,6 +156,8 @@ ModuleDict = {
     'zeta': 0.06 #Bestrahlungskoeffizient für Leerlaufspannung [-]
     
 }
+
+
 
 
 class Window(tk.Tk):
@@ -373,11 +379,11 @@ class Window(tk.Tk):
         
         # Starting the simulation
         def StartSimulation():
-            
+           
 # =============================================================================
 #             Time Parameter
 # =============================================================================
-
+            
             if (len(Entry_year_start.get())==0 or len(Entry_month_start.get()) == 0 
                 or len(Entry_day_start.get()) == 0 
                 or len(Entry_hour_start.get()) == 0 
@@ -399,12 +405,15 @@ class Window(tk.Tk):
             if int (Entry_month_end.get()) <=0 or int (Entry_month_end.get()) >12:
                 messagebox.showwarning("Simulation Control", "Please insert a End Month between 1 and 12!")
                 exit
+                
             if int(Entry_day_end.get()) <1 or int(Entry_day_end.get()) >31:
                 messagebox.showwarning("Simulation Control", "Please insert a End Day between 1 and 31!")
                 exit
+                    
             if int(Entry_hour_end.get()) <0 or int(Entry_hour_end.get()) >=24:
                 messagebox.showwarning("Simulation Control", "Please insert a End Hour between 0 and 23!")
                 exit
+                    
             if (len(Entry_year_start.get()) != 0
                 and len(Entry_month_start.get()) != 0 and 1 <= int (Entry_month_start.get()) <= 12
                 and len(Entry_day_start.get()) != 0 and 1<= int(Entry_day_start.get()) <=31
@@ -418,15 +427,15 @@ class Window(tk.Tk):
                 SimulationDict["startHour"]=(Startdate.year, Startdate.month, Startdate.day, Startdate.hour)
                 Enddate=datetime.datetime(int(Entry_year_end.get()), int(Entry_month_end.get()), int(Entry_day_end.get()), int(Entry_hour_end.get()))
                 SimulationDict["endHour"]=(Enddate.year, Enddate.month, Enddate.day, Enddate.hour)
-                
+            
             else:
                 messagebox.showwarning("Simulation Control", "Please insert a Start and End Date \n in the format: [yyyy mm dd hh]!")
                 exit
-            
+                
+               
             if len(Entry_utcoffset.get())!=0:
                 SimulationDict["utcOffset"]=float(Entry_utcoffset.get())
            
-
 
 # =============================================================================
 #             Simulation Parameter
@@ -550,7 +559,8 @@ class Window(tk.Tk):
 # =============================================================================
 #             Defining the Path for the Results    
 # =============================================================================
-                
+            
+            
             resultsPath = Controller.DataHandler().setDirectories()
             print('created resultsPath at: ' + resultsPath)     
             
@@ -568,7 +578,7 @@ class Window(tk.Tk):
           
             makePlotAbsIrr(resultsPath)
             makePlotirradiance(resultsPath)
-            #makePlotBifacialRadiance(resultsPath) 
+                #makePlotBifacialRadiance(resultsPath) 
 
           
 # =============================================================================
@@ -626,7 +636,7 @@ class Window(tk.Tk):
                 ax1.xaxis.set_minor_formatter(dates.DateFormatter('%d'))  # day
                 ax1.xaxis.set_major_locator(dates.MonthLocator(interval=1))    # every Month
                 ax1.xaxis.set_major_formatter(dates.DateFormatter('\n%m-%Y'))  #show Month and Year
-           #     ax1.legend()
+                #ax1.legend()
                 ax1.legend(bbox_to_anchor=(0.7,1.02,1,.102),loc=3,ncol=2,borderaxespad=0)   #Place the Legend outside of the graph
                 ax1.set_ylabel('Radiance\n[W/m²]', size=17)
                 ax1.set_xlabel("Time", size=17)
@@ -1827,21 +1837,34 @@ class Window(tk.Tk):
 #         Control Buttons for the Simulation    
 # =============================================================================
         
-        #start or stop Simulation in Thread
+        #start Simulation in Thread
         def generate_thread():
+            
+            #breaking flag must be rest before starting a new Simulation, otherwise it won't function if someone pressed the stop button before.
+            globals.thread_break = False 
+            
             threading.Thread(target=StartSimulation).start()
-
-
+       
+        #break Simulation in Thread
+        def Break_Simulation():
+            
+            #messagebox to ask users if they are sure they want to terminate process.          
+            answer = messagebox.askyesno("Stopping Simulation", "Are you sure you want to stop the simulation?", )
+            
+            if answer == 1:
+                #breaking flag switches to True to trigger the simulation break
+                globals.thread_break = True
+                
         Button_startSimulation=ttk.Button(simulationFunction_frame, text="Start Simulation!", command=generate_thread)
         Button_startSimulation.grid(column=2,row=1)
         Button_setDefault=ttk.Button(simulationFunction_frame, text="set default!", command=setdefault)
         Button_setDefault.grid(column=0,row=1)
         Button_clear=ttk.Button(simulationFunction_frame, text="clear!", command=clearall)
         Button_clear.grid(column=1,row=1)
-        #Button_stopSimulation=ttk.Button(simulationFunction_frame, text="Stop Simulation!", command=Simulator._stop())
-        #Button_stopSimulation.grid(column=2,row=2)
+        Button_stopSimulation=ttk.Button(simulationFunction_frame, text="Stop Simulation!", command=Break_Simulation)
+        Button_stopSimulation.grid(column=3,row=1)
 
-
+        
 
     def _on_frame_configure(self, event=None):
         self.canvas.configure(scrollregion=self.canvas.bbox("all"))
