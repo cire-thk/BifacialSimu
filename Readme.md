@@ -1,6 +1,9 @@
-
 <p align="center"><img src="BifacialSimu_src/Lib/logos/logo_BifacialSimu_transparentresized.png" width="300" ></p>
 <p align="center"><a href="https://github.com/cire-thk/BifacialSimu/blob/master/LICENSE"><img src="BifacialSimu_src/Lib/readme_pics/license-BSD-3--Clause-blue.svg"</p></a>
+
+<p align="center"><a href="https://doi.org/10.21105/joss.04443"><img src="https://joss.theoj.org/papers/10.21105/joss.04443/status.svg"</p></a>
+
+
 
 ***
 # BifacialSimu
@@ -504,11 +507,7 @@ BifacialSimu applies parts from [bifacial_radiance](https://github.com/NREL/bifa
 ## Citation of BifacialSimu
 If you use BifacialSimu in a published work, please cite:
 
-> Grommes, Eva-Maria (2022). BifacialSimu, https://github.com/cire-thk/BifacialSimu \
-
-> E. Grommes, U. Blieske, J. Müller-Ost , "The Impact of Albedo Measurements on Power Density Calculations of Bifacial Modules," 37th European Photovoltaic Solar Energy Conference and Exhibition, 2020, pp.1228 - 1232, doi:  10.4229/EUPVSEC20202020-5BO.6.5. \
-
->E. Grommes, U. Blieske, J. Müller-Ost , "Performance Estimation of Bifacial PV Systems using the View Factor Matrix," 15th Conference on sustainable development of energy, water and environment systems, 2020, Cologne, Germany
+> Grommes et al., (2022). BifacialSimu: Holistic Simulation of large-scale Bifacial Photovoltaic Systems. Journal of Open Source Software, 7(78), 4443, https://doi.org/10.21105/joss.04443
 
 ***
 ## License
