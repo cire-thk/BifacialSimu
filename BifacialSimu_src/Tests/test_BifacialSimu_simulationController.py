@@ -8,7 +8,6 @@ from BifacialSimu.Handler.BifacialSimu_calculationHandler import Electrical_simu
 from BifacialSimu.Handler.BifacialSimu_radiationHandler import ViewFactors
 from BifacialSimu.Handler.BifacialSimu_dataHandler import DataHandler
 
-
 # P.S. Values of simulationDict were made sure to be equal to the values of the default simulation Variables!
 # fixing the values of simulationDict exactly to values of default Simulation variable, removes the AssertionError at level of BifacialSimu_radiationHandler!
 simulationDict={
@@ -87,7 +86,6 @@ moduleDict={
 		"modulex": 0.992
 }
    
-    
 
 class TestElectricalModes(unittest.TestCase):
     
@@ -95,7 +93,8 @@ class TestElectricalModes(unittest.TestCase):
         df = DataHandler().passEPWtoDF(metdata, simulationDict, resultsPath)
         simulationDict['simulationMode'] = 2        #front and back simulation with View Factors
         simulationDict['ElectricalMode_simple'] = 0 #One diode front and bi factor
-        df_reportVF, df= ViewFactors.simulateViewFactors(simulationDict, demo, metdata,  df, resultsPath, onlyFrontscan)
+        df_reportVF, df, dummy= ViewFactors.simulateViewFactors(simulationDict, demo, metdata,  df, resultsPath, onlyFrontscan)
+        global test_result
         test_result= Electrical_simulation.simulate_simpleBifacial(moduleDict, simulationDict, df_reportVF, df_reportRT, df_report, df, resultsPath)
 
         self.assertEqual(test_result, 5.599072940263201)
@@ -104,7 +103,7 @@ class TestElectricalModes(unittest.TestCase):
         df = DataHandler().passEPWtoDF(metdata, simulationDict, resultsPath)
         simulationDict['simulationMode'] = 2        #front and back simulation with View Factors
         simulationDict['ElectricalMode_simple'] = 1 #One diode front and back
-        df_reportVF, df = ViewFactors.simulateViewFactors(simulationDict, demo, metdata,  df, resultsPath, onlyFrontscan = False)
+        df_reportVF, df, dummy = ViewFactors.simulateViewFactors(simulationDict, demo, metdata,  df, resultsPath, onlyFrontscan = False)
         test_result= Electrical_simulation.simulate_oneDiode(moduleDict, simulationDict, df_reportVF, df_reportRT, df_report, df, resultsPath)
         
         self.assertEqual(test_result, 9.457514227805062)
