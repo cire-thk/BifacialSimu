@@ -33,9 +33,6 @@ import numpy
 import dateutil.tz
 import sys
 import math
-from tkinter import messagebox
-from BifacialSimu_src import globals
-
 #import os #to import directories
 #from pvlib.location import Location
 #from tqdm import tqdm
@@ -193,14 +190,6 @@ class RayTrace:
                 
                 for time in range(startHour, endHour+1):
                     
-# =============================================================================
-#                     Check Simulation Break Flag
-# =============================================================================
-                    if globals.thread_break == True:
-                        print("Simulation was Stopped!")
-                        messagebox.showinfo("Simulation Stopped!", "The simulation was successfully terminated!")
-                        break
-                        
                     x = time - startHour
                     
                     singleindex= dtStart + x*datetime.timedelta(hours=1) 
@@ -213,14 +202,6 @@ class RayTrace:
                     
 
                     for j in range(0, simulationDict['nRows']):
-                        
-                        # =============================================================================
-                        #                     Check Simulation Break Flag
-                        # =============================================================================
-                        if globals.thread_break == True:
-                            print("Simulation was Stopped!")
-                            messagebox.showinfo("Simulation Stopped!", "The simulation was successfully terminated!")
-                            break
         
                         key_front = "row_" + str(j) + "_qinc_front"
                         key_back = "row_" + str(j) + "_qinc_back"
@@ -256,17 +237,7 @@ class RayTrace:
             
 
                     for j in range(0, simulationDict['nRows']):
-                        
-                        # =============================================================================
-                        #                     Check Simulation Break Flag
-                        # =============================================================================
-                        if globals.thread_break == True:
-                            print("Simulation was Stopped!")
-                            messagebox.showinfo("Simulation Stopped!", "The simulation was successfully terminated!")
-                            break
-                        
-                        else:
-                            
+                    
                             key_front = "row_" + str(j) + "_qinc_front"
                             key_back = "row_" + str(j) + "_qinc_back"
                             
@@ -348,13 +319,6 @@ class RayTrace:
                 
                 for time in range(startHour, endHour+1):
                     
-                    # =============================================================================
-                    #                     Check Simulation Break Flag
-                    # =============================================================================
-                    if globals.thread_break == True:
-                        messagebox.showinfo("Simulation Stopped!", "The simulation was successfully terminated!")
-                        break
-                    
                     #dataframes to insert results
                     df_rtraceFront = pd.DataFrame()
                     df_rtraceBack = pd.DataFrame()
@@ -392,14 +356,7 @@ class RayTrace:
                     analysis = AnalysisObj(octfile, demo.basename)                   
                    
                     for j in range(0, simulationDict['nRows']):
-                        # =============================================================================
-                        #                     Check Simulation Break Flag
-                        # =============================================================================
-                        if globals.thread_break == True:
-                            print("Simulation was Stopped!")
-                            messagebox.showinfo("Simulation Stopped!", "The simulation was successfully terminated!")
-                            break
-                        
+        
                         key_front = "row_" + str(j) + "_qinc_front"
                         key_back = "row_" + str(j) + "_qinc_back"
                         
