@@ -1,6 +1,7 @@
 from setuptools import setup,find_packages,Extension
 from setuptools import find_packages
 from pathlib import Path
+from numpy.distutils.core import numpy_cmdclass
 import versioneer 
 
 
@@ -29,7 +30,7 @@ setup(
     #   - MINOR VERSION 0
     #   - MAINTENANCE VERSION 0
     version= versioneer.get_version() ,
-    cmdclass=versioneer.get_cmdclass(),
+    cmdclass=versioneer.get_cmdclass(numpy_cmdclass),
 
     # Here is a small description of the library. This appears
     # when someone searches for the library on https://pypi.org/search.

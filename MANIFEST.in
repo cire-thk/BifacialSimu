@@ -1,3 +1,4 @@
 graft BifacialSimu_src
 include versioneer.py 
+include BifacialSimu_src/_version.py
 
