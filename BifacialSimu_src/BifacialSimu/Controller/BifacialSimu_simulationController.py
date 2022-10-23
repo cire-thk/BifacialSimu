@@ -34,7 +34,7 @@ from tkinter import messagebox
 # Path handling
 rootPath = rootPath = os.path.realpath("../../")
 from BifacialSimu_src import globals
-from BifacialSimu.Handler import * #much easier handling Directories using __init__.py files (avoids import errors)
+from BifacialSimu_src.BifacialSimu.Handler import * #much easier handling Directories using __init__.py files (avoids import errors)
 
 
 

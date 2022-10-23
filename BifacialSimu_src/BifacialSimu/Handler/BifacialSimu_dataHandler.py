@@ -39,7 +39,7 @@ import numpy as np
 # Path handling
 rootPath = os.path.dirname(os.path.dirname(os.path.realpath(".")))
 
-from . import BifacialSimu_radiationHandler #"from ." is essential to tell python that the module is found in this file's PATH
+from BifacialSimu_src.BifacialSimu.Handler import BifacialSimu_radiationHandler #"from ." is essential to tell python that the module is found in this file's PATH
 
 class DataHandler:
     def __init__(self):

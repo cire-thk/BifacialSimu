@@ -4,8 +4,8 @@ rootPath = os.path.realpath("../")
 import unittest
 import csv
 import pandas as pd
-from BifacialSimu.Handler.BifacialSimu_radiationHandler import ViewFactors, RayTrace
-from BifacialSimu.Handler.BifacialSimu_dataHandler import DataHandler
+from BifacialSimu_src.BifacialSimu.Handler.BifacialSimu_radiationHandler import ViewFactors, RayTrace
+from BifacialSimu_src.BifacialSimu.Handler.BifacialSimu_dataHandler import DataHandler
 
 simulationDict={
     'clearance_height': 0.4, #value was found missing! should be added later!

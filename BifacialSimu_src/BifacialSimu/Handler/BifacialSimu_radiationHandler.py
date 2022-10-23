@@ -22,6 +22,11 @@ overview:
 'Might have to remove IPython functions from this file. IPython should be used in GUI.py only'
 from IPython import get_ipython
 get_ipython().magic('reset -sf')
+import seaborn as sns
+import os
+# Path handling
+rootPath = os.path.realpath("../../")
+print(rootPath)
 
 import pandas as pd #pandas = can read .csv as input
 import matplotlib.pyplot as plt #display shadows
@@ -44,10 +49,10 @@ from BifacialSimu_src import globals
 #import pvlib #for electrical output simulation
 
 # DEPENDENCIES AFTER VENDORING
-from Vendor.bifacial_radiance.main import RadianceObj, AnalysisObj
-from Vendor.pvfactors.viewfactors.aoimethods import faoi_fn_from_pvlib_sandia #to calculate AOI reflection losses
-from Vendor.pvfactors.engine import PVEngine
-from Vendor.pvfactors import irradiance, geometry, viewfactors
+from BifacialSimu_src.Vendor.bifacial_radiance.main import RadianceObj, AnalysisObj
+from BifacialSimu_src.Vendor.pvfactors.viewfactors.aoimethods import faoi_fn_from_pvlib_sandia #to calculate AOI reflection losses
+from BifacialSimu_src.Vendor.pvfactors.engine import PVEngine
+from BifacialSimu_src.Vendor.pvfactors import irradiance, geometry, viewfactors
 
     
 class RayTrace:

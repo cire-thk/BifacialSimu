@@ -2,8 +2,8 @@
 calculations."""
 
 import numpy as np
-from Vendor.pvfactors.config import DISTANCE_TOLERANCE
-from Vendor.pvfactors.geometry.base import PVSurface, ShadeCollection
+from BifacialSimu_src.Vendor.pvfactors.config import DISTANCE_TOLERANCE
+from BifacialSimu_src.Vendor.pvfactors.geometry.base import PVSurface, ShadeCollection
 from shapely.geometry import GeometryCollection
 
 

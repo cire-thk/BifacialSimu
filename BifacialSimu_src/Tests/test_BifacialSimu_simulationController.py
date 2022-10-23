@@ -4,9 +4,9 @@ rootPath = os.path.realpath("../")
 
 import unittest
 import pandas as pd
-from BifacialSimu.Handler.BifacialSimu_calculationHandler import Electrical_simulation
-from BifacialSimu.Handler.BifacialSimu_radiationHandler import ViewFactors
-from BifacialSimu.Handler.BifacialSimu_dataHandler import DataHandler
+from BifacialSimu_src.BifacialSimu.Handler.BifacialSimu_calculationHandler import Electrical_simulation
+from BifacialSimu_src.BifacialSimu.Handler.BifacialSimu_radiationHandler import ViewFactors
+from BifacialSimu_src.BifacialSimu.Handler.BifacialSimu_dataHandler import DataHandler
 
 # P.S. Values of simulationDict were made sure to be equal to the values of the default simulation Variables!
 # fixing the values of simulationDict exactly to values of default Simulation variable, removes the AssertionError at level of BifacialSimu_radiationHandler!

@@ -1,8 +1,8 @@
 """Module with classes and functions to calculate views and view factors"""
 
-from Vendor.pvfactors.config import DISTANCE_TOLERANCE
-from Vendor.pvfactors.viewfactors.vfmethods import VFTsMethods
-from Vendor.pvfactors.viewfactors.aoimethods import AOIMethods
+from BifacialSimu_src.Vendor.pvfactors.config import DISTANCE_TOLERANCE
+from BifacialSimu_src.Vendor.pvfactors.viewfactors.vfmethods import VFTsMethods
+from BifacialSimu_src.Vendor.pvfactors.viewfactors.aoimethods import AOIMethods
 import numpy as np
 
 
