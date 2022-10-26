@@ -1,11 +1,11 @@
 """Module will classes related to PV row geometries"""
 
 import numpy as np
-from Vendor.pvfactors.config import COLOR_DIC
-from Vendor.pvfactors.geometry.base import \
+from BifacialSimu_src.Vendor.pvfactors.config import COLOR_DIC
+from BifacialSimu_src.Vendor.pvfactors.geometry.base import \
     BaseSide, _coords_from_center_tilt_length, PVSegment
 from shapely.geometry import GeometryCollection, LineString
-from Vendor.pvfactors.geometry.timeseries import \
+from BifacialSimu_src.Vendor.pvfactors.geometry.timeseries import \
     TsShadeCollection, TsLineCoords, TsSurface
 from pvlib.tools import cosd, sind
 

@@ -26,9 +26,9 @@ import datetime
 import csv
 import matplotlib.pyplot as plt
 from pvlib import spectrum, irradiance, atmosphere
-from Vendor.pvfactors import geometry
-from Vendor.pvfactors import viewfactors
-from Vendor.pvfactors import config
+from BifacialSimu_src.Vendor.pvfactors import geometry
+from BifacialSimu_src.Vendor.pvfactors import viewfactors
+from BifacialSimu_src.Vendor.pvfactors import config
 
 
 def getReflectivityData(simulationDict):

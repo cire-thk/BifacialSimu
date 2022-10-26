@@ -1,7 +1,7 @@
 """Module with view factor calculation tools"""
 
-from Vendor.pvfactors.config import MIN_X_GROUND, MAX_X_GROUND, DISTANCE_TOLERANCE
-from Vendor.pvfactors.geometry.timeseries import TsLineCoords, TsPointCoords
+from BifacialSimu_src.Vendor.pvfactors.config import MIN_X_GROUND, MAX_X_GROUND, DISTANCE_TOLERANCE
+from BifacialSimu_src.Vendor.pvfactors.geometry.timeseries import TsLineCoords, TsPointCoords
 from pvlib.tools import cosd, sind
 import numpy as np
 

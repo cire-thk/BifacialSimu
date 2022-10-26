@@ -1,9 +1,9 @@
 """Module containing AOI loss calculation methods"""
 
-from Vendor.pvfactors.config import DISTANCE_TOLERANCE
-from Vendor.pvfactors.geometry.timeseries import (
+from BifacialSimu_src.Vendor.pvfactors.config import DISTANCE_TOLERANCE
+from BifacialSimu_src.Vendor.pvfactors.geometry.timeseries import (
     TsPointCoords, TsSurface, TsLineCoords)
-from Vendor.pvfactors.__init__ import PVFactorsError
+from BifacialSimu_src.Vendor.pvfactors.__init__ import PVFactorsError
 import pvlib
 from pvlib.tools import cosd
 import numpy as np

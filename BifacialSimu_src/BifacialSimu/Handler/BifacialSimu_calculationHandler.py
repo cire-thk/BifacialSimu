@@ -30,7 +30,7 @@ import datetime
 from tqdm import tqdm
 import math
 import dateutil.tz
-import GUI
+from BifacialSimu_src import GUI
 # seaborn makes your plots look better
 try:
     import seaborn as sns
@@ -45,7 +45,7 @@ except ImportError:
 # Path handling
 rootPath = rootPath = os.path.realpath("../../")
 
-from BifacialSimu.Handler import BifacialSimu_radiationHandler 
+from BifacialSimu_src.BifacialSimu.Handler import BifacialSimu_radiationHandler 
 
 # Include paths
 

@@ -1,8 +1,8 @@
 """Utility functions for geometrical calculations."""
 
 import numpy as np
-from Vendor.pvfactors.__init__ import PVFactorsError
-from Vendor.pvfactors.config import TOL_COLLINEAR, DISTANCE_TOLERANCE
+from BifacialSimu_src.Vendor.pvfactors.__init__ import PVFactorsError
+from BifacialSimu_src.Vendor.pvfactors.config import TOL_COLLINEAR, DISTANCE_TOLERANCE
 from shapely.geometry import \
     Point, GeometryCollection, LineString, MultiLineString
 
