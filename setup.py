@@ -4,12 +4,12 @@ from pathlib import Path
 import versioneer 
 
 
+
 # # Load the README file.
 here = Path(__file__).parent
 
 file = open("Readme.md", encoding="utf8")
 long_description = file.read()
-
     
 setup(
     
@@ -46,23 +46,28 @@ setup(
     url='https://github.com/cire-thk/BifacialSimu',
 
     # These are the dependencies the library needs in order to run.
+    
     install_requires=[
         'pandas==1.3.4',
-        'ipython==8.4.0',
+        'ipython==7.34.0',
         'matplotlib==3.4.3',
         'numpy==1.20.3',
         'Pillow==9.1.1',
         'pvlib==0.9.1',
         'python_dateutil==2.8.2',
         'pytz==2021.3',
-        'requests==2.26.0',
+        'requests==2.28.1',
         'seaborn==0.11.2',
         'Shapely==1.8.2',
         'tqdm==4.62.3',
         'bifacial_radiance==0.4.1',#content changed!
-        # 'pyqt5==5.12.3'
-        # 'pyqtwebengine==5.12.1'
+        'pyqt5==5.12.3'
+        'pyqtwebengine==5.12.1'
         'pvfactors==1.5.2'
+        'daal==2021.4.0'
+        'clyent==1.2.1'
+        'nbformat==5.4.0'
+        'ruamel.yaml==0.17.21'
     ],
 
     # Here are the keywords of my library.
