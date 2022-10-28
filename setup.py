@@ -61,13 +61,13 @@ setup(
         'Shapely==1.8.2',
         'tqdm==4.62.3',
         'bifacial_radiance==0.4.1',#content changed!
-        'pyqt5==5.12.3'
-        'pyqtwebengine==5.12.1'
-        'pvfactors==1.5.2'
-        'daal==2021.4.0'
-        'clyent==1.2.1'
-        'nbformat==5.4.0'
-        'ruamel.yaml==0.17.21'
+        'pyqt5==5.12.3',
+        'pyqtwebengine==5.12.1',
+        'pvfactors==1.5.2',
+        'daal==2021.4.0',
+        'clyent==1.2.1',
+        'nbformat==5.4.0',
+        'ruamel.yaml==0.17.21',
     ],
 
     # Here are the keywords of my library.
