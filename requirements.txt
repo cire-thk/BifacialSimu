@@ -17,4 +17,4 @@ pvfactors==1.5.2
 daal==2021.4.0
 clyent==1.2.1
 nbformat==5.4.0
-ruamel.yaml=0.17.21
+ruamel.yaml==0.17.21
