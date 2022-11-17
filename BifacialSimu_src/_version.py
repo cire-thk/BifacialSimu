@@ -44,7 +44,7 @@ def get_config():
     cfg = VersioneerConfig()
     cfg.VCS = "git"
     cfg.style = "pep440"
-    cfg.tag_prefix = "Bifacialsimu-"
+    cfg.tag_prefix = ""
     cfg.parentdir_prefix = "Bifacialsimu-"
     cfg.versionfile_source = "BifacialSimu_src/_version.py"
     cfg.verbose = False

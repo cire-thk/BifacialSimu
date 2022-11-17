@@ -1,5 +1,5 @@
 
-# Version: 0.25
+# Version: 0.27
 
 """The Versioneer - like a rocketeer, but for versions.
 
@@ -30,19 +30,27 @@ is intended to allow you to skip this step and simplify the process of upgrading
 ### Vendored mode
 
 * `pip install versioneer` to somewhere in your $PATH
-* add a `[versioneer]` section to your setup.cfg (see [Install](INSTALL.md))
+   * A [conda-forge recipe](https://github.com/conda-forge/versioneer-feedstock) is
+     available, so you can also use `conda install -c conda-forge versioneer`
+* add a `[tool.versioneer]` section to your `pyproject.toml` or a
+  `[versioneer]` section to your `setup.cfg` (see [Install](INSTALL.md))
+   * Note that you will need to add `tomli` to your build-time dependencies if you
+     use `pyproject.toml`
 * run `versioneer install --vendor` in your source tree, commit the results
 * verify version information with `python setup.py version`
 
 ### Build-time dependency mode
 
 * `pip install versioneer` to somewhere in your $PATH
-* add a `[versioneer]` section to your setup.cfg (see [Install](INSTALL.md))
-* add `versioneer` to the `requires` key of the `build-system` table in
-  `pyproject.toml`:
+   * A [conda-forge recipe](https://github.com/conda-forge/versioneer-feedstock) is
+     available, so you can also use `conda install -c conda-forge versioneer`
+* add a `[tool.versioneer]` section to your `pyproject.toml` or a
+  `[versioneer]` section to your `setup.cfg` (see [Install](INSTALL.md))
+* add `versioneer` (with `[toml]` extra, if configuring in `pyproject.toml`)
+  to the `requires` key of the `build-system` table in `pyproject.toml`:
   ```toml
   [build-system]
-  requires = ["setuptools", "versioneer"]
+  requires = ["setuptools", "versioneer[toml]"]
   build-backend = "setuptools.build_meta"
   ```
 * run `versioneer install --no-vendor` in your source tree, commit the results
@@ -251,8 +259,9 @@ resolve it.
 To upgrade your project to a new release of Versioneer, do the following:
 
 * install the new Versioneer (`pip install -U versioneer` or equivalent)
-* edit `setup.cfg`, if necessary, to include any new configuration settings
-  indicated by the release notes. See [UPGRADING](./UPGRADING.md) for details.
+* edit `setup.cfg` and `pyproject.toml`, if necessary,
+  to include any new configuration settings indicated by the release notes.
+  See [UPGRADING](./UPGRADING.md) for details.
 * re-run `versioneer install --[no-]vendor` in your source tree, to replace
   `SRC/_version.py`
 * commit any changed files
@@ -283,9 +292,8 @@ number of intermediate scripts.
 
 To make Versioneer easier to embed, all its code is dedicated to the public
 domain. The `_version.py` that it creates is also in the public domain.
-Specifically, both are released under the Creative Commons "Public Domain
-Dedication" license (CC0-1.0), as described in
-https://creativecommons.org/publicdomain/zero/1.0/ .
+Specifically, both are released under the "Unlicense", as described in
+https://unlicense.org/.
 
 [pypi-image]: https://img.shields.io/pypi/v/versioneer.svg
 [pypi-url]: https://pypi.python.org/pypi/versioneer/
@@ -307,8 +315,14 @@ import os
 import re
 import subprocess
 import sys
+from pathlib import Path
 from typing import Callable, Dict
 import functools
+try:
+    import tomli
+    have_tomli = True
+except ImportError:
+    have_tomli = False
 
 
 class VersioneerConfig:
@@ -360,17 +374,27 @@ def get_config_from_root(root):
     # configparser.NoSectionError (if it lacks a [versioneer] section), or
     # configparser.NoOptionError (if it lacks "VCS="). See the docstring at
     # the top of versioneer.py for instructions on writing your setup.cfg .
-    setup_cfg = os.path.join(root, "setup.cfg")
-    parser = configparser.ConfigParser()
-    with open(setup_cfg, "r") as cfg_file:
-        parser.read_file(cfg_file)
-    VCS = parser.get("versioneer", "VCS")  # mandatory
+    root = Path(root)
+    pyproject_toml = root / "pyproject.toml"
+    setup_cfg = root / "setup.cfg"
+    section = None
+    if pyproject_toml.exists() and have_tomli:
+        try:
+            with open(pyproject_toml, 'rb') as fobj:
+                pp = tomli.load(fobj)
+            section = pp['tool']['versioneer']
+        except (tomli.TOMLDecodeError, KeyError):
+            pass
+    if not section:
+        parser = configparser.ConfigParser()
+        with open(setup_cfg) as cfg_file:
+            parser.read_file(cfg_file)
+        parser.get("versioneer", "VCS")  # raise error if missing
 
-    # Dict-like interface for non-mandatory entries
-    section = parser["versioneer"]
+        section = parser["versioneer"]
 
     cfg = VersioneerConfig()
-    cfg.VCS = VCS
+    cfg.VCS = section['VCS']
     cfg.style = section.get("style", "")
     cfg.versionfile_source = section.get("versionfile_source")
     cfg.versionfile_build = section.get("versionfile_build")
@@ -451,7 +475,7 @@ LONG_VERSION_PY['git'] = r'''
 # that just contains the computed version number.
 
 # This file is released into the public domain.
-# Generated by versioneer-0.25
+# Generated by versioneer-0.27
 # https://github.com/python-versioneer/python-versioneer
 
 """Git implementation of _version.py."""
@@ -1344,7 +1368,7 @@ def do_vcs_install(versionfile_source, ipy):
     if "VERSIONEER_PEP518" not in globals():
         try:
             my_path = __file__
-            if my_path.endswith(".pyc") or my_path.endswith(".pyo"):
+            if my_path.endswith((".pyc", ".pyo")):
                 my_path = os.path.splitext(my_path)[0] + ".py"
             versioneer_file = os.path.relpath(my_path)
         except NameError:
@@ -1392,7 +1416,7 @@ def versions_from_parentdir(parentdir_prefix, root, verbose):
 
 
 SHORT_VERSION_PY = """
-# This file was generated by 'versioneer.py' (0.25) from
+# This file was generated by 'versioneer.py' (0.27) from
 # revision-control system data, or from the parent directory name of an
 # unpacked source archive. Distribution tarballs contain a pre-generated copy
 # of this file.
@@ -1954,7 +1978,7 @@ def get_cmdclass(cmdclass=None):
 
     # sdist farms its file list building out to egg_info
     if 'egg_info' in cmds:
-        _sdist = cmds['egg_info']
+        _egg_info = cmds['egg_info']
     else:
         from setuptools.command.egg_info import egg_info as _egg_info
 
