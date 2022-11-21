@@ -1,13 +1,15 @@
 from setuptools import setup,find_packages,Extension
 from setuptools import find_packages
 from pathlib import Path
+import versioneer 
+
+
 
 # # Load the README file.
 here = Path(__file__).parent
 
 file = open("Readme.md", encoding="utf8")
 long_description = file.read()
-
     
 setup(
     
@@ -26,7 +28,8 @@ setup(
     #   - MAJOR VERSION 1
     #   - MINOR VERSION 0
     #   - MAINTENANCE VERSION 0
-    version='1.0.0',
+    version= versioneer.get_version() ,
+    cmdclass=versioneer.get_cmdclass(),
 
     # Here is a small description of the library. This appears
     # when someone searches for the library on https://pypi.org/search.
@@ -43,23 +46,28 @@ setup(
     url='https://github.com/cire-thk/BifacialSimu',
 
     # These are the dependencies the library needs in order to run.
+    
     install_requires=[
         'pandas==1.3.4',
-        'ipython==8.4.0',
+        'ipython==7.34.0',
         'matplotlib==3.4.3',
         'numpy==1.20.3',
         'Pillow==9.1.1',
         'pvlib==0.9.1',
         'python_dateutil==2.8.2',
         'pytz==2021.3',
-        'requests==2.26.0',
+        'requests==2.28.1',
         'seaborn==0.11.2',
         'Shapely==1.8.2',
         'tqdm==4.62.3',
         'bifacial_radiance==0.4.1',#content changed!
-        # 'pyqt5==5.12.3'
-        # 'pyqtwebengine==5.12.1'
-        'pvfactors==1.5.2'
+        'pyqt5==5.12.3',
+        'pyqtwebengine==5.12.1',
+        'pvfactors==1.5.2',
+        'daal==2021.4.0',
+        'clyent==1.2.1',
+        'nbformat==5.4.0',
+        'ruamel.yaml==0.17.21',
     ],
 
     # Here are the keywords of my library.
@@ -71,7 +79,16 @@ setup(
     # I also have some package data, like photos and JSON files, so
     # I want to include those as well.
     include_package_data=True,
-    
+      
+    classifiers=[
+           # Here I'll specify the version of Python it uses.
+          'Programming Language :: Python',
+          'Programming Language :: Python :: 3',
+          'Programming Language :: Python :: 3.9',
+          
+          # I can say what phase of development my library is in.
+          'Development Status :: 1 - Alpha',
+          ]
 # ==================== ADDTIONAL PACKAGE INFO =================================
 # 
 #     # # here we specify any package data.

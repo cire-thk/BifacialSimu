@@ -2,11 +2,11 @@
 geometries."""
 
 import numpy as np
-from Vendor.pvfactors.config import X_ORIGIN_PVROWS, DISTANCE_TOLERANCE
-from Vendor.pvfactors.geometry.base import \
+from BifacialSimu_src.Vendor.pvfactors.config import X_ORIGIN_PVROWS, DISTANCE_TOLERANCE
+from BifacialSimu_src.Vendor.pvfactors.geometry.base import \
     _get_solar_2d_vectors, BasePVArray, _get_rotation_from_tilt_azimuth
-from Vendor.pvfactors.geometry.pvrow import TsPVRow
-from Vendor.pvfactors.geometry.pvground import TsGround
+from BifacialSimu_src.Vendor.pvfactors.geometry.pvrow import TsPVRow
+from BifacialSimu_src.Vendor.pvfactors.geometry.pvground import TsGround
 
 
 class OrderedPVArray(BasePVArray):

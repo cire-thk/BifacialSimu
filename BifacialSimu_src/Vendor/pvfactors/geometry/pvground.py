@@ -1,10 +1,10 @@
 """Classes for implementation of ground geometry"""
-from Vendor.pvfactors.__init__ import PVFactorsError
-from Vendor.pvfactors.config import (
+from BifacialSimu_src.Vendor.pvfactors.__init__ import PVFactorsError
+from BifacialSimu_src.Vendor.pvfactors.config import (
     MAX_X_GROUND, MIN_X_GROUND, Y_GROUND, DISTANCE_TOLERANCE, COLOR_DIC)
-from Vendor.pvfactors.geometry.base import (
+from BifacialSimu_src.Vendor.pvfactors.geometry.base import (
     BaseSide, PVSegment, ShadeCollection, PVSurface)
-from Vendor.pvfactors.geometry.timeseries import (
+from BifacialSimu_src.Vendor.pvfactors.geometry.timeseries import (
     TsShadeCollection, TsLineCoords, TsPointCoords, TsSurface,
     _get_params_at_idx)
 from shapely.geometry import LineString

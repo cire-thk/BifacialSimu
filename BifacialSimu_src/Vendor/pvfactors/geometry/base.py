@@ -1,12 +1,12 @@
 """Base classes for pvfactors geometry subpackage."""
 
 import numpy as np
-from Vendor.pvfactors.__init__ import PVFactorsError
-from Vendor.pvfactors.config import (
+from BifacialSimu_src.Vendor.pvfactors.__init__ import PVFactorsError
+from BifacialSimu_src.Vendor.pvfactors.config import (
     DEFAULT_NORMAL_VEC, COLOR_DIC, DISTANCE_TOLERANCE, PLOT_FONTSIZE,
     ALPHA_TEXT, MAX_X_GROUND)
-from Vendor.pvfactors.geometry.plot import plot_coords, plot_bounds, plot_line
-from Vendor.pvfactors.geometry.utils import \
+from BifacialSimu_src.Vendor.pvfactors.geometry.plot import plot_coords, plot_bounds, plot_line
+from BifacialSimu_src.Vendor.pvfactors.geometry.utils import \
     is_collinear, check_collinear, are_2d_vecs_collinear, difference, contains
 from shapely.geometry import GeometryCollection, LineString
 from shapely.geometry.collection import geos_geometrycollection_from_py

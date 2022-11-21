@@ -28,19 +28,32 @@ sys.path.append(rootPath)
 sys.path.append(rootPath + "/BifacialSimu/Handler")'''
 
 import pandas as pd
-import BifacialSimu_calculationHandler
-import BifacialSimu_radiationHandler
-import BifacialSimu_dataHandler
-import BifacialSimu_spectralAlbedoHandler
-import BifacialSimu_spectralAlbedoHandler_1_row
+import sys
+import os
+from tkinter import messagebox
+# Path handling
+rootPath = rootPath = os.path.realpath("../../")
+from BifacialSimu_src import globals
+from BifacialSimu_src.BifacialSimu.Handler import * #much easier handling Directories using __init__.py files (avoids import errors)
+
+
 
 # Overarching procedure to perform bifacial irrdiance and electrical simulations  
 def startSimulation(simulationDict, moduleDict, resultsPath):
-
+    
     #the path is implemented in GUI.py
     # resultsPath = BifacialSimu_dataHandler.DataHandler().setDirectories()
     # print('created resultsPath at: ' + resultsPath)
-
+       
+    
+        
+    # =============================================================================
+    #              Break Flag Check   
+    # =============================================================================
+    if globals.thread_break == True:
+        messagebox.showinfo("Simulation Stopped!", "The simulation was successfully terminated!")
+        exit
+   
     
     #get weatherFile
     metdata, demo = BifacialSimu_dataHandler.DataHandler().getWeatherData(simulationDict, resultsPath)
@@ -69,8 +82,8 @@ def startSimulation(simulationDict, moduleDict, resultsPath):
     
     ####################################################
     
-    # choose simulation mode and perform raytracing, viewfactor and electrical simulation
     
+    # choose simulation mode and perform raytracing, viewfactor and electrical simulation
     if simulationDict['simulationMode'] == 3:
         print('Front and back simulation with RayTrace')
         df_reportRT = BifacialSimu_radiationHandler.RayTrace.simulateRayTrace(simulationDict, demo, metdata, resultsPath, df, onlyBackscan = False)
@@ -83,15 +96,16 @@ def startSimulation(simulationDict, moduleDict, resultsPath):
             BifacialSimu_calculationHandler.Electrical_simulation.simulate_doubleDiode(moduleDict, simulationDict, df_reportVF, df_reportRT, df_report, df, resultsPath)
         if simulationDict['ElectricalMode_simple'] == 3:
             BifacialSimu_calculationHandler.Electrical_simulation.simulate_doubleDiodeBi(moduleDict, simulationDict, df_reportVF, df_reportRT, df_report, df, resultsPath)
-        
+   
+            
     if simulationDict['simulationMode'] == 5 or simulationDict['simulationMode'] == 1:
         print('Back simulation with RayTrace')
         df_reportRT =  BifacialSimu_radiationHandler.RayTrace.simulateRayTrace(simulationDict, demo, metdata, resultsPath, df, onlyBackscan = True)
         
-        
+            
     if simulationDict['simulationMode'] == 2:
         print('Front and back simulation with ViewFactors')
-        df_reportVF, df = BifacialSimu_radiationHandler.ViewFactors.simulateViewFactors(simulationDict, demo, metdata,  df, resultsPath, onlyFrontscan = False)
+        df_reportVF, df, test = BifacialSimu_radiationHandler.ViewFactors.simulateViewFactors(simulationDict, demo, metdata,  df, resultsPath, onlyFrontscan = False)
         
         if simulationDict['ElectricalMode_simple'] == 0:      
             BifacialSimu_calculationHandler.Electrical_simulation.simulate_simpleBifacial(moduleDict, simulationDict, df_reportVF, df_reportRT, df_report, df, resultsPath)
@@ -103,9 +117,10 @@ def startSimulation(simulationDict, moduleDict, resultsPath):
             BifacialSimu_calculationHandler.Electrical_simulation.simulate_doubleDiodeBi(moduleDict, simulationDict, df_reportVF, df_reportRT, df_report, df, resultsPath)
     
     
+    
     if simulationDict['simulationMode'] == 4 or simulationDict['simulationMode'] == 1:
         print('Front simulation with ViewFactors')
-        df_reportVF, df = BifacialSimu_radiationHandler.ViewFactors.simulateViewFactors(simulationDict, demo, metdata,  df, resultsPath, onlyFrontscan = True)
+        df_reportVF, df, test = BifacialSimu_radiationHandler.ViewFactors.simulateViewFactors(simulationDict, demo, metdata,  df, resultsPath, onlyFrontscan = True)
         
         if simulationDict['ElectricalMode_simple'] == 0:      
             BifacialSimu_calculationHandler.Electrical_simulation.simulate_simpleBifacial(moduleDict, simulationDict, df_reportVF, df_reportRT, df_report, df, resultsPath)

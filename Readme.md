@@ -1,6 +1,9 @@
-
 <p align="center"><img src="BifacialSimu_src/Lib/logos/logo_BifacialSimu_transparentresized.png" width="300" ></p>
 <p align="center"><a href="https://github.com/cire-thk/BifacialSimu/blob/master/LICENSE"><img src="BifacialSimu_src/Lib/readme_pics/license-BSD-3--Clause-blue.svg"</p></a>
+
+<p align="center"><a href="https://doi.org/10.21105/joss.04443"><img src="https://joss.theoj.org/papers/10.21105/joss.04443/status.svg"</p></a>
+
+
 
 ***
 # BifacialSimu
@@ -30,25 +33,38 @@ It is intended to provide a free, effective tool to simulate the energy yield of
 This Readme guide will assist with the installation and operation of the program, providing a quick start to simulating bifacial modules.
 Basically it is devided into three different simulations, in which each you can choose between different calculation models as displayed below:
 <p align="center"><img src="BifacialSimu_src/Lib/readme_pics/Simulation_procedure_BifacialSimu.jpg" width="500"><br/></p>
+
+The general architechture and functions are displayed in the following figure:
+<p align="center"><img src="BifacialSimu_src/Lib/readme_pics/BifacialSimu Architecture_Functions.jpg" width="800"><br/></p>
+
 ***
 
 ## Prerequisites
+Unfortnatly, BifacialSimu is not supported by Linux at the moment. We are working on this issue. If you want to contribute to solving this issue, please contact us.
+
 BifacialSimu is run within a Python environment and dependent on a variety of libraries, most of which are contained within the installation of Anaconda. 
 The program [Radiance](https://github.com/NREL/Radiance/releases) is necessary in order to run BifacialSimu. Besides that relies BifacialSimu on following libraries:
->bifacial_radiance==0.4.1  
->ipython==8.4.0   
->matplotlib==3.4.3  
->numpy==1.20.3  
->pandas==1.3.4  
->Pillow==9.1.1  
->pvfactors==1.5.2   
->pvlib==0.9.1  
->python_dateutil==2.8.2  
->pytz==2021.3  
->requests==2.26.0  
->seaborn==0.11.2  
->Shapely==1.8.2  
->tqdm==4.62.3  
+
+- bifacial_radiance==0.4.1 
+- ipython==7.34.0 
+- matplotlib==3.4.3 
+- numpy==1.20.3
+- pandas==1.3.4
+- Pillow==9.1.1
+- pvlib==0.9.1
+- python_dateutil==2.8.2
+- pytz==2021.3
+- requests==2.28.1
+- seaborn==0.11.2
+- Shapely==1.8.2
+- tqdm==4.62.3
+- pyqt5==5.12.3
+- pyqtwebengine==5.12.1
+- pvfactors==1.5.2
+- daal==2021.4.0
+- clyent==1.2.1
+- nbformat==5.4.0
+- ruamel.yaml==0.17.21
 
 The installation process of which can be found in the following section.
 ***
@@ -63,9 +79,7 @@ A useful resource for the installation is this [video](https://www.youtube.com/w
 2. Install Radiance
 3. Install Radiance executables (jaloxa)
 4. Check Environment Variables
-5. Install pvlib
-6. Install bifacial_radiance
-7. Install gencumulativesky.exe
+5. Install BifacialSimu
 
 These steps are described below in detail as well, including the intallation of pv_factors, another important tool used by BifacialSimu.
 
@@ -102,6 +116,9 @@ In spyder for example you can navigate using __cd__:
 
 Now use:
 > pip install . 
+
+You can also use:
+> pip install BifacialSimu
 
 Check, if these standard python packages have been installed:  
 − [Pvlib](https://pvlib-python.readthedocs.io/en/stable/index.html)  
@@ -161,6 +178,12 @@ Providing that everything has been installed correctly and is functioning proper
 
 If, however, any error messages have occured or the simulation doesn't complete please refer to the [Troubleshooting](#troubleshooting) section found later in this document.
 ***
+
+## Standard Tests
+You can find standard test in the following folder:
+> BifacialSimu_src\Tests
+
+Running those tests, you are able to test the most important functions of BifacialSimu.
 
 ## GUI
 
@@ -354,10 +377,9 @@ This graph also displays the total irradiance of the system, this time broken do
 ## Troubleshooting
 Here you can find some general troubleshooting measures which may help when running into problems with the simulation.
 
-__GUI unresponsive during simulation__ - During a simulation the GUI window and parameters can no longer be amended, it will be possible to see whether the simulation is operating correctly by observing the terminal within your Python environment where the program is running.
+__name 'rootPath' is not defined__ - If you get this error, the rootPath was not set beforehand. If you run the GUI.py again, it won't show the error.
 
 __Program unresponsive__ - If the simulation is itself unresponsive and no longer operating correctly it is possible to stop the program within the environment and reload. 
-Unfortunately this will result in the loss of previously defined simulation parameters.
 
 __temp_air Error__ - If the simulation produces this error it may be a sign that the "load" and "main" files from BifacialSimu haven't been copied into the installation of bifacial_radiance correctly. These files should overwrite the files in the bifacial_radiance Lib folder. It is also important that they are installed in the correct location, check within the anaconda installation of bifacial_radiance. 
 An example path would be: 
@@ -371,8 +393,6 @@ There is also a script to convert weather files into TMY formate which can be fo
 
 __Incorrect Timescale on Graphs__ - This is a result of not changing the time zone under the Simulation Control settings. 
 It is also possible to manually amend the axis titles within the matlibplot graphs by using the edit button.
-
-__missingKeyWarning from bifacial_radiance.main__ - This error appears if the load.py and main.py [files](#installation) were not copied from the BifacialSimu GitHub. 
 
 __Cannot load backend 'Qt5Agg'__ - If this error appears, you have to change the IPython Console from 'tk' to 'Qt5', f.e. in spyder.
 > "ImportError: Cannot load backend 'Qt5Agg' which requires the 'qt' interactive framework, as 'tk' is currently running."
@@ -463,8 +483,20 @@ Sebastian Nows (Ray Tracing)
 Felix Schemann (Variable Albedo, Ray Tracing)  
 Jan Schmitt (Graphical User Interface)  
 Fares Aoun (Installation Procedure)
+Jan Steinke (Threading)
 
 Thank you to all who have contributed so far to this project, it wouldn't have been as successful without their input.
+
+***
+
+> The Contribution guide is still a work in progress. If you have ideas how to improve it, please share them with us.
+
+We are always happy if you would like to contribute to BifacialSimu. For example you could:
+* Create GitHub issues and contribute to the discussions about how to solve them
+* Read issues and pull requests that other poeple created and contribute on how to solve them
+* Write unit tests for functions in BifacialSimu 
+* Improve the documentation
+* If you would like to contribute a new function to BifacialSimu, it is manditory that you provide a unit test with it
 
 If you wish to assist in further developing this program please contact [Eva-Maria Grommes](https://orcid.org/0000-0002-7826-3754).
 
@@ -482,11 +514,7 @@ BifacialSimu applies parts from [bifacial_radiance](https://github.com/NREL/bifa
 ## Citation of BifacialSimu
 If you use BifacialSimu in a published work, please cite:
 
-> Grommes, Eva-Maria (2022). BifacialSimu, https://github.com/cire-thk/BifacialSimu \
-
-> E. Grommes, U. Blieske, J. Müller-Ost , "The Impact of Albedo Measurements on Power Density Calculations of Bifacial Modules," 37th European Photovoltaic Solar Energy Conference and Exhibition, 2020, pp.1228 - 1232, doi:  10.4229/EUPVSEC20202020-5BO.6.5. \
-
->E. Grommes, U. Blieske, J. Müller-Ost , "Performance Estimation of Bifacial PV Systems using the View Factor Matrix," 15th Conference on sustainable development of energy, water and environment systems, 2020, Cologne, Germany
+> Grommes et al., (2022). BifacialSimu: Holistic Simulation of large-scale Bifacial Photovoltaic Systems. Journal of Open Source Software, 7(78), 4443, https://doi.org/10.21105/joss.04443
 
 ***
 ## License

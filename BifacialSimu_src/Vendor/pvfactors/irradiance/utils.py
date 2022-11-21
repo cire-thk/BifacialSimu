@@ -7,8 +7,8 @@ import pandas as pd
 from pvlib import atmosphere, irradiance
 from pvlib.tools import cosd, sind
 import math
-from Vendor.pvfactors.__init__ import PVFactorsError
-from Vendor.pvfactors.config import \
+from BifacialSimu_src.Vendor.pvfactors.__init__ import PVFactorsError
+from BifacialSimu_src.Vendor.pvfactors.config import \
     SIGMA, N_SIGMA, GAUSSIAN_DIAMETER_CIRCUMSOLAR, RADIUS_CIRCUMSOLAR
 
 

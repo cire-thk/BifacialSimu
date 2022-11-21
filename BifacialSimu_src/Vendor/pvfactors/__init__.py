@@ -1,6 +1,6 @@
 # -*- coding: utf-8 -*-
 
-from Vendor.pvfactors.version import __version__
+from BifacialSimu_src.Vendor.pvfactors.version import __version__
 import logging
 logging.basicConfig()
 

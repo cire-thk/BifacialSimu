@@ -2,9 +2,9 @@
 timeseries simulations."""
 
 import numpy as np
-from Vendor.pvfactors.viewfactors.__init__ import VFCalculator
-from Vendor.pvfactors.irradiance import HybridPerezOrdered
-from Vendor.pvfactors.config import DEFAULT_RHO_FRONT, DEFAULT_RHO_BACK
+from BifacialSimu_src.Vendor.pvfactors.viewfactors.__init__ import VFCalculator
+from BifacialSimu_src.Vendor.pvfactors.irradiance import HybridPerezOrdered
+from BifacialSimu_src.Vendor.pvfactors.config import DEFAULT_RHO_FRONT, DEFAULT_RHO_BACK
 
 
 class PVEngine(object):

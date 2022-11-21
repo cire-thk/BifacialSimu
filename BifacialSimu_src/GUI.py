@@ -1,4 +1,4 @@
-# -*- coding: utf-8 -*-
+#  -*- coding: utf-8 -*-
 """
 Created on Mon Jun  7 11:39:16 2021
 @author:        
@@ -28,6 +28,7 @@ import os
 import webbrowser
 from tkinter import *
 
+
 try:
     import tkinter as tk
     from tkinter import ttk
@@ -46,6 +47,7 @@ from configparser import ConfigParser
 
 
 from matplotlib import pyplot as plt
+from matplotlib.backends.backend_tkagg import FigureCanvasTkAgg
 import matplotlib.dates as dates
 import json
 from PIL import ImageTk,Image
@@ -55,6 +57,10 @@ import numpy as np
 import pandas as pd
 #import time
 #import pickle
+import threading #for using multiple threads to make the GUI responsive during simulations
+from BifacialSimu_src import globals
+
+globals.initialize()
 
 
 # aliases for Tkinter functions
@@ -69,14 +75,15 @@ PhotoImage = tk.PhotoImage
 # Import of needed paths
 # Path handling
 rootPath = os.path.realpath(".")
-print(rootPath)
+# print(rootPath)
+
 # Include paths
-sys.path.append(rootPath + "/BifacialSimu/Controller")
-sys.path.append(rootPath + "/BifacialSimu/Handler")
+# sys.path.append(rootPath + "/BifacialSimu/Controller")
+# sys.path.append(rootPath + "/BifacialSimu/Handler")
 
 # Include modules
-import BifacialSimu_simulationController
-import BifacialSimu_dataHandler
+from BifacialSimu import Controller
+
 
 
 # Entry of simulation variables and settings for different simulation modes
@@ -92,11 +99,12 @@ import BifacialSimu_dataHandler
 
 # simulation parameters and variables
 SimulationDict = {
+'clearance_height': 0.4, #value was found missing! should be added later!
 'simulationName' : 'NREL_best_field_row_2',
 'simulationMode' : 1, 
 'localFile' : True, # Decide wether you want to use a  weather file or try to download one for the coordinates
-'weatherFile' : (rootPath +'/WeatherData/Golden_USA/SRRLWeatherdata Nov_Dez_2.csv'), #weather file in TMY format 
-'spectralReflectancefile' : (rootPath + '/ReflectivityData/interpolated_reflectivity.csv'),
+'weatherFile' : rootPath +'/WeatherData/Golden_USA/SRRLWeatherdata Nov_Dez_2.csv', #weather file in TMY format 
+'spectralReflectancefile' : rootPath + '/ReflectivityData/interpolated_reflectivity.csv',
 'cumulativeSky' : False, # Mode for RayTracing: CumulativeSky or hourly
 'startHour' : (2019, 11, 1, 0),  # Only for hourly simulation, yy, mm, dd, hh
 'endHour' : (2019, 11, 16, 0),  # Only for hourly simulation, yy, mm, dd, hh
@@ -148,6 +156,8 @@ ModuleDict = {
     'zeta': 0.06 #Bestrahlungskoeffizient für Leerlaufspannung [-]
     
 }
+
+
 
 
 class Window(tk.Tk):
@@ -365,14 +375,15 @@ class Window(tk.Tk):
         my_notebook.add(namecontrol_frame, text="Main Control")
         my_notebook.add(simulationMode_frame, text="Simulation Control")
         my_notebook.add(ModuleParameter_frame, text="Module Parameter")
+
         
         # Starting the simulation
         def StartSimulation():
-            
+           
 # =============================================================================
 #             Time Parameter
 # =============================================================================
-
+            
             if (len(Entry_year_start.get())==0 or len(Entry_month_start.get()) == 0 
                 or len(Entry_day_start.get()) == 0 
                 or len(Entry_hour_start.get()) == 0 
@@ -394,12 +405,15 @@ class Window(tk.Tk):
             if int (Entry_month_end.get()) <=0 or int (Entry_month_end.get()) >12:
                 messagebox.showwarning("Simulation Control", "Please insert a End Month between 1 and 12!")
                 exit
+                
             if int(Entry_day_end.get()) <1 or int(Entry_day_end.get()) >31:
                 messagebox.showwarning("Simulation Control", "Please insert a End Day between 1 and 31!")
                 exit
+                    
             if int(Entry_hour_end.get()) <0 or int(Entry_hour_end.get()) >=24:
                 messagebox.showwarning("Simulation Control", "Please insert a End Hour between 0 and 23!")
                 exit
+                    
             if (len(Entry_year_start.get()) != 0
                 and len(Entry_month_start.get()) != 0 and 1 <= int (Entry_month_start.get()) <= 12
                 and len(Entry_day_start.get()) != 0 and 1<= int(Entry_day_start.get()) <=31
@@ -413,15 +427,15 @@ class Window(tk.Tk):
                 SimulationDict["startHour"]=(Startdate.year, Startdate.month, Startdate.day, Startdate.hour)
                 Enddate=datetime.datetime(int(Entry_year_end.get()), int(Entry_month_end.get()), int(Entry_day_end.get()), int(Entry_hour_end.get()))
                 SimulationDict["endHour"]=(Enddate.year, Enddate.month, Enddate.day, Enddate.hour)
-                
+            
             else:
                 messagebox.showwarning("Simulation Control", "Please insert a Start and End Date \n in the format: [yyyy mm dd hh]!")
                 exit
-            
+                
+               
             if len(Entry_utcoffset.get())!=0:
                 SimulationDict["utcOffset"]=float(Entry_utcoffset.get())
            
-
 
 # =============================================================================
 #             Simulation Parameter
@@ -545,8 +559,9 @@ class Window(tk.Tk):
 # =============================================================================
 #             Defining the Path for the Results    
 # =============================================================================
-                
-            resultsPath = BifacialSimu_dataHandler.DataHandler().setDirectories()
+            
+            
+            resultsPath = Controller.DataHandler().setDirectories()
             print('created resultsPath at: ' + resultsPath)     
             
             
@@ -554,16 +569,16 @@ class Window(tk.Tk):
 #             Starting the Simulation with the defined Dictionaries
 # =============================================================================
             
-            BifacialSimu_simulationController.startSimulation(SimulationDict, ModuleDict, resultsPath)
+            Controller.startSimulation(SimulationDict, ModuleDict, resultsPath)
 
 
 # =============================================================================
 #           Functions to make the Plots
 # =============================================================================
-                       
+          
             makePlotAbsIrr(resultsPath)
             makePlotirradiance(resultsPath)
-           # makePlotBifacialRadiance(resultsPath) 
+                #makePlotBifacialRadiance(resultsPath) 
 
           
 # =============================================================================
@@ -585,7 +600,9 @@ class Window(tk.Tk):
                 
 
                 i=0
-                fig1, ax1= plt.subplots()        
+                
+                fig1 = plt.Figure()
+                ax1= fig1.subplots()        
                 x=[]
                 y=[]
                 x2=[]
@@ -603,6 +620,7 @@ class Window(tk.Tk):
                
                 j=0
                 while j < int(Entry_nRows.get()):
+
                     
                     x2.append(data['row_'+str(j)+'_qabs_back'])
                     y2.append("row_"+str(j)+"_back")
@@ -618,16 +636,18 @@ class Window(tk.Tk):
                 ax1.xaxis.set_minor_formatter(dates.DateFormatter('%d'))  # day
                 ax1.xaxis.set_major_locator(dates.MonthLocator(interval=1))    # every Month
                 ax1.xaxis.set_major_formatter(dates.DateFormatter('\n%m-%Y'))  #show Month and Year
-           #     ax1.legend()
+                #ax1.legend()
                 ax1.legend(bbox_to_anchor=(0.7,1.02,1,.102),loc=3,ncol=2,borderaxespad=0)   #Place the Legend outside of the graph
                 ax1.set_ylabel('Radiance\n[W/m²]', size=17)
                 ax1.set_xlabel("Time", size=17)
                 ax1.set_title('Absolute Irradiance', size=18)
                 
-                plt.grid(True, which="minor")
-                plt.tight_layout()
+                #fig1.grid(True, which="minor")
+                fig1.tight_layout()
                 fig1.savefig("Absolute_Irradiance_front_back_" + datetime.datetime.now().strftime("%Y-%m-%d-%H-%M") + ".png")
-                plt.show()
+                canvas = FigureCanvasTkAgg(fig1, master=tk.Toplevel())
+                canvas.get_tk_widget().pack(side=tk.TOP, fill=tk.BOTH, expand=1.0)
+                canvas.draw()
                 
                 
             if SimulationDict["simulationMode"]==3 or SimulationDict["simulationMode"]==5:
@@ -644,7 +664,8 @@ class Window(tk.Tk):
                 
 
                 i=0
-                fig1, ax1= plt.subplots()        
+                fig1 = plt.Figure()
+                ax1= fig1.subplots()        
                 x=[]
                 y=[]
                 x2=[]
@@ -682,10 +703,10 @@ class Window(tk.Tk):
                 ax1.set_xlabel("Time", size=17)
                 ax1.set_title('Absolute Irradiance', size=18)
                 
-                plt.grid(True, which="minor")
-                plt.tight_layout()
+                #fig1.grid(True, which="minor")
+                fig1.tight_layout()
                 fig1.savefig("Absolute_Irradiance_front_back_" + datetime.datetime.now().strftime("%Y-%m-%d-%H-%M") + ".png")
-                plt.show()
+                ##plt.show()
                 
 # ========================For these simulation a Timestamp has to be implemented in the csv. It needs a key for the variable=====================================================
 #             if SimulationDict["simulationMode"]==5:
@@ -724,7 +745,7 @@ class Window(tk.Tk):
 #                 plt.grid(True, which="major")
 #                 plt.tight_layout()
 #                 fig1.savefig("Absolute_Irradiance_front_back" + datetime.datetime.now().strftime("%Y-%m-%d-%H-%M") + ".png")
-#                 plt.show()
+#                 ##plt.show()
 #                 
 # =============================================================================
 # Simulation Mode 4 needs to get debugged            
@@ -745,7 +766,8 @@ class Window(tk.Tk):
                 dhi=data["dhi"]
                 dni=data["dni"]
                
-                fig2, ax2= plt.subplots()
+                fig2 = plt.Figure()
+                ax2= fig2.subplots()
                 
                 ax2.plot(idx,ghi, label="GHI")
                 ax2.plot(idx,dhi, label="DHI")
@@ -760,80 +782,87 @@ class Window(tk.Tk):
                 ax2.set_xlabel("Time", size=17)
                 ax2.set_title('Irradiance', size=18)
                 
-                plt.grid(True, which="minor")
-                plt.tight_layout()
+                #fig2.grid(True, which="minor")
+                fig2.tight_layout()
                 fig2.savefig("Irradiance_" + datetime.datetime.now().strftime("%Y-%m-%d-%H-%M") + ".png")
-                plt.show()
+                ###plt.show()
             
 # =============================================================================
-#         def makePlotBifacialRadiance(resultsPath, Bifacial_gain):
-#             
-#             if SimulationDict["simulationMode"]==1 or SimulationDict["simulationMode"]==2: 
-#                 plt.style.use("seaborn")
-#                 
-#                 
-#                 data=pd.read_csv(resultsPath + "/electrical_simulation.csv")
-#                 date=pd.read_csv(resultsPath + "/Data.csv")
-#                 timestamp_start=date.timestamp [0]
-#                # print (timestamp_start)
-#                 timestamp_end=len(date.timestamp)
-#                # timestamp_end=
-#                 idx=pd.date_range(timestamp_start, periods=timestamp_end, freq="1H")
-#                 
-#                 P_bi=data["P_bi "]
-#                 
-#                
-#                 fig3, ax3= plt.subplots()
-#                 
-#                 ax3.plot(idx,P_bi, label="P_bi")
-#                 
-#                 ax3.xaxis.set_minor_locator(dates.DayLocator(interval=1))   # every Day
-#                 ax3.xaxis.set_minor_formatter(dates.DateFormatter('%d'))  # day and hours
-#                 ax3.xaxis.set_major_locator(dates.MonthLocator(interval=1))    # every Month
-#                 ax3.xaxis.set_major_formatter(dates.DateFormatter('\n%m-%Y'))             
-#                 ax3.legend()
-#                 ax3.set_ylabel('Power Output\n[W/m²]', size=17)
-#                 ax3.set_xlabel("Time", size=17)
-#                 ax3.set_title('Bifacial Output Power\nBifacial Gain:'+str(Bifacial_gain), size=18)
-#                 
-#                 plt.grid(True, which="minor")
-#                 plt.tight_layout()
-#                 fig3.savefig("Bifacial_output_Power_" + datetime.datetime.now().strftime("%Y-%m-%d-%H-%M") + ".png")
-#                 os.rename(resultsPath + "/electrical_simulation.csv", resultsPath + "electrical_simulation_" + datetime.datetime.now().strftime("%Y-%m-%d-%H-%M") + ".csv")
-#                 
-#             if SimulationDict["simulationMode"]==3  or SimulationDict["simulationMode"]==5:
-#                 plt.style.use("seaborn")
-#                 
-#                 
-#                 data=pd.read_csv(resultsPath + "/electrical_simulation.csv")
-#                 date1=pd.read_csv(resultsPath + "/Dataframe_df.csv")
-#                 date2=pd.read_csv(resultsPath + "/df_reportRT.csv")
-#                 timestamp_start=date1.corrected_timestamp [0]
-#                # print (timestamp_start)
-#                 timestamp_end=len(date2.row_2_qinc_front)       #
-#          
-#                 idx=pd.date_range(timestamp_start, periods=timestamp_end, freq="1H")
-#                 
-#                 P_bi=data["P_bi "]
-#                 
-#                
-#                 fig3, ax3= plt.subplots()
-#                 
-#                 ax3.plot(idx,P_bi, label="P_bi")
-#                 
-#                 ax3.xaxis.set_minor_locator(dates.DayLocator(interval=1))   # every Day
-#                 ax3.xaxis.set_minor_formatter(dates.DateFormatter('%d'))  # day and hours
-#                 ax3.xaxis.set_major_locator(dates.MonthLocator(interval=1))    # every Month
-#                 ax3.xaxis.set_major_formatter(dates.DateFormatter('\n%m-%Y'))             
-#                 ax3.legend()
-#                 ax3.set_ylabel('Power Output\n[W/m²]', size=17)
-#                 ax3.set_xlabel("Time", size=17)
-#                 ax3.set_title('Bifacial Output Power', size=18)
-#                 
-#                 plt.grid(True, which="minor")
-#                 plt.tight_layout()
-#                 fig3.savefig("Bifacial_output_Power_" + datetime.datetime.now().strftime("%Y-%m-%d-%H-%M") + ".png")
-#                 os.rename(resultsPath + "/electrical_simulation.csv", resultsPath + "electrical_simulation_" + datetime.datetime.now().strftime("%Y-%m-%d-%H-%M") + ".csv") 
+        def makePlotBifacialRadiance(resultsPath):
+        
+          if SimulationDict["simulationMode"]==1 or SimulationDict["simulationMode"]==2: 
+            plt.style.use("seaborn")
+            
+            
+            data=pd.read_csv(resultsPath + "electrical_simulation" + datetime.datetime.now().strftime("%Y-%m-%d-%H-%M") + ".csv")
+            date=pd.read_csv(resultsPath + "/Data.csv")
+            timestamp_start=date.timestamp [0]
+           # print (timestamp_start)
+            timestamp_end=len(date.timestamp)
+           # timestamp_end=
+            idx=pd.date_range(timestamp_start, periods=timestamp_end, freq="1H")
+            
+            P_bi=data["P_bi "]
+            
+           
+            fig3 = plt.Figure()
+            ax3= fig3.subplots()
+            
+            ax3.plot(idx,P_bi, label="P_bi ")
+            
+            ax3.xaxis.set_minor_locator(dates.DayLocator(interval=1))   # every Day
+            ax3.xaxis.set_minor_formatter(dates.DateFormatter('%d'))  # day and hours
+            ax3.xaxis.set_major_locator(dates.MonthLocator(interval=1))    # every Month
+            ax3.xaxis.set_major_formatter(dates.DateFormatter('\n%m-%Y'))             
+            ax3.legend()
+            ax3.set_ylabel('Power Output\n[W/m²]', size=17)
+            ax3.set_xlabel("Time", size=17)
+            ax3.set_title('Bifacial Output Power', size=18)
+            
+            #fig3.grid(True, which="minor")
+            fig3.tight_layout()
+            fig3.savefig("Bifacial_output_Power_" + datetime.datetime.now().strftime("%Y-%m-%d-%H-%M") + ".png")
+            #os.rename(resultsPath + "/electrical_simulation.csv", resultsPath + "electrical_simulation_" + datetime.datetime.now().strftime("%Y-%m-%d-%H-%M") + ".csv")
+            
+            canvas = FigureCanvasTkAgg(fig3, master=tk.Toplevel())
+            canvas.get_tk_widget().pack(side=tk.TOP, fill=tk.BOTH, expand=1.0)
+            canvas.draw()
+                
+          if SimulationDict["simulationMode"]==3  or SimulationDict["simulationMode"]==5:
+            plt.style.use("seaborn")
+            
+            
+            data=pd.read_csv(resultsPath + "electrical_simulation" + datetime.datetime.now().strftime("%Y-%m-%d-%H-%M") + ".csv")
+            date1=pd.read_csv(resultsPath + "/Dataframe_df.csv")
+            date2=pd.read_csv(resultsPath + "/df_reportRT.csv")
+            timestamp_start=date1.corrected_timestamp [0]
+           # print (timestamp_start)
+            timestamp_end=len(date2.row_2_qinc_front)       #
+     
+            idx=pd.date_range(timestamp_start, periods=timestamp_end, freq="1H")
+            
+            P_bi=data["P_bi "]
+            
+           
+            fig3 = plt.Figure()
+            ax3= fig3.subplots()
+            
+            ax3.plot(idx,P_bi, label="P_bi ")
+            
+            ax3.xaxis.set_minor_locator(dates.DayLocator(interval=1))   # every Day
+            ax3.xaxis.set_minor_formatter(dates.DateFormatter('%d'))  # day and hours
+            ax3.xaxis.set_major_locator(dates.MonthLocator(interval=1))    # every Month
+            ax3.xaxis.set_major_formatter(dates.DateFormatter('\n%m-%Y'))             
+            ax3.legend()
+            ax3.set_ylabel('Power Output\n[W/m²]', size=17)
+            ax3.set_xlabel("Time", size=17)
+            ax3.set_title('Bifacial Output Power', size=17)
+            
+            #fig3.grid(True, which="minor")
+            fig3.tight_layout()
+            fig3.savefig("Bifacial_output_Power_" + datetime.datetime.now().strftime("%Y-%m-%d-%H-%M") + ".png")
+            #os.rename(resultsPath + "/electrical_simulation.csv", resultsPath + "electrical_simulation_" + datetime.datetime.now().strftime("%Y-%m-%d-%H-%M") + ".csv") 
+
 #                 
 # =============================================================================
 # Entries for default settings
@@ -1792,8 +1821,7 @@ class Window(tk.Tk):
         
         logo2()
         
-
-
+        
 
 
         # activates the first Radiobuttons to disable ttk.Entry fields and write in the Dict
@@ -1809,14 +1837,34 @@ class Window(tk.Tk):
 #         Control Buttons for the Simulation    
 # =============================================================================
         
-        Button_startSimulation=ttk.Button(simulationFunction_frame, text="Start Simulation!", command=StartSimulation)
+        #start Simulation in Thread
+        def generate_thread():
+            
+            #breaking flag must be rest before starting a new Simulation, otherwise it won't function if someone pressed the stop button before.
+            globals.thread_break = False 
+            
+            threading.Thread(target=StartSimulation).start()
+       
+        #break Simulation in Thread
+        def Break_Simulation():
+            
+            #messagebox to ask users if they are sure they want to terminate process.          
+            answer = messagebox.askyesno("Stopping Simulation", "Are you sure you want to stop the simulation?", )
+            
+            if answer == 1:
+                #breaking flag switches to True to trigger the simulation break
+                globals.thread_break = True
+                
+        Button_startSimulation=ttk.Button(simulationFunction_frame, text="Start Simulation!", command=generate_thread)
         Button_startSimulation.grid(column=2,row=1)
         Button_setDefault=ttk.Button(simulationFunction_frame, text="set default!", command=setdefault)
         Button_setDefault.grid(column=0,row=1)
         Button_clear=ttk.Button(simulationFunction_frame, text="clear!", command=clearall)
         Button_clear.grid(column=1,row=1)
+        Button_stopSimulation=ttk.Button(simulationFunction_frame, text="Stop Simulation!", command=Break_Simulation)
+        Button_stopSimulation.grid(column=3,row=1)
 
-
+        
 
     def _on_frame_configure(self, event=None):
         self.canvas.configure(scrollregion=self.canvas.bbox("all"))
@@ -1838,7 +1886,8 @@ class Window(tk.Tk):
             P_bi=data["P_bi "]
             
            
-            fig3, ax3= plt.subplots()
+            fig3 = plt.Figure()
+            ax3= fig3.subplots()
             
             ax3.plot(idx,P_bi, label="P_bi ")
             
@@ -1851,11 +1900,15 @@ class Window(tk.Tk):
             ax3.set_xlabel("Time", size=17)
             ax3.set_title('Bifacial Output Power\Bifacial Gain: '+ str(Bifacial_gain*100) + " %", size=18)
             
-            plt.grid(True, which="minor")
-            plt.tight_layout()
+            #fig3.grid(True, which="minor")
+            fig3.tight_layout()
             fig3.savefig("Bifacial_output_Power_" + datetime.datetime.now().strftime("%Y-%m-%d-%H-%M") + ".png")
             #os.rename(resultsPath + "/electrical_simulation.csv", resultsPath + "electrical_simulation_" + datetime.datetime.now().strftime("%Y-%m-%d-%H-%M") + ".csv")
             
+            canvas = FigureCanvasTkAgg(fig3, master=tk.Toplevel())
+            canvas.get_tk_widget().pack(side=tk.TOP, fill=tk.BOTH, expand=1.0)
+            canvas.draw()
+                
         if SimulationDict["simulationMode"]==3  or SimulationDict["simulationMode"]==5:
             plt.style.use("seaborn")
             
@@ -1872,7 +1925,8 @@ class Window(tk.Tk):
             P_bi=data["P_bi "]
             
            
-            fig3, ax3= plt.subplots()
+            fig3 = plt.Figure()
+            ax3= fig3.subplots()
             
             ax3.plot(idx,P_bi, label="P_bi ")
             
@@ -1885,8 +1939,8 @@ class Window(tk.Tk):
             ax3.set_xlabel("Time", size=17)
             ax3.set_title('Bifacial Output Power\nBifacial Gain: '+ str(Bifacial_gain*100) + " %", size=17)
             
-            plt.grid(True, which="minor")
-            plt.tight_layout()
+            #fig3.grid(True, which="minor")
+            fig3.tight_layout()
             fig3.savefig("Bifacial_output_Power_" + datetime.datetime.now().strftime("%Y-%m-%d-%H-%M") + ".png")
             #os.rename(resultsPath + "/electrical_simulation.csv", resultsPath + "electrical_simulation_" + datetime.datetime.now().strftime("%Y-%m-%d-%H-%M") + ".csv") 
 

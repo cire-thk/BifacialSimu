@@ -19,9 +19,14 @@ overview:
 """
 
 
-
+'Might have to remove IPython functions from this file. IPython should be used in GUI.py only'
 from IPython import get_ipython
 get_ipython().magic('reset -sf')
+import seaborn as sns
+import os
+# Path handling
+rootPath = os.path.realpath("../../")
+print(rootPath)
 
 import pandas as pd #pandas = can read .csv as input
 import matplotlib.pyplot as plt #display shadows
@@ -29,15 +34,13 @@ import matplotlib.dates as mdates
 import numpy as np
 import warnings
 import datetime
-from Vendor.pvfactors.viewfactors.aoimethods import faoi_fn_from_pvlib_sandia #to calculate AOI reflection losses
-from Vendor.pvfactors.engine import PVEngine
-from Vendor.pvfactors.irradiance.__init__ import HybridPerezOrdered
-from Vendor.pvfactors.geometry.__init__ import OrderedPVArray
-from Vendor.pvfactors.viewfactors.__init__ import VFCalculator
 import numpy
 import dateutil.tz
 import sys
 import math
+from tkinter import messagebox
+from BifacialSimu_src import globals
+
 #import os #to import directories
 #from pvlib.location import Location
 #from tqdm import tqdm
@@ -46,8 +49,10 @@ import math
 #import pvlib #for electrical output simulation
 
 # DEPENDENCIES AFTER VENDORING
-from Vendor.bifacial_radiance.main import RadianceObj, AnalysisObj
-
+from BifacialSimu_src.Vendor.bifacial_radiance.main import RadianceObj, AnalysisObj
+from BifacialSimu_src.Vendor.pvfactors.viewfactors.aoimethods import faoi_fn_from_pvlib_sandia #to calculate AOI reflection losses
+from BifacialSimu_src.Vendor.pvfactors.engine import PVEngine
+from BifacialSimu_src.Vendor.pvfactors import irradiance, geometry, viewfactors
 
     
 class RayTrace:
@@ -193,6 +198,14 @@ class RayTrace:
                 
                 for time in range(startHour, endHour+1):
                     
+# =============================================================================
+#                     Check Simulation Break Flag
+# =============================================================================
+                    if globals.thread_break == True:
+                        print("Simulation was Stopped!")
+                        messagebox.showinfo("Simulation Stopped!", "The simulation was successfully terminated!")
+                        break
+                        
                     x = time - startHour
                     
                     singleindex= dtStart + x*datetime.timedelta(hours=1) 
@@ -205,6 +218,14 @@ class RayTrace:
                     
 
                     for j in range(0, simulationDict['nRows']):
+                        
+                        # =============================================================================
+                        #                     Check Simulation Break Flag
+                        # =============================================================================
+                        if globals.thread_break == True:
+                            print("Simulation was Stopped!")
+                            messagebox.showinfo("Simulation Stopped!", "The simulation was successfully terminated!")
+                            break
         
                         key_front = "row_" + str(j) + "_qinc_front"
                         key_back = "row_" + str(j) + "_qinc_back"
@@ -240,7 +261,17 @@ class RayTrace:
             
 
                     for j in range(0, simulationDict['nRows']):
-                    
+                        
+                        # =============================================================================
+                        #                     Check Simulation Break Flag
+                        # =============================================================================
+                        if globals.thread_break == True:
+                            print("Simulation was Stopped!")
+                            messagebox.showinfo("Simulation Stopped!", "The simulation was successfully terminated!")
+                            break
+                        
+                        else:
+                            
                             key_front = "row_" + str(j) + "_qinc_front"
                             key_back = "row_" + str(j) + "_qinc_back"
                             
@@ -322,6 +353,13 @@ class RayTrace:
                 
                 for time in range(startHour, endHour+1):
                     
+                    # =============================================================================
+                    #                     Check Simulation Break Flag
+                    # =============================================================================
+                    if globals.thread_break == True:
+                        messagebox.showinfo("Simulation Stopped!", "The simulation was successfully terminated!")
+                        break
+                    
                     #dataframes to insert results
                     df_rtraceFront = pd.DataFrame()
                     df_rtraceBack = pd.DataFrame()
@@ -359,7 +397,14 @@ class RayTrace:
                     analysis = AnalysisObj(octfile, demo.basename)                   
                    
                     for j in range(0, simulationDict['nRows']):
-        
+                        # =============================================================================
+                        #                     Check Simulation Break Flag
+                        # =============================================================================
+                        if globals.thread_break == True:
+                            print("Simulation was Stopped!")
+                            messagebox.showinfo("Simulation Stopped!", "The simulation was successfully terminated!")
+                            break
+                        
                         key_front = "row_" + str(j) + "_qinc_front"
                         key_back = "row_" + str(j) + "_qinc_back"
                         
@@ -506,7 +551,7 @@ class ViewFactors:
         except ImportError:
             print('We suggest you install seaborn using conda or pip and rerun this cell')
         
-        irradiance_model = HybridPerezOrdered(rho_front=simulationParameter['rho_front_pvrow'], rho_back=simulationParameter['rho_back_pvrow']) #choose an irradiance model
+        irradiance_model = irradiance.HybridPerezOrdered(rho_front=simulationParameter['rho_front_pvrow'], rho_back=simulationParameter['rho_back_pvrow']) #choose an irradiance model
         # Add dictionary for discretization 
         
         rowSegments = {}
@@ -523,16 +568,16 @@ class ViewFactors:
         df_inputs = df.iloc[dayUnderConsideration * 24:(dayUnderConsideration + 1) * 24, :] #rows to look at in .csv
         
         # Plot the data for displaying direct and diffuse irradiance
-        #print("\n Direct and Diffuse irradiance:") 
-        
-        f, (ax1) = plt.subplots(1, figsize=(12, 3))
+        print("\n Direct and Diffuse irradiance:")
+        f = plt.Figure(figsize=(12, 3))
+        ax1 = f.subplots(1)
         df_inputs[['dni', 'dhi']].plot(ax=ax1)
         ax1.locator_params(tight=True, nbins=6)
         ax1.set_ylabel('W/m2')
         f.savefig("Direct_Diffuse_irradiance.png", dpi = dpi)
-        plt.show()
+        #plt.show()
         #not used to show Plot in own Window
-        #plt.show(sns)
+        ##plt.show()(sns)
         
         # Calculate tracking angles if single axis tracking is enabled
         if simulationDict['singleAxisTracking'] == True:
@@ -562,7 +607,7 @@ class ViewFactors:
             
             df = df.join(d['surf_tilt'])
 
-            df['timestamp'] = df['corrected_timestamp'].dt.strftime('%m-%d %H:%M%')
+            df['timestamp'] = df['corrected_timestamp'].dt.strftime('%Y %m-%d %H:%M')
             df['timestamp'] = pd.to_datetime(df['timestamp'])
             #df['timestamp'] = df['timestamp'].dt.tz_localize(None)
             df = df.set_index('timestamp')
@@ -577,9 +622,9 @@ class ViewFactors:
             
             df = df.reset_index()
             
-            df['time'] = df['corrected_timestamp'].dt.strftime('%m_%d_%H')
+            df['time'] = df['corrected_timestamp'].dt.strftime('%Y %m_%d_%H')
             df = df.set_index('time')
-            df['timestamp'] = df['corrected_timestamp'].dt.strftime('%m-%d %H:%M%')
+            df['timestamp'] = df['corrected_timestamp'].dt.strftime('%Y %m-%d %H:%M%')
             df['timestamp'] = pd.to_datetime(df['timestamp'])  
             #df['timestamp'] = df['timestamp'].dt.tz_localize(None)
             df = df.set_index('timestamp')
@@ -644,7 +689,7 @@ class ViewFactors:
             ax.set_ylabel('Variable albedo')
             ax.legend(bbox_to_anchor=(0., 1.02, 1, 0.1), loc='lower left', ncol=2, borderaxespad=0.)
             plt.ylim(0,0.4)
-            plt.show()
+            #plt.show()()
         
         ####################################################
         
@@ -689,7 +734,7 @@ class ViewFactors:
         # Run full bifacial simulation
         
         # Create ordered PV array and fit engine
-        pvarray = OrderedPVArray.init_from_dict(simulationParameter)
+        pvarray = geometry.OrderedPVArray.init_from_dict(simulationParameter)
         engine = PVEngine(pvarray)
 
         engine.fit(df.index, df.dni, df.dhi,
@@ -713,7 +758,7 @@ class ViewFactors:
         ax.set_xlim(-3,20)
         #f.savefig(resultsPath +"/Segment_Division" + datetime.now().strftime("%Y-%m-%d-%H-%M") + ".png", dpi = dpi)
         f.savefig("Segment_Division.png", dpi = dpi)
-        plt.show(sns)
+        #plt.show()(sns)
         """
         ####################################################
         #AOI reflection losses
@@ -727,8 +772,9 @@ class ViewFactors:
         # Helper functions for plotting and simulation with reflection losses
         def plot_irradiance(df_reportVF):
         
-             # Plot irradiance
-            f, ax = plt.subplots(nrows=1, ncols=2, figsize=(12, 4))
+            # Plot irradiance
+            f = plt.Figure(figsize=(12, 4))
+            ax = f.subplots(nrows=1, ncols=2)
             
             # Plot back surface irradiance
             df_reportVF[['qinc_back', 'qabs_back']].plot(ax=ax[0])
@@ -739,7 +785,7 @@ class ViewFactors:
             df_reportVF[['qinc_front', 'qabs_front']].plot(ax=ax[1])
             ax[1].set_title('Front surface irradiance')
             ax[1].set_ylabel('W/m2')
-            plt.show()
+            #plt.show()()
             
             
         ##### Without backscan #####   
@@ -747,18 +793,20 @@ class ViewFactors:
             
                 
             # Plot irradiance
-            f, ax = plt.subplots(figsize=(12, 4))
+            f = plt.Figure(figsize=(12, 4))
+            ax = f.subplots()
                     
             # Plot front surface irradiance
             df_reportVF[['qinc_front', 'qabs_front']].plot(ax=ax)
             ax.set_title('Front surface irradiance')
             ax.set_ylabel('W/m2')
-            plt.show()
+            #plt.show()()
         
         
         def plot_aoi_losses(df_reportVF):
                 # plotting AOI losses
-                f, ax = plt.subplots(figsize=(5.5, 4))
+                f = plt.Figure(figsize=(5.5, 4))
+                ax = f.subplots()
                 df_reportVF[['aoi_losses_back_%']].plot(ax=ax)
                 df_reportVF[['aoi_losses_front_%']].plot(ax=ax)
                 
@@ -766,21 +814,22 @@ class ViewFactors:
                 ax.set_ylabel('%')
                 ax.legend(['AOI losses back PV row', 'AOI losses front PV row'])
                 ax.set_title('AOI losses')
-                plt.show()
+                #plt.show()()
         
         
         ##### Without backscan #####
         def plot_aoi_losses_front(df_reportVF):
             
             # plotting AOI losses
-            f, ax = plt.subplots(figsize=(5.5, 4))
+            f = plt.Figure(figsize=(5.5, 4))
+            ax = f.subplots()
             df_reportVF[['aoi_losses_front_%']].plot(ax=ax)
             
             # Adjust axes
             ax.set_ylabel('%')
             ax.legend(['AOI losses front PV row'])
             ax.set_title('AOI losses')
-            plt.show()
+            #plt.show()()
             
            
             
@@ -1050,7 +1099,8 @@ class ViewFactors:
             plt.rc ('xtick', labelsize = 11) #Schriftgröße der x-Tick-Labels
             plt.rc ('ytick', labelsize = 11) #Schriftgröße der y-Tick-Labels
             plt.rc ('legend', fontsize = 11) #Schriftgröße der Legende
-            fig, ax = plt.subplots(figsize=(12, 4), dpi=200)
+            fig = plt.Figure(figsize=(12, 4), dpi=200)
+            ax = fig.subplots()
             width = 1
                        
             y1 = df2['Average front surface irradiance']
@@ -1063,15 +1113,16 @@ class ViewFactors:
             ax.xaxis.set_major_locator(mdates.MonthLocator())
             ax.xaxis.set_major_formatter(mdates.DateFormatter('%b'))
             ax.legend(bbox_to_anchor=(0., 1.02, 1, 0.1), loc='lower left', ncol=2, borderaxespad=0.)
-            plt.xlim(0,len(y1)-1)
+            #plt.xlim(0,len(y1)-1)
             
             
-            plt.show()
+            #plt.show()()
             
             
         def plot_irradiance2(df2):
             # Plot surface irradiance for every row
-            fig, ax = plt.subplots(figsize=(12, 4), dpi=200)
+            fig = plt.Figure(figsize=(12, 4), dpi=200)
+            ax = fig.subplots()
             
             width = 1
                        
@@ -1087,8 +1138,8 @@ class ViewFactors:
             ax.xaxis.set_major_formatter(mdates.DateFormatter('%b'))
             ax.legend(bbox_to_anchor=(0., 1.02, 1, 0.1), loc='lower left', ncol=3, borderaxespad=0.)
             ax.set_ylabel('Rear surface irradiance in $\mathregular{W/m^2}$')
-            plt.xlim(0,len(y1)-1)
-            plt.show()
+            #plt.xlim(0,len(y1)-1)
+            #plt.show()()
         
         
         # Run full simulation
@@ -1113,7 +1164,7 @@ class ViewFactors:
             ax[1].set_ylabel('W/m2')
             ax[2].set_ylabel('W/m2')
             #f.savefig("row0-3_qinc.png", dpi = dpi)
-            plt.show(sns)
+            #plt.show()(sns)
             """
             
             
@@ -1137,7 +1188,7 @@ class ViewFactors:
             ax[1].set_ylabel('W/m2')
             ax[2].set_ylabel('W/m2')
             f.savefig("row0-3_qinc.png", dpi = dpi)
-            plt.show(sns)
+            #plt.show()(sns)
             """
         
         df_reportVF=df_reportVF.set_index(pd.date_range(start = dtStart - datetime.timedelta(hours=1), end = dtEnd, freq='H', closed='right'))
@@ -1157,7 +1208,7 @@ class ViewFactors:
         # Calculate ViewFactors for Day of Consideration
         
         # Instantiate calculator
-        vf_calculator = VFCalculator()
+        vf_calculator = viewfactors.VFCalculator()
         
         # Calculate view factor matrix of the pv array
         vf_matrix = vf_calculator.build_ts_vf_matrix(pvarray)
@@ -1180,12 +1231,14 @@ class ViewFactors:
             result.to_csv("view_factors_" + str(i) + "_" + str(j) + ".csv")
             #print("\n View Factors:")
             #print('View factor from surface {} to surface {}: {}'.format(i, j, np.around(vf, decimals=2))) # in case the matrix should be printed in the console
+            return result
         
-        save_view_factor(4, 12, vf_matrix, df.index)
+        view_factors_results = save_view_factor(4, 12, vf_matrix, df.index)
         
         
-        f, ax = plt.subplots(figsize=(10, 3))
+        f = plt.Figure(figsize=(10, 3))
+        ax = f.subplots()
         pvarray.plot_at_idx(0, ax, with_surface_index=True)
-        plt.show()
+        #plt.show()()
         
-        return df_reportVF, df
+        return df_reportVF, df, view_factors_results
