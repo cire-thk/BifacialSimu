@@ -397,6 +397,10 @@ It is also possible to manually amend the axis titles within the matlibplot grap
 __Cannot load backend 'Qt5Agg'__ - If this error appears, you have to change the IPython Console from 'tk' to 'Qt5', f.e. in spyder.
 > "ImportError: Cannot load backend 'Qt5Agg' which requires the 'qt' interactive framework, as 'tk' is currently running."
 
+__Cannot uninstall 'TBB'__ - If this error appears, you have to change the IPython Console from 'tk' to 'Qt5', f.e. in spyder.
+"TBB is a system package and anaconda does not allow users to uninstall it. The reinstallation of the package should thus be avoided."
+> pip install TBB --ignore-installed
+
 ***
 
 ## Program Function
