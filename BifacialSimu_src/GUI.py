@@ -77,8 +77,8 @@ PhotoImage = tk.PhotoImage
 rootPath = os.path.realpath(".")
 # print(rootPath)
 
-# Include paths
-# sys.path.append(rootPath + "/BifacialSimu/Controller")
+# Include path in system path, so that python would find the Modules
+sys.path.append(rootPath)
 # sys.path.append(rootPath + "/BifacialSimu/Handler")
 
 # Include modules
