@@ -44,20 +44,27 @@ Unfortnatly, BifacialSimu is not supported by Linux at the moment. We are workin
 
 BifacialSimu is run within a Python environment and dependent on a variety of libraries, most of which are contained within the installation of Anaconda. 
 The program [Radiance](https://github.com/NREL/Radiance/releases) is necessary in order to run BifacialSimu. Besides that relies BifacialSimu on following libraries:
->bifacial_radiance==0.4.1  
->ipython==8.4.0   
->matplotlib==3.4.3  
->numpy==1.20.3  
->pandas==1.3.4  
->Pillow==9.1.1  
->pvfactors==1.5.2   
->pvlib==0.9.1  
->python_dateutil==2.8.2  
->pytz==2021.3  
->requests==2.26.0  
->seaborn==0.11.2  
->Shapely==1.8.2  
->tqdm==4.62.3  
+
+- bifacial_radiance==0.4.1 
+- ipython==7.34.0 
+- matplotlib==3.4.3 
+- numpy==1.20.3
+- pandas==1.3.4
+- Pillow==9.1.1
+- pvlib==0.9.1
+- python_dateutil==2.8.2
+- pytz==2021.3
+- requests==2.28.1
+- seaborn==0.11.2
+- Shapely==1.8.2
+- tqdm==4.62.3
+- pyqt5==5.12.3
+- pyqtwebengine==5.12.1
+- pvfactors==1.5.2
+- daal==2021.4.0
+- clyent==1.2.1
+- nbformat==5.4.0
+- ruamel.yaml==0.17.21
 
 The installation process of which can be found in the following section.
 ***
@@ -389,6 +396,10 @@ It is also possible to manually amend the axis titles within the matlibplot grap
 
 __Cannot load backend 'Qt5Agg'__ - If this error appears, you have to change the IPython Console from 'tk' to 'Qt5', f.e. in spyder.
 > "ImportError: Cannot load backend 'Qt5Agg' which requires the 'qt' interactive framework, as 'tk' is currently running."
+
+__Cannot uninstall 'TBB'__ - If this error appears, you have to change the IPython Console from 'tk' to 'Qt5', f.e. in spyder.
+"TBB is a system package and anaconda does not allow users to uninstall it. The reinstallation of the package should thus be avoided."
+> pip install TBB --ignore-installed
 
 ***
 
