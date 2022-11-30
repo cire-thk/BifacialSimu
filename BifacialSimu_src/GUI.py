@@ -133,6 +133,7 @@ SimulationDict = {
 'latitude' : 39.739,
 'gcr' : 0.35, #ground coverage ratio (module area / land use)
 'module_type' : 'NREL row 2', #Name of Module
+'dcWireLosses': False #Whether to calculate DC Wire losses or not 
 }
 
 # is in Function StartSimulation()
@@ -157,7 +158,15 @@ ModuleDict = {
     
 }
 
-
+WireDict = {
+    'dcWire_len': 1, #Average lentgh of wire from rows to inverters [m]
+    'dcWire_Diameter':1, #Wire diameter [mm]
+    'dcWire_Material': 0, #Wire material (0->Cu, 1->Al)
+    'acWire_len': 1, #Length of wires from inverter to load [m]
+    'acWire_Diameter':1, #Wire diameter [mm]
+    'acWire_Material': 0, #Wire material (0->Cu, 1->Al)
+    'wire_resistance' : 0,
+}
 
 
 class Window(tk.Tk):
@@ -196,6 +205,7 @@ class Window(tk.Tk):
         #ModuleParameter_frame=tk.Frame(frame, width=200, height=60)
         ModuleParameter_frame=tk.Frame(my_notebook, width=200, height=60)
         simulationFunction_frame=tk.Frame(frame, width=200, height=60)
+        wireParameter_frame=tk.Frame(my_notebook, width=200, height=60)
         
         def github_infopage(option_1):
             
@@ -350,6 +360,7 @@ class Window(tk.Tk):
         simulationParameter_frame.bind("<Configure>", self._on_frame_configure)
         ModuleParameter_frame.bind("<Configure>", self._on_frame_configure)
         simulationFunction_frame.bind("<Configure>", self._on_frame_configure)
+        wireParameter_frame.bind("<Configure>", self._on_frame_configure)
         
         #positioning of the Frames
         namecontrol_frame.grid(row=0, column=0, sticky="NW")
@@ -357,24 +368,28 @@ class Window(tk.Tk):
         simulationParameter_frame.grid(row=1, column=0, sticky="NW")
         ModuleParameter_frame.grid(row=0, column=0, rowspan=2, sticky="NW")
         simulationFunction_frame.grid(row=2, column=1, rowspan=2, sticky="NW")
+        wireParameter_frame.grid(row=2, column=1, rowspan=4, sticky="NW")
         
         #Headlines for the Frames
         namecontrol_label = ttk.Label(namecontrol_frame, text='Main Control', font=("Arial Bold", 15))
         simulationMode_label = ttk.Label(simulationMode_frame, text='Simulation Control', font=("Arial Bold", 15))
         simulationParameter_label = ttk.Label(simulationParameter_frame, text='Simulation Parameter', font=("Arial Bold", 15))
         ModuleParameter_Label = ttk.Label(ModuleParameter_frame, text='Module Parameter', font=("Arial Bold", 15))
+        wireParameter_Label = ttk.Label(wireParameter_frame, text='Wire Parameter', font=("Arial Bold", 15))
         #simulationFunction_Label = ttk.Label(simulationFunction_frame, background='lavender', text='Simulation Start', font=("Arial Bold", 15))
 
         namecontrol_label.grid(row = 0, column=0,padx=20, sticky="w")
         simulationMode_label.grid(row = 0, column=0,padx=20, sticky="w")
         simulationParameter_label.grid(row =0, column=0,padx=0, sticky=W)
         ModuleParameter_Label.grid(row =0, column=0,padx=20, sticky="w")
+        wireParameter_Label.grid(row =0, column=0,padx=20, sticky="w")
         #simulationFunction_Label.grid(row =0, column=0, sticky="ew")
         
         #Adding Frame to Notebook
         my_notebook.add(namecontrol_frame, text="Main Control")
         my_notebook.add(simulationMode_frame, text="Simulation Control")
         my_notebook.add(ModuleParameter_frame, text="Module Parameter")
+        my_notebook.add(wireParameter_frame, text="Wire Parameter")
 
         
         # Starting the simulation
@@ -555,7 +570,16 @@ class Window(tk.Tk):
             if len(Entry_Ns.get()) !=0:
                 ModuleDict["Ns"]=float(Entry_Ns.get())           
                 
-            
+# =============================================================================
+#           Wire Parameters
+# =============================================================================
+
+            if len(Entry_dcWire_len.get()) !=0:
+                WireDict["dcWire_len"]=float(Entry_dcWire_len.get())
+                
+            if len(Entry_dcWire_Diameter.get()) !=0:
+                WireDict["dcWire_Diameter"]=float(Entry_dcWire_Diameter.get()) 
+             
 # =============================================================================
 #             Defining the Path for the Results    
 # =============================================================================
@@ -906,6 +930,8 @@ class Window(tk.Tk):
             Entry_latitude.insert(0, latitude_configfile)
             Entry_gcr.insert(0, gcr_configfile)
             Entry_utcoffset.insert(0, utcoffset_configfile)
+            Entry_dcWire_len.insert(0, dcWire_len_configfile)
+            Entry_dcWire_Diameter.insert(0, dcWire_Diameter_configfile)
 
             key = entry_modulename_value.get()
             d = self.jsondata[key]
@@ -983,6 +1009,8 @@ class Window(tk.Tk):
             Entry_zeta.delete(0,END)
             Entry_albedo.delete(0,END)
             Entry_utcoffset.delete(0,END)
+            Entry_dcWire_len.delete(0,END)
+            Entry_dcWire_Diameter.delete(0,END)
 
             
            # Combo_Module.delete(0,END)
@@ -1575,6 +1603,87 @@ class Window(tk.Tk):
         Entry_Ns=ttk.Entry(ModuleParameter_frame, background="white", width=8)
         Entry_Ns.grid(column=1, row=20, sticky=W) 
         
+# =============================================================================
+#    Wire Parameter Frame
+# =============================================================================
+        
+     #DC Title
+        dcWire_Label = ttk.Label(wireParameter_frame, text='DC wire', font=("Arial Bold", 13))
+        dcWire_Label.grid(row =2, column=0,padx=15, sticky="w")
+
+
+     #DC Wiring
+        #Enable/Disable
+        def dcWireLosses():
+            if rb_dcWireLosses.get()==1:
+                SimulationDict["dcWireLosses"]=True
+                Label_dcWireLength.config(state="normal")
+                Entry_dcWire_len.config(state="normal")
+                Label_dcWireLengthUnit.config(state="normal")
+                Label_dcWireMaterial.config(state="normal")
+                rad1_dcWireMaterial.config(state="normal")
+                rad2_dcWireMaterial.config(state="normal")
+                Label_dcWire_Diameter.config(state="normal")
+                Entry_dcWire_Diameter.config(state="normal")
+                Label_dcWire_DiameterUnit.config(state="normal")
+                Combo_dcWire_Diameter.config(state='normal')
+                
+            if rb_dcWireLosses.get()==0:
+                SimulationDict["dcWireLosses"]=False
+                Label_dcWireLength.config(state="disabled")
+                Entry_dcWire_len.config(state="disabled")
+                Label_dcWireLengthUnit.config(state="disabled")
+                Label_dcWireMaterial.config(state="disabled")
+                rad1_dcWireMaterial.config(state="disabled")
+                rad2_dcWireMaterial.config(state="disabled")
+                Label_dcWire_Diameter.config(state="disable")
+                Entry_dcWire_Diameter.config(state="disable")
+                Label_dcWire_DiameterUnit.config(state="disable")
+                Combo_dcWire_Diameter.config(state='disable')
+                
+        rb_dcWireLosses=IntVar()
+        rb_dcWireLosses.set("0")
+   
+        rad1_dcWireLosses=Radiobutton(wireParameter_frame, variable=rb_dcWireLosses, width=6, text="Disable", value=0, command=lambda:dcWireLosses())
+        rad2_dcWireLosses=Radiobutton(wireParameter_frame, variable=rb_dcWireLosses, width=6, text="Enable", value=1, command=lambda:dcWireLosses())
+        rad1_dcWireLosses.grid(row=2, column=1, sticky=W)
+        rad2_dcWireLosses.grid(row=2, column=2, sticky=W)
+        
+        
+        #Length
+        Label_dcWireLength=ttk.Label(wireParameter_frame, text="Average DC wire length:")
+        Label_dcWireLength.grid(row=3, column=0, sticky=W)
+        Label_dcWireLengthUnit=ttk.Label(wireParameter_frame, text="[m]")
+        Label_dcWireLengthUnit.grid(row=3, column=2, sticky=W)
+        Entry_dcWire_len=ttk.Entry(wireParameter_frame, background="white", width=8)
+        Entry_dcWire_len.grid(row=3, column=1, sticky=W)
+        
+        #Material
+        def dcWireMaterial():
+            if rb_dcWireMaterial.get()==0:
+                WireDict["dcWire_Material"]=0
+            if rb_dcWireMaterial.get()==1:
+                WireDict["dcWire_Material"]=1                 
+                
+        Label_dcWireMaterial=ttk.Label(wireParameter_frame, text="Wire Material:")
+        Label_dcWireMaterial.grid(row=4, column=0, sticky=W)
+       
+        rb_dcWireMaterial=IntVar()
+        rb_dcWireMaterial.set("0")
+   
+        rad1_dcWireMaterial=Radiobutton(wireParameter_frame, variable=rb_dcWireMaterial, width=6, text="Cooper", value=0, command=lambda:dcWireMaterial())
+        rad2_dcWireMaterial=Radiobutton(wireParameter_frame, variable=rb_dcWireMaterial, width=8, text="Aluminum", value=1, command=lambda:dcWireMaterial())
+        rad1_dcWireMaterial.grid(row=4, column=1, sticky='w')
+        rad2_dcWireMaterial.grid(row=4, column=2, sticky='w')
+        
+        #Diameter
+        Label_dcWire_Diameter=ttk.Label(wireParameter_frame, text="Wire diameter:")
+        Label_dcWire_Diameter.grid(row=5, column=0, sticky='w')
+        Label_dcWire_DiameterUnit=ttk.Label(wireParameter_frame, text="[mm]")
+        Label_dcWire_DiameterUnit.grid(row=5, column=2, sticky='w')
+        Entry_dcWire_Diameter=ttk.Entry(wireParameter_frame, background="white", width=8)
+        Entry_dcWire_Diameter.grid(row=5, column=1, sticky='w')
+
         
 # =============================================================================
 #          Config file (default.ini) 
@@ -1610,6 +1719,8 @@ class Window(tk.Tk):
         latitude_configfile=parser.get('default', 'latitude')
         gcr_configfile=parser.get('default', 'gcr')
         utcoffset_configfile=parser.get('default', 'utcoffset')
+        dcWire_len_configfile=parser.get('default', 'dcWire_len')
+        dcWire_Diameter_configfile=parser.get('default', 'dcWire_Diameter')  
         
         
 
@@ -1784,7 +1895,47 @@ class Window(tk.Tk):
         Combo_Module.bind("<<ComboboxSelected>>", comboclick_Module)
 
 
+# =============================================================================
+#         defining the input for the Wire Diameter
+# =============================================================================
+     
+        def getWireDiameterList():
+            
+            with open(rootPath + '\Lib\input_wire\Wire.json') as file:          #Load the json file from folder
+                jsondata_wire = json.load(file)
+            
+            systemtuple = ('',)                     # ???? (the modules can't be selected without it)
+            for key in jsondata_wire.keys():                     #to be able to access the keys
+                systemtuple = systemtuple + (str(key),)   #build the tuple of strings
+            Combo_dcWire_Diameter['values'] = systemtuple[1:]
+            Combo_dcWire_Diameter.current(0)                         
+            self.jsondata_wire = jsondata_wire
+       
+        def comboclick_wire(event):
+            """ Insert diameter value from Combobox
+            """
+            
+            key1 = entry_dcWire_Diameter_value.get() # what is the value selected?
+            if key1 != '':  # '' not a dict key
+                
+                a = self.jsondata_wire[key1]
+                self.wire = key1
+                         
+                
+                # clear module entries loaded from json
+                Entry_dcWire_Diameter.delete(0,END)
 
+ 
+               # set module entries loaded from json
+                Entry_dcWire_Diameter.insert(0,str(a['Diameter']))
+        
+        entry_dcWire_Diameter_value = tk.StringVar()
+        Combo_dcWire_Diameter=ttk.Combobox(wireParameter_frame, textvariable=entry_dcWire_Diameter_value)
+        
+        Combo_dcWire_Diameter.grid(row=5, column=3, ipadx=5)
+        getWireDiameterList()                                     #set the wire AWG values
+        Combo_dcWire_Diameter.bind("<<ComboboxSelected>>", comboclick_wire)        
+  
 
 
                 # If you get the Error Pyimage X isnt existing restart the Console
@@ -1832,6 +1983,7 @@ class Window(tk.Tk):
         Measuredalbedo()
         Electricalmode()
         Backtracking()
+        dcWireLosses()
         
 # =============================================================================
 #         Control Buttons for the Simulation    
