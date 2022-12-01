@@ -66,6 +66,7 @@ class Electrical_simulation:
     Methods
     -------
     build_simulationReport: build a final simulation report that contains data from viewfactors and raytracing
+    simulate_WireResistance: Calculates the resistance of the wire according to its length, diameter and material.
     simulate_oneDiode: Applies the one diode model for electrical simulation. Needs module front and rear parameters to work correctly.
     simulate_simpleBifacial: Simple electrical simulation mode that doesn't need rear module parameters. 
                 Applies bifaciality factor to calculate rear efficiency and fill factor.
@@ -85,7 +86,43 @@ class Electrical_simulation:
         
         return df_report
     
-    def simulate_oneDiode(moduleDict, simulationDict, df_reportVF, df_reportRT, df_report, df, resultsPath):
+    
+    ##### Function to calculate the resistivity of the wire
+    def simulate_WireResistance(WireDict, ACorDC):
+        
+        ####################################################
+        # Variables required for simulation
+        
+        # ACorDC: Whether to calculate resistance of DC or AC wire (dimensionless)
+        # length: Average wire length (m)
+        # diameter: Cross sectional diatemer of wire (mm)
+        # area: Cross sectional area of wire (mm2)
+        # material: material of wire {0-> Cu, 1-> Al} (dimensionless)
+        # Wire_cond: Conductivity of the material of the wire (S/m)
+        # wire_resistance: Calculated resistance of the wire segment (Ohm)
+        
+        ####################################################
+        Pi = math.pi
+        if ACorDC == 'dc':
+            length = WireDict['dcWire_len']
+            diameter = WireDict['dcWire_Diameter']/1000 #Now in meters
+            material = WireDict['dcWire_Material']
+        elif ACorDC == 'ac':
+            length = WireDict['acWire_len']
+            diameter = WireDict['acWire_Diameter']/1000 #Now in meters
+            material = WireDict['acWire_Material']
+
+        area = (0.25)*Pi*diameter*diameter
+        
+        if material == 0: #Copper
+            wire_cond = 59600000 #conductivity of copper 5.96x10^7 S/m
+        elif material == 1: #Aluminium
+            wire_cond = 37700000 #conductivity of Aluminium 3.77x10^7 S/m
+            
+        wire_resistance = length/(area*wire_cond)
+
+        return wire_resistance    
+    def simulate_oneDiode(moduleDict, simulationDict, WireDict, df_reportVF, df_reportRT, df_report, df, resultsPath):
         """
         Applies the one diode model for bifacial electrical simulation. Needs module front and rear parameters to work correctly.
         Calculates bifacial gain through a seperate monofacial electrical simulation.
@@ -94,6 +131,7 @@ class Electrical_simulation:
         ----------
         moduleDict: module Dictionary containing module data
         simulationDict: simulation Dictionary, which can be found in BifacialSimuu_main.py
+        WireDict: Wire Dictionary containing the the DC wire parameters, located in GUI.py
         df_reportVF: Viewfactor simulation report
         df_reportRT: Raytracing simulation report
         df_report: Final simulation report, containing VF and RT data
@@ -110,6 +148,8 @@ class Electrical_simulation:
         # Variables required for electrical simulation
         
         # P_bi: Output power of bifacial module for bifacial illumination (W)
+        # P_losses_dc: Losses due to AC Wire (W)
+        # P_out_dc: Output power with losses (W)
         # I_sc_bi: Short-circuit current of bifacial module for bifacial illumination (A)
         # V_oc: Open-circuit voltage of bifacial module for bifacial illumination (V)
         # FF_bi: Fill factor of bifacial module for bifacial illumination (%)
@@ -176,6 +216,7 @@ class Electrical_simulation:
         
         # Array to hold other arrays -> average after for loop
         P_bi_hourly_arrays = []
+        I_sc_b_hourly_arrays = []
         P_m_hourly_arrays = []
         
         df_report['timestamp'] = df_report.index
@@ -215,6 +256,7 @@ class Electrical_simulation:
             key_back = "row_" + str(i) + "_qabs_back"
         
             P_bi_hourly = []
+            I_sc_b_hourly = []
           
             for index, row in df_report.iterrows():
                 
@@ -257,11 +299,14 @@ class Electrical_simulation:
             
                 else:
                     P_bi=0
+                    I_sc_b=0
                 
                 P_bi_hourly.append(P_bi)
+                I_sc_b_hourly.append(I_sc_b)
                 
             # Append P_bi_hourly array to arrays
             P_bi_hourly_arrays.append(P_bi_hourly)
+            I_sc_b_hourly_arrays.append(I_sc_b_hourly)
                 
                 
         P_bi_hourly_average = []
@@ -275,6 +320,19 @@ class Electrical_simulation:
             average = sum / float(len(P_bi_hourly_arrays))
             
             P_bi_hourly_average.append(average)
+            
+            
+        I_sc_b_hourly_average = []
+        
+        for i in tqdm(range(0, len(I_sc_b_hourly_arrays[0]))):
+            sum = 0
+          
+            for j in range(0, len(I_sc_b_hourly_arrays)):
+                sum += I_sc_b_hourly_arrays[j][i]
+                
+            average = sum / float(len(I_sc_b_hourly_arrays))
+            
+            I_sc_b_hourly_average.append(average)
             
        
         
@@ -398,13 +456,56 @@ class Electrical_simulation:
         p_bi_df = pd.DataFrame({"timestamps":df_report.index, "P_bi ": P_bi_hourly_average, "P_m ": P_m_hourly_average})
         p_bi_df.set_index("timestamps")
         p_bi_df.to_csv(resultsPath + "electrical_simulation" + datetime.datetime.now().strftime("%Y-%m-%d-%H-%M") + ".csv")
+
+        ####################################################
+        #                Calculating losses                #
+        ####################################################
+        
+        
+        #####            DC Wire losses              ######
+        
+        
+        if simulationDict['dcWireLosses'] == True:
+            
+            ACorDC = 'dc'
+            P_losses_dc_hourly = []
+            P_out_dc_hourly = []
+            
+            dcWire_res = Electrical_simulation.simulate_WireResistance(WireDict, ACorDC)
+            WireDict['wire_resistance'] = dcWire_res
+            
+            for i in range(0, len(I_sc_b_hourly_average)):
+                sum = 0
+                
+                I_sc_b = I_sc_b_hourly_average[i]
+                P_bi = P_bi_hourly_average[i]
+                
+                P_losses_dc = dcWire_res*I_sc_b*I_sc_b
+                P_out_dc = P_bi - P_losses_dc
+                
+                P_losses_dc_hourly.append(P_losses_dc)
+                P_out_dc_hourly.append(P_out_dc)
+                
+            
+            p_I_df = pd.DataFrame({"timestamps":df_report.index, "I_sc_b": I_sc_b_hourly_average,
+                                   "P_losses_dc": P_losses_dc_hourly, "P_out_dc": P_out_dc_hourly})
+            p_bi_df = pd.merge(p_bi_df, p_I_df, on="timestamps")    
+            p_bi_df.to_csv(resultsPath + "electrical_simulation" + datetime.datetime.now().strftime("%Y-%m-%d-%H-%M") + ".csv")
+            print("Wire Resistance: " + str(dcWire_res*1000) + " mOhms")
+
+            GUI.Window.makePlotLosses(resultsPath) 
+        
+        
+        #####            Inverter losses             ######    
+        
+        
         
         #Plot for Bifacial Power Output + Bifacial Gain
         GUI.Window.makePlotBifacialRadiance(resultsPath,Bifacial_gain)
         
         return Bifacial_gain*100
         
-    def simulate_simpleBifacial(moduleDict, simulationDict, df_reportVF, df_reportRT, df_report, df, resultsPath):
+    def simulate_simpleBifacial(moduleDict, simulationDict, WireDict, df_reportVF, df_reportRT, df_report, df, resultsPath):
         """
         Applies a simplified version of the electrical simulation after PVSyst. Uses bifaciality factor to calculate rear efficiency and fill factors.
         Rear open-circuit voltage and short-circuit current are calculated using rear irradiance and temperature. 
@@ -673,7 +774,7 @@ class Electrical_simulation:
         return Bifacial_gain*100
         
         
-    def simulate_doubleDiode(moduleDict, simulationDict, df_reportVF, df_reportRT, df_report, df, resultsPath):
+    def simulate_doubleDiode(moduleDict, simulationDict, WireDict, df_reportVF, df_reportRT, df_report, df, resultsPath):
         """
         Applies the one diode model for bifacial electrical simulation. Needs module front and rear parameters to work correctly.
         Calculates bifacial gain through a seperate monofacial electrical simulation.
@@ -1312,7 +1413,7 @@ class Electrical_simulation:
     
         return Bifacial_gain*100
 
-    def simulate_doubleDiodeBi(moduleDict, simulationDict, df_reportVF, df_reportRT, df_report, df, resultsPath):
+    def simulate_doubleDiodeBi(moduleDict, simulationDict, WireDict, df_reportVF, df_reportRT, df_report, df, resultsPath):
         """
         Applies the one diode model for bifacial electrical simulation. Needs module front and rear parameters to work correctly.
         Calculates bifacial gain through a seperate monofacial electrical simulation.

@@ -593,7 +593,7 @@ class Window(tk.Tk):
 #             Starting the Simulation with the defined Dictionaries
 # =============================================================================
             
-            Controller.startSimulation(SimulationDict, ModuleDict, resultsPath)
+            Controller.startSimulation(SimulationDict, ModuleDict, WireDict, resultsPath)
 
 
 # =============================================================================
@@ -2020,6 +2020,11 @@ class Window(tk.Tk):
 
     def _on_frame_configure(self, event=None):
         self.canvas.configure(scrollregion=self.canvas.bbox("all"))
+        
+        
+        # =============================================================================
+        #            Plots  
+        # =============================================================================
 
     def makePlotBifacialRadiance(resultsPath, Bifacial_gain):
         
@@ -2097,6 +2102,38 @@ class Window(tk.Tk):
             #os.rename(resultsPath + "/electrical_simulation.csv", resultsPath + "electrical_simulation_" + datetime.datetime.now().strftime("%Y-%m-%d-%H-%M") + ".csv") 
 
 
+    def makePlotLosses(resultsPath):
+        plt.style.use("seaborn")
+            
+            
+        data=pd.read_csv(resultsPath + "electrical_simulation" + datetime.datetime.now().strftime("%Y-%m-%d-%H-%M") + ".csv")
+        date=pd.read_csv(resultsPath + "/Data.csv")
+        timestamp_start=date.timestamp [0]
+        timestamp_end=len(date.timestamp)
+        idx=pd.date_range(timestamp_start, periods=timestamp_end, freq="1H")
+            
+        P_losses_dc=data["P_losses_dc"]
+           
+        fig4 = plt.Figure()
+        ax4= fig4.subplots()
+            
+        ax4.plot(idx, P_losses_dc, label="P_losses_dc", color="red")
+            
+        ax4.xaxis.set_minor_locator(dates.DayLocator(interval=1))   # every Day
+        ax4.xaxis.set_minor_formatter(dates.DateFormatter('%d'))  # day and hours
+        ax4.xaxis.set_major_locator(dates.MonthLocator(interval=1))    # every Month
+        ax4.xaxis.set_major_formatter(dates.DateFormatter('\n%m-%Y'))             
+        ax4.legend()
+        ax4.set_ylabel('Power\n[W/m²]', size=17)
+        ax4.set_xlabel("Time", size=17)
+        ax4.set_title('Power Losses\n', size=18)
+            
+        fig4.tight_layout()
+        fig4.savefig("Power_losses" + datetime.datetime.now().strftime("%Y-%m-%d-%H-%M") + ".png")
+            
+        canvas = FigureCanvasTkAgg(fig4, master=tk.Toplevel())
+        canvas.get_tk_widget().pack(side=tk.TOP, fill=tk.BOTH, expand=1.0)
+        canvas.draw()
 
 
 def gui():    
@@ -2118,4 +2155,5 @@ if __name__ == '__main__':
 # Showing parameter after closing the GUI
 print (SimulationDict)
 print (ModuleDict)
+print (WireDict)
 
