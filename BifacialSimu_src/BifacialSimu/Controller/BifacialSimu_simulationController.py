@@ -31,8 +31,13 @@ import pandas as pd
 import sys
 import os
 from tkinter import messagebox
+
 # Path handling
 rootPath = rootPath = os.path.realpath("../../")
+
+#adding rootPath to sysPath
+sys.path.append(rootPath)
+
 from BifacialSimu_src import globals
 from BifacialSimu_src.BifacialSimu.Handler import * #much easier handling Directories using __init__.py files (avoids import errors)
 

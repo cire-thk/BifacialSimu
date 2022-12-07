@@ -23,7 +23,7 @@ overview:
 #matplotlib.use("TkAgg")
 import sys
 import math
-
+from pathlib import Path
 import os
 import webbrowser
 from tkinter import *
@@ -75,11 +75,10 @@ PhotoImage = tk.PhotoImage
 # Import of needed paths
 # Path handling
 rootPath = os.path.realpath(".")
-# print(rootPath)
+
 
 # Include path in system path, so that python would find the Modules
 sys.path.append(rootPath)
-# sys.path.append(rootPath + "/BifacialSimu/Handler")
 
 # Include modules
 from BifacialSimu import Controller
@@ -165,7 +164,7 @@ class Window(tk.Tk):
         tk.Tk.__init__(self)
         self.geometry("1600x800")
         self.title('BifacialSimu')
-        self.iconbitmap(rootPath+"\Lib\logos\App_icon.ico")
+        self.iconbitmap(Path(rootPath+"\Lib\logos\App_icon.ico"))
         yscroll = tk.Scrollbar(self, orient=tk.VERTICAL)
         xscroll = tk.Scrollbar(self, orient=tk.HORIZONTAL)
         yscroll.pack(side=tk.RIGHT, fill=tk.Y)
@@ -217,7 +216,7 @@ class Window(tk.Tk):
             pop = Toplevel()
             pop.title("Main Control Info!")
             pop.geometry("1000x400")
-            pop.iconbitmap(rootPath+"\Lib\Button_Images\info_logo.ico")
+            pop.iconbitmap(Path(rootPath+"\Lib\Button_Images\info_logo.ico"))
             
             f= open(rootPath+"\Lib\Info_Messages\Main_Control.txt")
             text_MP = f.read()
@@ -249,9 +248,9 @@ class Window(tk.Tk):
             pop = Toplevel()
             pop.title("Simulation Control Info!")
             pop.geometry("1400x700")
-            pop.iconbitmap(rootPath+"\Lib\Button_Images\info_logo.ico")
+            pop.iconbitmap(Path(rootPath+"\Lib\Button_Images\info_logo.ico"))
             
-            f= open(rootPath+"\Lib\Info_Messages\Simulation_Control.txt")
+            f= open(Path(rootPath+"\Lib\Info_Messages\Simulation_Control.txt"))
             text_MP = f.read()
             f.close()
             # since ° is a unicode character it should be replaced by its character unicode to be read properly from .txt files
@@ -277,8 +276,8 @@ class Window(tk.Tk):
              pop= Toplevel()
              pop.title("Module Parameter Info!")
              pop.geometry("1300x760")
-             pop.iconbitmap(rootPath+"\Lib\Button_Images\info_logo.ico")
-             f= open(rootPath+"\Lib\Info_Messages\Module_Parameter.txt")
+             pop.iconbitmap(Path(rootPath+"\Lib\Button_Images\info_logo.ico"))
+             f= open(Path(rootPath+"\Lib\Info_Messages\Module_Parameter.txt"))
              text_MP = f.read()
              f.close()
              # since ° is a unicode character it should be replaced by its character unicode to be read properly from .txt files
@@ -305,8 +304,8 @@ class Window(tk.Tk):
             pop_SP = Toplevel()
             pop_SP.title("Simulatoin Parameter Info!")
             pop_SP.geometry("1400x700")
-            pop_SP.iconbitmap(rootPath+"\Lib\Button_Images\info_logo.ico")
-            f= open(rootPath+"\Lib\Info_Messages\Simulation_Parameters.txt")
+            pop_SP.iconbitmap(Path(rootPath+"\Lib\Button_Images\info_logo.ico"))
+            f= open(Path(rootPath+"\Lib\Info_Messages\Simulation_Parameters.txt"))
             text_SP= f.read()
             f.close()
             # since ° is a unicode character it should be replaced by its character unicode to be read properly from .txt files
@@ -325,7 +324,7 @@ class Window(tk.Tk):
 #         assigning the info Button Icon to a variable
 # =============================================================================
 
-        namecontrol_frame.infoButton_MC= PhotoImage(file= rootPath+'\Lib\Button_Images\Button-Info-icon.png')
+        namecontrol_frame.infoButton_MC= PhotoImage(file= Path(rootPath+'\Lib\Button_Images\Button-Info-icon.png'))
         Info_image= namecontrol_frame.infoButton_MC
         
 # =============================================================================
@@ -1581,7 +1580,7 @@ class Window(tk.Tk):
 # =============================================================================
          
         parser = ConfigParser()
-        parser.read(rootPath + '\Lib\default\default.ini')
+        parser.read(Path(rootPath + '\Lib\default\default.ini'))
         simulationName_configfile=parser.get('default', 'simulationName')
        # simulationMode_configfile=parser.get('default', 'simulationMode')
         weatherFile_configfile=parser.get('default', "weatherFile")
@@ -1624,7 +1623,7 @@ class Window(tk.Tk):
             """
             
            # jsonfile = ('module2.json')
-            with open(rootPath + '\Lib\input_albedo\Albedo.json') as file:          #Laden des Json FIle aus dem Ordner
+            with open(Path(rootPath + '\Lib\input_albedo\Albedo.json')) as file:          #Laden des Json FIle aus dem Ordner
                 jsondata_albedo = json.load(file)
             
             systemtuple = ('',)                     #Ohne können die Module nicht ausgewählt werden
@@ -1681,7 +1680,7 @@ class Window(tk.Tk):
             """
             
            # jsonfile = ('module.json')
-            with open(rootPath + '\Lib\input_module\module.json') as file:          #Laden des Json FIle aus dem Ordner
+            with open(Path(rootPath + '\Lib\input_module\module.json')) as file:          #Laden des Json FIle aus dem Ordner
                 jsondata = json.load(file)
             
             systemtuple = ('',)                     
@@ -1791,7 +1790,7 @@ class Window(tk.Tk):
 
         #Loading the image in the program
         def logo():
-            self.logo = Image.open(rootPath+'\Lib\logos\logo_BifacialSimu_transparentresized.png')
+            self.logo = Image.open(Path(rootPath+'\Lib\logos\logo_BifacialSimu_transparentresized.png'))
             logo=self.logo
             #resizing the image
             self.resized=logo.resize((100, 100), Image.ANTIALIAS)
@@ -1807,7 +1806,7 @@ class Window(tk.Tk):
 
         #Loading the second image in the program
         def logo2():
-            self.logo2 = Image.open(rootPath+'\Lib\default\Example_Config.png')
+            self.logo2 = Image.open(Path(rootPath+'\Lib\default\Example_Config.png'))
             logo2=self.logo2
             #resizing the image
             self.resized2=logo2.resize((400, 350), Image.ANTIALIAS)

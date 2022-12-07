@@ -20,7 +20,8 @@ overview:
 
 # from IPython import get_ipython
 # get_ipython().magic('reset -sf')
-
+from pathlib import Path
+import sys
 import pandas as pd #pandas = can read .csv as input
 import matplotlib.pyplot as plt #display shadows
 import numpy as np
@@ -30,7 +31,7 @@ import datetime
 from tqdm import tqdm
 import math
 import dateutil.tz
-from BifacialSimu_src import GUI
+
 # seaborn makes your plots look better
 try:
     import seaborn as sns
@@ -45,14 +46,12 @@ except ImportError:
 # Path handling
 rootPath = rootPath = os.path.realpath("../../")
 
+#adding rootPath to sysPath
+sys.path.append(rootPath)
+
+
+from BifacialSimu_src import GUI
 from BifacialSimu_src.BifacialSimu.Handler import BifacialSimu_radiationHandler 
-
-# Include paths
-
-#sys.path.append(rootPath + "/BifacialSimu/Handler")
-
-
-
 
 # electric-calculation Klasse
     
@@ -81,7 +80,7 @@ class Electrical_simulation:
         if simulationDict['simulationMode'] == 3:
             df_report = df_reportRT
         #df_report = df_report.reindex(sorted(df_report.columns), axis=1)
-        df_report.to_csv(resultsPath + "radiation_qabs_results.csv")
+        df_report.to_csv(Path(resultsPath + "radiation_qabs_results.csv"))
         
         return df_report
     
@@ -397,7 +396,7 @@ class Electrical_simulation:
         # Create dataframe with data
         p_bi_df = pd.DataFrame({"timestamps":df_report.index, "P_bi ": P_bi_hourly_average, "P_m ": P_m_hourly_average})
         p_bi_df.set_index("timestamps")
-        p_bi_df.to_csv(resultsPath + "electrical_simulation" + datetime.datetime.now().strftime("%Y-%m-%d-%H-%M") + ".csv")
+        p_bi_df.to_csv(Path(resultsPath + "electrical_simulation" + datetime.datetime.now().strftime("%Y-%m-%d-%H-%M") + ".csv"))
         
         #Plot for Bifacial Power Output + Bifacial Gain
         GUI.Window.makePlotBifacialRadiance(resultsPath,Bifacial_gain)
