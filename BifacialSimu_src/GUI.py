@@ -133,7 +133,8 @@ SimulationDict = {
 'latitude' : 39.739,
 'gcr' : 0.35, #ground coverage ratio (module area / land use)
 'module_type' : 'NREL row 2', #Name of Module
-'dcWireLosses': False #Whether to calculate DC Wire losses or not 
+'dcWireLosses': False, #Whether to calculate DC Wire losses or not
+'invLosses': True #Whether to calculate Inverter losses or not 
 }
 
 # is in Function StartSimulation()
@@ -168,6 +169,28 @@ WireDict = {
     'wire_resistance' : 0,
 }
 
+inverterDict = {
+    'inv_Ratedpower': 0, #Rated power of inverter [W]
+    'inv_MaxEfficiency': 0, #Maximum efficiency of inverter [%]
+    'inv_EuroEfficiency': 0, #European efficiency of inverter [%]
+    'inv_CECEfficiency': 0, #California efficiency of inverter [%]
+    'inv_WeightedEff': True, #Check whether weighted efficiency selector or not
+    'inv_Input1': 0, #Range for inverter input
+    'inv_Input2': 0.05, #Range for inverter input
+    'inv_Input3': 0.1, #Range for inverter input
+    'inv_Input4': 0.2, #Range for inverter input
+    'inv_Input5': 0.3, #Range for inverter input
+    'inv_Input6': 0.5, #Range for inverter input
+    'inv_Input7': 1, #Range for inverter input
+    'inv_Effvalue1': 0, #Efficiency value for respective range
+    'inv_Effvalue2': 0.92, #Efficiency value for respective range
+    'inv_Effvalue3': 0.94, #Efficiency value for respective range
+    'inv_Effvalue4': 0.95, #Efficiency value for respective range
+    'inv_Effvalue5': 0.97, #Efficiency value for respective range
+    'inv_Effvalue6': 0.98, #Efficiency value for respective range
+    'inv_Effvalue7': 0.96 #Efficiency value for respective range
+       
+}
 
 class Window(tk.Tk):
     def __init__(self):
@@ -206,6 +229,7 @@ class Window(tk.Tk):
         ModuleParameter_frame=tk.Frame(my_notebook, width=200, height=60)
         simulationFunction_frame=tk.Frame(frame, width=200, height=60)
         wireParameter_frame=tk.Frame(my_notebook, width=200, height=60)
+        inverterParameter_frame=tk.Frame(my_notebook, width=200, height=60)
         
         def github_infopage(option_1):
             
@@ -361,6 +385,7 @@ class Window(tk.Tk):
         ModuleParameter_frame.bind("<Configure>", self._on_frame_configure)
         simulationFunction_frame.bind("<Configure>", self._on_frame_configure)
         wireParameter_frame.bind("<Configure>", self._on_frame_configure)
+        inverterParameter_frame.bind("<Configure>", self._on_frame_configure)
         
         #positioning of the Frames
         namecontrol_frame.grid(row=0, column=0, sticky="NW")
@@ -369,6 +394,7 @@ class Window(tk.Tk):
         ModuleParameter_frame.grid(row=0, column=0, rowspan=2, sticky="NW")
         simulationFunction_frame.grid(row=2, column=1, rowspan=2, sticky="NW")
         wireParameter_frame.grid(row=2, column=1, rowspan=4, sticky="NW")
+        inverterParameter_frame.grid(row=2, column=1, rowspan=4, sticky="NW")
         
         #Headlines for the Frames
         namecontrol_label = ttk.Label(namecontrol_frame, text='Main Control', font=("Arial Bold", 15))
@@ -376,6 +402,7 @@ class Window(tk.Tk):
         simulationParameter_label = ttk.Label(simulationParameter_frame, text='Simulation Parameter', font=("Arial Bold", 15))
         ModuleParameter_Label = ttk.Label(ModuleParameter_frame, text='Module Parameter', font=("Arial Bold", 15))
         wireParameter_Label = ttk.Label(wireParameter_frame, text='Wire Parameter', font=("Arial Bold", 15))
+        inverterParameter_Label = ttk.Label(inverterParameter_frame, text='Inverter Parameter', font=("Arial Bold", 15))
         #simulationFunction_Label = ttk.Label(simulationFunction_frame, background='lavender', text='Simulation Start', font=("Arial Bold", 15))
 
         namecontrol_label.grid(row = 0, column=0,padx=20, sticky="w")
@@ -383,6 +410,7 @@ class Window(tk.Tk):
         simulationParameter_label.grid(row =0, column=0,padx=0, sticky=W)
         ModuleParameter_Label.grid(row =0, column=0,padx=20, sticky="w")
         wireParameter_Label.grid(row =0, column=0,padx=20, sticky="w")
+        inverterParameter_Label.grid(row =0, column=0,padx=20, sticky="w")
         #simulationFunction_Label.grid(row =0, column=0, sticky="ew")
         
         #Adding Frame to Notebook
@@ -390,6 +418,7 @@ class Window(tk.Tk):
         my_notebook.add(simulationMode_frame, text="Simulation Control")
         my_notebook.add(ModuleParameter_frame, text="Module Parameter")
         my_notebook.add(wireParameter_frame, text="Wire Parameter")
+        my_notebook.add(inverterParameter_frame, text="Inverter Parameter")
 
         
         # Starting the simulation
@@ -578,7 +607,66 @@ class Window(tk.Tk):
                 WireDict["dcWire_len"]=float(Entry_dcWire_len.get())
                 
             if len(Entry_dcWire_Diameter.get()) !=0:
-                WireDict["dcWire_Diameter"]=float(Entry_dcWire_Diameter.get()) 
+                WireDict["dcWire_Diameter"]=float(Entry_dcWire_Diameter.get())
+                
+# =============================================================================
+#           Inverter Parameters
+# =============================================================================
+
+              
+            if len(Entry_inv_Ratedpower.get()) !=0:
+                inverterDict["inv_Ratedpower"]=float(Entry_inv_Ratedpower.get())
+            
+            if len(Entry_inv_MaxEfficiency.get()) !=0:
+                inverterDict["inv_MaxEfficiency"]=float(Entry_inv_MaxEfficiency.get())
+            
+            if len(Entry_inv_EuroEfficiency.get()) !=0:
+                inverterDict["inv_EuroEfficiency"]=float(Entry_inv_EuroEfficiency.get())
+            
+            if len(Entry_inv_CECEfficiency.get()) !=0:
+                inverterDict["inv_CECEfficiency"]=float(Entry_inv_CECEfficiency.get())
+                
+            if len(Entry_inv_Input1.get()) !=0:
+                inverterDict["inv_Input1"]=float(Entry_inv_Input1.get())
+                
+            if len(Entry_inv_Input2.get()) !=0:
+                inverterDict["inv_Input2"]=float(Entry_inv_Input2.get())
+                
+            if len(Entry_inv_Input3.get()) !=0:
+                inverterDict["inv_Input3"]=float(Entry_inv_Input3.get())
+                
+            if len(Entry_inv_Input4.get()) !=0:
+                inverterDict["inv_Input4"]=float(Entry_inv_Input4.get())
+                
+            if len(Entry_inv_Input5.get()) !=0:
+                inverterDict["inv_Input5"]=float(Entry_inv_Input5.get())
+                
+            if len(Entry_inv_Input6.get()) !=0:
+                inverterDict["inv_Input6"]=float(Entry_inv_Input6.get())
+                
+            if len(Entry_inv_Input7.get()) !=0:
+                inverterDict["inv_Input7"]=float(Entry_inv_Input7.get())
+                
+            if len(Entry_inv_Effvalue1.get()) !=0:
+                inverterDict["inv_Effvalue1"]=float(Entry_inv_Effvalue1.get())
+                
+            if len(Entry_inv_Effvalue2.get()) !=0:
+                inverterDict["inv_Effvalue2"]=float(Entry_inv_Effvalue2.get())
+                
+            if len(Entry_inv_Effvalue3.get()) !=0:
+                inverterDict["inv_Effvalue3"]=float(Entry_inv_Effvalue3.get())
+                
+            if len(Entry_inv_Effvalue4.get()) !=0:
+                inverterDict["inv_Effvalue4"]=float(Entry_inv_Effvalue4.get())
+                
+            if len(Entry_inv_Effvalue5.get()) !=0:
+                inverterDict["inv_Effvalue5"]=float(Entry_inv_Effvalue5.get())
+                
+            if len(Entry_inv_Effvalue6.get()) !=0:
+                inverterDict["inv_Effvalue6"]=float(Entry_inv_Effvalue6.get())
+                
+            if len(Entry_inv_Effvalue7.get()) !=0:
+                inverterDict["inv_Effvalue7"]=float(Entry_inv_Effvalue7.get())
              
 # =============================================================================
 #             Defining the Path for the Results    
@@ -593,7 +681,7 @@ class Window(tk.Tk):
 #             Starting the Simulation with the defined Dictionaries
 # =============================================================================
             
-            Controller.startSimulation(SimulationDict, ModuleDict, WireDict, resultsPath)
+            Controller.startSimulation(SimulationDict, ModuleDict, WireDict, inverterDict, resultsPath)
 
 
 # =============================================================================
@@ -932,6 +1020,8 @@ class Window(tk.Tk):
             Entry_utcoffset.insert(0, utcoffset_configfile)
             Entry_dcWire_len.insert(0, dcWire_len_configfile)
             Entry_dcWire_Diameter.insert(0, dcWire_Diameter_configfile)
+            Entry_inv_Ratedpower.insert(0, inv_Ratedpower_configfile)
+
 
             key = entry_modulename_value.get()
             d = self.jsondata[key]
@@ -961,6 +1051,26 @@ class Window(tk.Tk):
             self.albedo = key1
             Entry_albedo.delete(0,END)
             Entry_albedo.insert(0,str(a['Albedo']))
+            
+            key2 = entry_Invertername_value.get()
+            o = self.jsondata_Inverter[key2]
+            self.Inverter_type = key2
+            SimulationDict["inverter_type"]=self.Inverter_type
+            Entry_inv_MaxEfficiency.insert(0,str(o['Max efficiency']))
+            Entry_inv_Input1.insert(0,str(o['inv_Input1']))
+            Entry_inv_Input2.insert(0,str(o['inv_Input2']))
+            Entry_inv_Input3.insert(0,str(o['inv_Input3']))
+            Entry_inv_Input4.insert(0,str(o['inv_Input4']))
+            Entry_inv_Input5.insert(0,str(o['inv_Input5']))
+            Entry_inv_Input6.insert(0,str(o['inv_Input6']))
+            Entry_inv_Input7.insert(0,str(o['inv_Input7']))
+            Entry_inv_Effvalue1.insert(0,str(o['inv_Effvalue1']))
+            Entry_inv_Effvalue2.insert(0,str(o['inv_Effvalue2']))
+            Entry_inv_Effvalue3.insert(0,str(o['inv_Effvalue3']))
+            Entry_inv_Effvalue4.insert(0,str(o['inv_Effvalue4']))
+            Entry_inv_Effvalue5.insert(0,str(o['inv_Effvalue5']))
+            Entry_inv_Effvalue6.insert(0,str(o['inv_Effvalue6']))
+            Entry_inv_Effvalue7.insert(0,str(o['inv_Effvalue7']))
        
         
 # Entry for delete button
@@ -1011,6 +1121,24 @@ class Window(tk.Tk):
             Entry_utcoffset.delete(0,END)
             Entry_dcWire_len.delete(0,END)
             Entry_dcWire_Diameter.delete(0,END)
+            Entry_inv_Ratedpower.delete(0,END)
+            Entry_inv_MaxEfficiency.delete(0,END)
+            Entry_inv_EuroEfficiency.delete(0,END)
+            Entry_inv_CECEfficiency.delete(0,END)
+            Entry_inv_Input1.delete(0,END)
+            Entry_inv_Input2.delete(0,END)
+            Entry_inv_Input3.delete(0,END)
+            Entry_inv_Input4.delete(0,END)
+            Entry_inv_Input5.delete(0,END)
+            Entry_inv_Input6.delete(0,END)
+            Entry_inv_Input7.delete(0,END)
+            Entry_inv_Effvalue1.delete(0,END)
+            Entry_inv_Effvalue2.delete(0,END)
+            Entry_inv_Effvalue3.delete(0,END)
+            Entry_inv_Effvalue4.delete(0,END)
+            Entry_inv_Effvalue5.delete(0,END)
+            Entry_inv_Effvalue6.delete(0,END)
+            Entry_inv_Effvalue7.delete(0,END)
 
             
            # Combo_Module.delete(0,END)
@@ -1684,6 +1812,434 @@ class Window(tk.Tk):
         Entry_dcWire_Diameter=ttk.Entry(wireParameter_frame, background="white", width=8)
         Entry_dcWire_Diameter.grid(row=5, column=1, sticky='w')
 
+
+# =============================================================================
+#    Inverter Parameter Frame
+# =============================================================================
+
+
+     #Inverter Title
+        Inverter_Label = ttk.Label(inverterParameter_frame, text='Inverter loss', font=("Arial Bold", 13))
+        Inverter_Label.grid(row=1, column=0,padx=20, sticky="w")
+
+
+     #inverter loss radio button
+        #Enable/Disable
+        def invLosses():
+            if rb_invLosses.get()==0:
+                SimulationDict["invLosses"]=True
+                Label_inv_Ratedpower.config(state="normal")
+                Entry_inv_Ratedpower.config(state="normal")
+                Label_inv_RatedpowerUnit.config(state="normal")
+                Label_inv_MaxEfficiency.config(state="normal")
+                Entry_inv_MaxEfficiency.config(state="normal")
+                Label_inv_MaxEfficiencyUnit.config(state="normal")
+                Label_inv_EuroEfficiency.config(state="normal")
+                Entry_inv_EuroEfficiency.config(state="normal")
+                Label_inv_EuroEfficiencyUnit.config(state="normal")
+                Label_inv_CECEfficiency.config(state="normal")
+                Entry_inv_CECEfficiency.config(state="normal")
+                Label_inv_CECEfficiencyUnit.config(state="normal")
+                Label_inv_Ranges.config(state="normal")
+                Label_inv_Input1.config(state="normal")
+                Entry_inv_Input1.config(state="normal")
+                Label_inv_Input2.config(state="normal")
+                Entry_inv_Input2.config(state="normal")
+                Label_inv_Input3.config(state="normal")
+                Entry_inv_Input3.config(state="normal")
+                Label_inv_Input4.config(state="normal")
+                Entry_inv_Input4.config(state="normal")
+                Label_inv_Input5.config(state="normal")
+                Entry_inv_Input5.config(state="normal")
+                Label_inv_Input6.config(state="normal")
+                Entry_inv_Input6.config(state="normal")
+                Label_inv_Input7.config(state="normal")
+                Entry_inv_Input7.config(state="normal")
+                Label_inv_Effvalues.config(state="normal")
+                Label_inv_Effvalue1.config(state="normal")
+                Entry_inv_Effvalue1.config(state="normal")
+                Label_inv_Effvalue2.config(state="normal")
+                Entry_inv_Effvalue2.config(state="normal")
+                Label_inv_Effvalue3.config(state="normal")
+                Entry_inv_Effvalue3.config(state="normal")
+                Label_inv_Effvalue4.config(state="normal")
+                Entry_inv_Effvalue4.config(state="normal")
+                Label_inv_Effvalue5.config(state="normal")
+                Entry_inv_Effvalue5.config(state="normal")
+                Label_inv_Effvalue6.config(state="normal")
+                Entry_inv_Effvalue6.config(state="normal")
+                Label_inv_Effvalue7.config(state="normal")
+                Entry_inv_Effvalue7.config(state="normal")
+
+                
+                
+            if rb_invLosses.get()==1:
+                SimulationDict["invLosses"]=False
+                Label_inv_Ratedpower.config(state="disabled")
+                Entry_inv_Ratedpower.config(state="disabled")
+                Label_inv_RatedpowerUnit.config(state="disabled")
+                Label_inv_MaxEfficiency.config(state="disabled")
+                Entry_inv_MaxEfficiency.config(state="disabled")
+                Label_inv_MaxEfficiencyUnit.config(state="disabled")
+                Label_inv_EuroEfficiency.config(state="disabled")
+                Entry_inv_EuroEfficiency.config(state="disabled")
+                Label_inv_EuroEfficiencyUnit.config(state="disabled")
+                Label_inv_CECEfficiency.config(state="disabled")
+                Entry_inv_CECEfficiency.config(state="disabled")
+                Label_inv_CECEfficiencyUnit.config(state="disabled")
+                Label_inv_Ranges.config(state="disabled")
+                Label_inv_Input1.config(state="disabled")
+                Entry_inv_Input1.config(state="disabled")
+                Label_inv_Input2.config(state="disabled")
+                Entry_inv_Input2.config(state="disabled")
+                Label_inv_Input3.config(state="disabled")
+                Entry_inv_Input3.config(state="disabled")
+                Label_inv_Input4.config(state="disabled")
+                Entry_inv_Input4.config(state="disabled")
+                Label_inv_Input5.config(state="disabled")
+                Entry_inv_Input5.config(state="disabled")
+                Label_inv_Input6.config(state="disabled")
+                Entry_inv_Input6.config(state="disabled")
+                Label_inv_Input7.config(state="disabled")
+                Entry_inv_Input7.config(state="disabled")
+                Label_inv_Effvalues.config(state="disabled")
+                Label_inv_Effvalue1.config(state="disabled")
+                Entry_inv_Effvalue1.config(state="disabled")
+                Label_inv_Effvalue2.config(state="disabled")
+                Entry_inv_Effvalue2.config(state="disabled")
+                Label_inv_Effvalue3.config(state="disabled")
+                Entry_inv_Effvalue3.config(state="disabled")
+                Label_inv_Effvalue4.config(state="disabled")
+                Entry_inv_Effvalue4.config(state="disabled")
+                Label_inv_Effvalue5.config(state="disabled")
+                Entry_inv_Effvalue5.config(state="disabled")
+                Label_inv_Effvalue6.config(state="disabled")
+                Entry_inv_Effvalue6.config(state="disabled")
+                Label_inv_Effvalue7.config(state="disabled")
+                Entry_inv_Effvalue7.config(state="disabled")
+
+                
+        rb_invLosses=IntVar()
+        rb_invLosses.set("0")
+   
+        rad1_invLosses=Radiobutton(inverterParameter_frame, variable=rb_invLosses, width=10, text="Enable", value=0, command=lambda:invLosses())
+        rad2_invLosses=Radiobutton(inverterParameter_frame, variable=rb_invLosses, width=10, text="Disable", value=1, command=lambda:invLosses())
+        rad1_invLosses.grid(row=1, column=1, sticky=W)
+        rad2_invLosses.grid(row=1, column=2, sticky=W)
+        
+        
+    #Efficiencytype radio button
+        def Efficiencytype():
+                        
+            #inverter type
+            #Enable/Disable
+            if rb_Efficiencytype.get()==0:
+                    inverterDict["Max efficiency"]=True
+                    Label_inv_MaxEfficiency.config(state="normal")
+                    Entry_inv_MaxEfficiency.config(state="normal")
+                    Label_inv_MaxEfficiencyUnit.config(state="normal")
+                    Label_inv_EuroEfficiency.config(state="disabled")
+                    Entry_inv_EuroEfficiency.config(state="disabled")
+                    Label_inv_EuroEfficiencyUnit.config(state="disabled")
+                    Label_inv_CECEfficiency.config(state="disabled")
+                    Entry_inv_CECEfficiency.config(state="disabled")
+                    Label_inv_CECEfficiencyUnit.config(state="disabled")
+                    Label_inv_Ranges.config(state="disabled")
+                    Label_inv_Input1.config(state="disabled")
+                    Entry_inv_Input1.config(state="disabled")
+                    Label_inv_Input2.config(state="disabled")
+                    Entry_inv_Input2.config(state="disabled")
+                    Label_inv_Input3.config(state="disabled")
+                    Entry_inv_Input3.config(state="disabled")
+                    Label_inv_Input4.config(state="disabled")
+                    Entry_inv_Input4.config(state="disabled")
+                    Label_inv_Input5.config(state="disabled")
+                    Entry_inv_Input5.config(state="disabled")
+                    Label_inv_Input6.config(state="disabled")
+                    Entry_inv_Input6.config(state="disabled")
+                    Label_inv_Input7.config(state="disabled")
+                    Entry_inv_Input7.config(state="disabled")
+                    Label_inv_Effvalues.config(state="disabled")
+                    Label_inv_Effvalue1.config(state="disabled")
+                    Entry_inv_Effvalue1.config(state="disabled")
+                    Label_inv_Effvalue2.config(state="disabled")
+                    Entry_inv_Effvalue2.config(state="disabled")
+                    Label_inv_Effvalue3.config(state="disabled")
+                    Entry_inv_Effvalue3.config(state="disabled")
+                    Label_inv_Effvalue4.config(state="disabled")
+                    Entry_inv_Effvalue4.config(state="disabled")
+                    Label_inv_Effvalue5.config(state="disabled")
+                    Entry_inv_Effvalue5.config(state="disabled")
+                    Label_inv_Effvalue6.config(state="disabled")
+                    Entry_inv_Effvalue6.config(state="disabled")
+                    Label_inv_Effvalue7.config(state="disabled")
+                    Entry_inv_Effvalue7.config(state="disabled")
+
+    
+                  
+                  
+            if rb_Efficiencytype.get()==1:
+                    inverterDict["Euro efficiency"]=True
+                    Label_inv_MaxEfficiency.config(state="disabled")
+                    Entry_inv_MaxEfficiency.config(state="disabled")
+                    Label_inv_MaxEfficiencyUnit.config(state="disabled")
+                    Label_inv_EuroEfficiency.config(state="normal")
+                    Entry_inv_EuroEfficiency.config(state="normal")
+                    Label_inv_EuroEfficiencyUnit.config(state="normal")
+                    Label_inv_CECEfficiency.config(state="disabled")
+                    Entry_inv_CECEfficiency.config(state="disabled")
+                    Label_inv_CECEfficiencyUnit.config(state="disabled")
+                    Label_inv_Ranges.config(state="disabled")
+                    Label_inv_Input1.config(state="disabled")
+                    Entry_inv_Input1.config(state="disabled")
+                    Label_inv_Input2.config(state="disabled")
+                    Entry_inv_Input2.config(state="disabled")
+                    Label_inv_Input3.config(state="disabled")
+                    Entry_inv_Input3.config(state="disabled")
+                    Label_inv_Input4.config(state="disabled")
+                    Entry_inv_Input4.config(state="disabled")
+                    Label_inv_Input5.config(state="disabled")
+                    Entry_inv_Input5.config(state="disabled")
+                    Label_inv_Input6.config(state="disabled")
+                    Entry_inv_Input6.config(state="disabled")
+                    Label_inv_Input7.config(state="disabled")
+                    Entry_inv_Input7.config(state="disabled")
+                    Label_inv_Effvalues.config(state="disabled")
+                    Label_inv_Effvalue1.config(state="disabled")
+                    Entry_inv_Effvalue1.config(state="disabled")
+                    Label_inv_Effvalue2.config(state="disabled")
+                    Entry_inv_Effvalue2.config(state="disabled")
+                    Label_inv_Effvalue3.config(state="disabled")
+                    Entry_inv_Effvalue3.config(state="disabled")
+                    Label_inv_Effvalue4.config(state="disabled")
+                    Entry_inv_Effvalue4.config(state="disabled")
+                    Label_inv_Effvalue5.config(state="disabled")
+                    Entry_inv_Effvalue5.config(state="disabled")
+                    Label_inv_Effvalue6.config(state="disabled")
+                    Entry_inv_Effvalue6.config(state="disabled")
+                    Label_inv_Effvalue7.config(state="disabled")
+                    Entry_inv_Effvalue7.config(state="disabled")
+                  
+              
+            if rb_Efficiencytype.get()==2:
+                    inverterDict["CEC efficiency"]=True
+                    Label_inv_MaxEfficiency.config(state="disabled")
+                    Entry_inv_MaxEfficiency.config(state="disabled")
+                    Label_inv_MaxEfficiencyUnit.config(state="disabled")
+                    Label_inv_EuroEfficiency.config(state="disabled")
+                    Entry_inv_EuroEfficiency.config(state="disabled")
+                    Label_inv_EuroEfficiencyUnit.config(state="disabled")
+                    Label_inv_CECEfficiency.config(state="normal")
+                    Entry_inv_CECEfficiency.config(state="normal")
+                    Label_inv_CECEfficiencyUnit.config(state="normal")
+                    Label_inv_Effvalue1.config(state="disabled")
+                    Entry_inv_Effvalue1.config(state="disabled")
+                    Label_inv_Effvalue2.config(state="disabled")
+                    Entry_inv_Effvalue2.config(state="disabled")
+                    Label_inv_Ranges.config(state="disabled")
+                    Label_inv_Input1.config(state="disabled")
+                    Entry_inv_Input1.config(state="disabled")
+                    Label_inv_Input2.config(state="disabled")
+                    Entry_inv_Input2.config(state="disabled")
+                    Label_inv_Input3.config(state="disabled")
+                    Entry_inv_Input3.config(state="disabled")
+                    Label_inv_Input4.config(state="disabled")
+                    Entry_inv_Input4.config(state="disabled")
+                    Label_inv_Input5.config(state="disabled")
+                    Entry_inv_Input5.config(state="disabled")
+                    Label_inv_Input6.config(state="disabled")
+                    Entry_inv_Input6.config(state="disabled")
+                    Label_inv_Input7.config(state="disabled")
+                    Entry_inv_Input7.config(state="disabled")
+                    Label_inv_Effvalues.config(state="disabled")
+                    Label_inv_Effvalue1.config(state="disabled")
+                    Entry_inv_Effvalue1.config(state="disabled")
+                    Label_inv_Effvalue2.config(state="disabled")
+                    Entry_inv_Effvalue2.config(state="disabled")
+                    Label_inv_Effvalue3.config(state="disabled")
+                    Entry_inv_Effvalue3.config(state="disabled")
+                    Label_inv_Effvalue4.config(state="disabled")
+                    Entry_inv_Effvalue4.config(state="disabled")
+                    Label_inv_Effvalue5.config(state="disabled")
+                    Entry_inv_Effvalue5.config(state="disabled")
+                    Label_inv_Effvalue6.config(state="disabled")
+                    Entry_inv_Effvalue6.config(state="disabled")
+                    Label_inv_Effvalue7.config(state="disabled")
+                    Entry_inv_Effvalue7.config(state="disabled")
+                    
+                    
+            if rb_Efficiencytype.get()==3:
+                    inverterDict["inv_WeightedEff"]=True
+                    Label_inv_MaxEfficiency.config(state="disabled")
+                    Entry_inv_MaxEfficiency.config(state="disabled")
+                    Label_inv_MaxEfficiencyUnit.config(state="disabled")
+                    Label_inv_EuroEfficiency.config(state="disabled")
+                    Entry_inv_EuroEfficiency.config(state="disabled")
+                    Label_inv_EuroEfficiencyUnit.config(state="disabled")
+                    Label_inv_CECEfficiency.config(state="disabled")
+                    Entry_inv_CECEfficiency.config(state="disabled")
+                    Label_inv_CECEfficiencyUnit.config(state="disabled")
+                    Label_inv_Ranges.config(state="normal")
+                    Label_inv_Input1.config(state="normal")
+                    Entry_inv_Input1.config(state="normal")
+                    Label_inv_Input2.config(state="normal")
+                    Entry_inv_Input2.config(state="normal")
+                    Label_inv_Input3.config(state="normal")
+                    Entry_inv_Input3.config(state="normal")
+                    Label_inv_Input4.config(state="normal")
+                    Entry_inv_Input4.config(state="normal")
+                    Label_inv_Input5.config(state="normal")
+                    Entry_inv_Input5.config(state="normal")
+                    Label_inv_Input6.config(state="normal")
+                    Entry_inv_Input6.config(state="normal")
+                    Label_inv_Input7.config(state="normal")
+                    Entry_inv_Input7.config(state="normal")
+                    Label_inv_Effvalues.config(state="normal")
+                    Label_inv_Effvalue1.config(state="normal")
+                    Entry_inv_Effvalue1.config(state="normal")
+                    Label_inv_Effvalue2.config(state="normal")
+                    Entry_inv_Effvalue2.config(state="normal")
+                    Label_inv_Effvalue3.config(state="normal")
+                    Entry_inv_Effvalue3.config(state="normal")
+                    Label_inv_Effvalue4.config(state="normal")
+                    Entry_inv_Effvalue4.config(state="normal")
+                    Label_inv_Effvalue5.config(state="normal")
+                    Entry_inv_Effvalue5.config(state="normal")
+                    Label_inv_Effvalue6.config(state="normal")
+                    Entry_inv_Effvalue6.config(state="normal") 
+                    Label_inv_Effvalue7.config(state="normal")
+                    Entry_inv_Effvalue7.config(state="normal")
+       
+        rb_Efficiencytype=IntVar()
+        rb_Efficiencytype.set("0")
+       
+        rad1_Efficiencytype=Radiobutton(inverterParameter_frame, variable=rb_Efficiencytype, width=10, text="Max efficiency", value=0, command=lambda:Efficiencytype())
+        rad2_Efficiencytype=Radiobutton(inverterParameter_frame, variable=rb_Efficiencytype, width=10, text="EURO efficiency", value=1, command=lambda:Efficiencytype())
+        rad3_Efficiencytype=Radiobutton(inverterParameter_frame, variable=rb_Efficiencytype, width=10, text="CEC efficiency", value=2, command=lambda:Efficiencytype())
+        rad4_Efficiencytype=Radiobutton(inverterParameter_frame, variable=rb_Efficiencytype, width=10, text="inv_WeightedEff", value=3, command=lambda:Efficiencytype())
+        rad1_Efficiencytype.grid(row=4, column=1, sticky=W)
+        rad2_Efficiencytype.grid(row=5, column=1, sticky=W)
+        rad3_Efficiencytype.grid(row=6, column=1, sticky=W)
+        rad4_Efficiencytype.grid(row=7, column=1, sticky=W)
+        
+     
+   
+        
+    #Inveter Rated power
+        Label_inv_Ratedpower=ttk.Label(inverterParameter_frame, text="Rated power:")
+        Label_inv_Ratedpower.grid(row=2, column=0,padx=20, sticky="w")
+        Entry_inv_Ratedpower=ttk.Entry(inverterParameter_frame, background="white", width=8)
+        Entry_inv_Ratedpower.grid(row=2, column=1,padx=20, sticky="w")
+        Label_inv_RatedpowerUnit=ttk.Label(inverterParameter_frame, text="[W]")
+        Label_inv_RatedpowerUnit.grid(row=2, column=2,padx=20, sticky="w")
+        
+
+    #Efficiency
+        Inverter_Label = ttk.Label(inverterParameter_frame, text='Efficiency', font=("Arial Bold", 13))
+        Inverter_Label.grid(row=3, column=0,padx=20, sticky="w")
+        
+        
+        
+    #Inveter Maximum efficiency
+        Label_inv_MaxEfficiency=ttk.Label(inverterParameter_frame, text="Max efficiency:")
+        Label_inv_MaxEfficiency.grid(row=4, column=0,padx=20, sticky="w")
+        Entry_inv_MaxEfficiency=ttk.Entry(inverterParameter_frame, background="white", width=8)
+        Entry_inv_MaxEfficiency.grid(row=4, column=2,padx=20, sticky="w")
+        Label_inv_MaxEfficiencyUnit=ttk.Label(inverterParameter_frame, text="[%]")
+        Label_inv_MaxEfficiencyUnit.grid(row=4, column=3,padx=20, sticky="w")
+    
+    
+    
+    #Inveter EURO efficiency
+        Label_inv_EuroEfficiency=ttk.Label(inverterParameter_frame, text="Euro efficiency:")
+        Label_inv_EuroEfficiency.grid(row=5, column=0,padx=20, sticky="w")
+        Entry_inv_EuroEfficiency=ttk.Entry(inverterParameter_frame, background="white", width=8)
+        Entry_inv_EuroEfficiency.grid(row=5, column=2,padx=20, sticky="w")
+        Label_inv_EuroEfficiencyUnit=ttk.Label(inverterParameter_frame, text="[%]")
+        Label_inv_EuroEfficiencyUnit.grid(row=5, column=3,padx=20, sticky="w")
+        
+    
+    #Inveter CEC efficiency
+        Label_inv_CECEfficiency=ttk.Label(inverterParameter_frame, text="CEC efficiency:")
+        Label_inv_CECEfficiency.grid(row=6, column=0,padx=20, sticky="w")
+        Entry_inv_CECEfficiency=ttk.Entry(inverterParameter_frame, background="white", width=8)
+        Entry_inv_CECEfficiency.grid(row=6, column=2,padx=20, sticky="w")
+        Label_inv_CECEfficiencyUnit=ttk.Label(inverterParameter_frame, text="[%]")
+        Label_inv_CECEfficiencyUnit.grid(row=6, column=3,padx=20, sticky="w")
+        
+        
+    
+    #Table
+        Inverter_Label = ttk.Label(inverterParameter_frame, text='WeightedEff', font=("Arial Bold", 13))
+        Inverter_Label.grid(row=8, column=0,padx=20, sticky="w")
+    
+        
+    
+    #Input power
+        Label_inv_Ranges=ttk.Label(inverterParameter_frame, text="Ranges:")
+        Label_inv_Ranges.grid(row=9, column=1,padx=20, sticky="w")
+        Label_inv_Input1=ttk.Label(inverterParameter_frame, text="inv_Input1:")
+        Label_inv_Input1.grid(row=10, column=0,padx=20, sticky="w")
+        Entry_inv_Input1=ttk.Entry(inverterParameter_frame, background="white", width=8)
+        Entry_inv_Input1.grid(row=10, column=1,padx=20, sticky="w")
+        Label_inv_Input2=ttk.Label(inverterParameter_frame, text="inv_Input2:")
+        Label_inv_Input2.grid(row=11, column=0,padx=20, sticky="w")
+        Entry_inv_Input2=ttk.Entry(inverterParameter_frame, background="white", width=8)
+        Entry_inv_Input2.grid(row=11, column=1,padx=20, sticky="w")
+        Label_inv_Input3=ttk.Label(inverterParameter_frame, text="inv_Input3:")
+        Label_inv_Input3.grid(row=12, column=0,padx=20, sticky="w")
+        Entry_inv_Input3=ttk.Entry(inverterParameter_frame, background="white", width=8)
+        Entry_inv_Input3.grid(row=12, column=1,padx=20, sticky="w")
+        Label_inv_Input4=ttk.Label(inverterParameter_frame, text="inv_Input4:")
+        Label_inv_Input4.grid(row=13, column=0,padx=20, sticky="w")
+        Entry_inv_Input4=ttk.Entry(inverterParameter_frame, background="white", width=8)
+        Entry_inv_Input4.grid(row=13, column=1,padx=20, sticky="w")
+        Label_inv_Input5=ttk.Label(inverterParameter_frame, text="inv_Input5:")
+        Label_inv_Input5.grid(row=14, column=0,padx=20, sticky="w")
+        Entry_inv_Input5=ttk.Entry(inverterParameter_frame, background="white", width=8)
+        Entry_inv_Input5.grid(row=14, column=1,padx=20, sticky="w")
+        Label_inv_Input6=ttk.Label(inverterParameter_frame, text="inv_Input6:")
+        Label_inv_Input6.grid(row=15, column=0,padx=20, sticky="w")
+        Entry_inv_Input6=ttk.Entry(inverterParameter_frame, background="white", width=8)
+        Entry_inv_Input6.grid(row=15, column=1,padx=20, sticky="w")
+        Label_inv_Input7=ttk.Label(inverterParameter_frame, text="inv_Input7:")
+        Label_inv_Input7.grid(row=16, column=0,padx=20, sticky="w")
+        Entry_inv_Input7=ttk.Entry(inverterParameter_frame, background="white", width=8)
+        Entry_inv_Input7.grid(row=16, column=1,padx=20, sticky="w")
+
+        
+
+    #Input power
+        Label_inv_Effvalues=ttk.Label(inverterParameter_frame, text="Effvalues:")
+        Label_inv_Effvalues.grid(row=9, column=3,padx=20, sticky="w")
+        Label_inv_Effvalue1=ttk.Label(inverterParameter_frame, text="inv_Effvalue1:")
+        Label_inv_Effvalue1.grid(row=10, column=2,padx=20, sticky="w")
+        Entry_inv_Effvalue1=ttk.Entry(inverterParameter_frame, background="white", width=8)
+        Entry_inv_Effvalue1.grid(row=10, column=3,padx=20, sticky="w")
+        Label_inv_Effvalue2=ttk.Label(inverterParameter_frame, text="inv_Effvalue2:")
+        Label_inv_Effvalue2.grid(row=11, column=2,padx=20, sticky="w")
+        Entry_inv_Effvalue2=ttk.Entry(inverterParameter_frame, background="white", width=8)
+        Entry_inv_Effvalue2.grid(row=11, column=3,padx=20, sticky="w")
+        Label_inv_Effvalue3=ttk.Label(inverterParameter_frame, text="inv_Effvalue3:")
+        Label_inv_Effvalue3.grid(row=12, column=2,padx=20, sticky="w")
+        Entry_inv_Effvalue3=ttk.Entry(inverterParameter_frame, background="white", width=8)
+        Entry_inv_Effvalue3.grid(row=12, column=3,padx=20, sticky="w")
+        Label_inv_Effvalue4=ttk.Label(inverterParameter_frame, text="inv_Effvalue4:")
+        Label_inv_Effvalue4.grid(row=13, column=2,padx=20, sticky="w")
+        Entry_inv_Effvalue4=ttk.Entry(inverterParameter_frame, background="white", width=8)
+        Entry_inv_Effvalue4.grid(row=13, column=3,padx=20, sticky="w")
+        Label_inv_Effvalue5=ttk.Label(inverterParameter_frame, text="inv_Effvalue5:")
+        Label_inv_Effvalue5.grid(row=14, column=2,padx=20, sticky="w")
+        Entry_inv_Effvalue5=ttk.Entry(inverterParameter_frame, background="white", width=8)
+        Entry_inv_Effvalue5.grid(row=14, column=3,padx=20, sticky="w")
+        Label_inv_Effvalue6=ttk.Label(inverterParameter_frame, text="inv_Effvalue6:")
+        Label_inv_Effvalue6.grid(row=15, column=2,padx=20, sticky="w")
+        Entry_inv_Effvalue6=ttk.Entry(inverterParameter_frame, background="white", width=8)
+        Entry_inv_Effvalue6.grid(row=15, column=3,padx=20, sticky="w")
+        Label_inv_Effvalue7=ttk.Label(inverterParameter_frame, text="inv_Effvalue7:")
+        Label_inv_Effvalue7.grid(row=16, column=2,padx=20, sticky="w")
+        Entry_inv_Effvalue7=ttk.Entry(inverterParameter_frame, background="white", width=8)
+        Entry_inv_Effvalue7.grid(row=16, column=3,padx=20, sticky="w")
         
 # =============================================================================
 #          Config file (default.ini) 
@@ -1720,7 +2276,8 @@ class Window(tk.Tk):
         gcr_configfile=parser.get('default', 'gcr')
         utcoffset_configfile=parser.get('default', 'utcoffset')
         dcWire_len_configfile=parser.get('default', 'dcWire_len')
-        dcWire_Diameter_configfile=parser.get('default', 'dcWire_Diameter')  
+        dcWire_Diameter_configfile=parser.get('default', 'dcWire_Diameter')
+        inv_Ratedpower_configfile=parser.get('default', 'inv_Ratedpower')
         
         
 
@@ -1934,7 +2491,105 @@ class Window(tk.Tk):
         
         Combo_dcWire_Diameter.grid(row=5, column=3, ipadx=5)
         getWireDiameterList()                                     #set the wire AWG values
-        Combo_dcWire_Diameter.bind("<<ComboboxSelected>>", comboclick_wire)        
+        Combo_dcWire_Diameter.bind("<<ComboboxSelected>>", comboclick_wire)
+
+
+# =============================================================================
+#        Defining the Combobox for the inverter
+# =============================================================================
+
+
+        def getInverterJSONlist():
+                        
+            with open(rootPath + '\Lib\input_inverter\inverter.json') as file:          
+                jsondata_Inverter = json.load(file)
+            
+            systemtuple = ('',)                     
+            for key in jsondata_Inverter.keys():
+                systemtuple = systemtuple + (str(key),)
+            Combo_Inverter['values'] = systemtuple[1:]
+            Combo_Inverter.current(0) 
+            self.jsondata_Inverter = jsondata_Inverter
+       
+        def comboclick_Inverter(event):
+            
+            
+            key2 = entry_Invertername_value.get()
+            if key2 != '':
+                
+                o = self.jsondata_Inverter[key2]
+                self.Inverter_type = key2
+                SimulationDict["inverter_type"]=self.Inverter_type            
+
+                Entry_inv_MaxEfficiency.delete(0,END)
+                Entry_inv_EuroEfficiency.delete(0,END)
+                Entry_inv_CECEfficiency.delete(0,END)
+                Entry_inv_Input1.delete(0,END)
+                Entry_inv_Input2.delete(0,END)
+                Entry_inv_Input3.delete(0,END)
+                Entry_inv_Input4.delete(0,END)
+                Entry_inv_Input5.delete(0,END)
+                Entry_inv_Input6.delete(0,END)
+                Entry_inv_Input7.delete(0,END)
+                Entry_inv_Effvalue1.delete(0,END)
+                Entry_inv_Effvalue2.delete(0,END)
+                Entry_inv_Effvalue3.delete(0,END)
+                Entry_inv_Effvalue4.delete(0,END)
+                Entry_inv_Effvalue5.delete(0,END)
+                Entry_inv_Effvalue6.delete(0,END)
+                Entry_inv_Effvalue7.delete(0,END)
+                
+
+                
+                
+                if rb_ElectricalMode.get()==0:
+                    Entry_inv_MaxEfficiency.insert(0,str(o['Max efficiency']))
+                    Entry_inv_EuroEfficiency.insert(0,str(o['Euro efficiency']))
+                    Entry_inv_CECEfficiency.insert(0,str(o['CEC efficiency']))
+                    Entry_inv_Input1.insert(0,str(o['inv_Input1']))
+                    Entry_inv_Input2.insert(0,str(o['inv_Input2']))
+                    Entry_inv_Input3.insert(0,str(o['inv_Input3']))
+                    Entry_inv_Input4.insert(0,str(o['inv_Input4']))
+                    Entry_inv_Input5.insert(0,str(o['inv_Input5']))
+                    Entry_inv_Input6.insert(0,str(o['inv_Input6']))
+                    Entry_inv_Input7.insert(0,str(o['inv_Input7']))
+                    Entry_inv_Effvalue1.insert(0,str(o['inv_Effvalue1']))
+                    Entry_inv_Effvalue2.insert(0,str(o['inv_Effvalue2']))
+                    Entry_inv_Effvalue3.insert(0,str(o['inv_Effvalue3']))
+                    Entry_inv_Effvalue4.insert(0,str(o['inv_Effvalue4']))
+                    Entry_inv_Effvalue5.insert(0,str(o['inv_Effvalue5']))
+                    Entry_inv_Effvalue6.insert(0,str(o['inv_Effvalue6']))
+                    Entry_inv_Effvalue7.insert(0,str(o['inv_Effvalue7']))
+                else:                                                               
+                    Entry_inv_MaxEfficiency.insert(0,str(o['0'])) 
+                    Entry_inv_EuroEfficiency.insert(0,str(o['0']))
+                    Entry_inv_CECEfficiency.insert(0,str(o['0']))
+                    Entry_inv_Input1.insert(0,str(o['0']))
+                    Entry_inv_Input2.insert(0,str(o['0']))
+                    Entry_inv_Input3.insert(0,str(o['0']))
+                    Entry_inv_Input4.insert(0,str(o['0']))
+                    Entry_inv_Input5.insert(0,str(o['0']))
+                    Entry_inv_Input6.insert(0,str(o['0']))
+                    Entry_inv_Input7.insert(0,str(o['0']))
+                    Entry_inv_Effvalue1.insert(0,str(o['0']))
+                    Entry_inv_Effvalue2.insert(0,str(o['0']))
+                    Entry_inv_Effvalue3.insert(0,str(o['0']))
+                    Entry_inv_Effvalue4.insert(0,str(o['0']))
+                    Entry_inv_Effvalue5.insert(0,str(o['0']))
+                    Entry_inv_Effvalue6.insert(0,str(o['0']))
+                    Entry_inv_Effvalue7.insert(0,str(o['0']))
+
+
+                
+
+        # Combobox inverter
+        
+        entry_Invertername_value = tk.StringVar()
+        Combo_Inverter=ttk.Combobox(inverterParameter_frame, textvariable=entry_Invertername_value)
+        
+        Combo_Inverter.grid(column=1, row=0)
+        getInverterJSONlist()
+        Combo_Inverter.bind("<<ComboboxSelected>>", comboclick_Inverter)        
   
 
 
@@ -2134,6 +2789,41 @@ class Window(tk.Tk):
         canvas = FigureCanvasTkAgg(fig4, master=tk.Toplevel())
         canvas.get_tk_widget().pack(side=tk.TOP, fill=tk.BOTH, expand=1.0)
         canvas.draw()
+        
+
+    def makePlotinvLosses(resultsPath):
+        plt.style.use("seaborn")
+            
+            
+        data=pd.read_csv(resultsPath + "electrical_simulation" + datetime.datetime.now().strftime("%Y-%m-%d-%H-%M") + ".csv")
+        date=pd.read_csv(resultsPath + "/Data.csv")
+        timestamp_start=date.timestamp [0]
+        timestamp_end=len(date.timestamp)
+        idx=pd.date_range(timestamp_start, periods=timestamp_end, freq="1H")
+            
+        Inv_losses=data["Inv_losses"]
+            
+           
+        fig5 = plt.Figure()
+        ax5= fig5.subplots()
+            
+        ax5.plot(idx, Inv_losses, label="Inv_losses", color="blue")
+            
+        ax5.xaxis.set_minor_locator(dates.DayLocator(interval=1))   # every Day
+        ax5.xaxis.set_minor_formatter(dates.DateFormatter('%d'))  # day and hours
+        ax5.xaxis.set_major_locator(dates.MonthLocator(interval=1))    # every Month
+        ax5.xaxis.set_major_formatter(dates.DateFormatter('\n%m-%Y'))             
+        ax5.legend()
+        ax5.set_ylabel('Power\n[W/m²]', size=17)
+        ax5.set_xlabel("Time", size=17)
+        ax5.set_title('Inverter losses\n', size=18)
+            
+        fig5.tight_layout()
+        fig5.savefig("Inv_losses" + datetime.datetime.now().strftime("%Y-%m-%d-%H-%M") + ".png")
+            
+        canvas = FigureCanvasTkAgg(fig5, master=tk.Toplevel())
+        canvas.get_tk_widget().pack(side=tk.TOP, fill=tk.BOTH, expand=1.0)
+        canvas.draw()
 
 
 def gui():    
@@ -2156,4 +2846,5 @@ if __name__ == '__main__':
 print (SimulationDict)
 print (ModuleDict)
 print (WireDict)
+print (inverterDict)
 
