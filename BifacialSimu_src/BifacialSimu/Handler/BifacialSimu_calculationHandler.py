@@ -122,7 +122,7 @@ class Electrical_simulation:
         wire_resistance = length/(area*wire_cond)
 
         return wire_resistance    
-    def simulate_oneDiode(moduleDict, simulationDict, WireDict, df_reportVF, df_reportRT, df_report, df, resultsPath):
+    def simulate_oneDiode(moduleDict, simulationDict, WireDict, inverterDict, df_reportVF, df_reportRT, df_report, df, resultsPath):
         """
         Applies the one diode model for bifacial electrical simulation. Needs module front and rear parameters to work correctly.
         Calculates bifacial gain through a seperate monofacial electrical simulation.
@@ -451,12 +451,13 @@ class Electrical_simulation:
         Bifacial_gain= (annual_power_per_peak_b - annual_power_per_peak_m) / annual_power_per_peak_m
         print("Bifacial Gain: " + str(Bifacial_gain*100) + " %")
         
-                
+        
         # Create dataframe with data
         p_bi_df = pd.DataFrame({"timestamps":df_report.index, "P_bi ": P_bi_hourly_average, "P_m ": P_m_hourly_average})
         p_bi_df.set_index("timestamps")
-        p_bi_df.to_csv(resultsPath + "electrical_simulation" + datetime.datetime.now().strftime("%Y-%m-%d-%H-%M") + ".csv")
+        p_bi_df.to_csv(resultsPath + "electrical_simulation" + datetime.datetime.now().strftime("%Y-%m-%d-%H-%M") + ".csv")        
 
+        
         ####################################################
         #                Calculating losses                #
         ####################################################
@@ -485,27 +486,104 @@ class Electrical_simulation:
                 
                 P_losses_dc_hourly.append(P_losses_dc)
                 P_out_dc_hourly.append(P_out_dc)
-                
             
+                        
             p_I_df = pd.DataFrame({"timestamps":df_report.index, "I_sc_b": I_sc_b_hourly_average,
                                    "P_losses_dc": P_losses_dc_hourly, "P_out_dc": P_out_dc_hourly})
             p_bi_df = pd.merge(p_bi_df, p_I_df, on="timestamps")    
             p_bi_df.to_csv(resultsPath + "electrical_simulation" + datetime.datetime.now().strftime("%Y-%m-%d-%H-%M") + ".csv")
             print("Wire Resistance: " + str(dcWire_res*1000) + " mOhms")
 
-            GUI.Window.makePlotLosses(resultsPath) 
+            GUI.Window.makePlotLosses(resultsPath)
+                
+         
         
         
-        #####            Inverter losses             ######    
+        #####            Inverter losses             ######   
+    
+#=====================Calculating Inverter Losses==============================            
+
+        inv_Ratedpower = inverterDict['inv_Ratedpower']        
+        inv_MaxEfficiency = inverterDict['inv_MaxEfficiency']
+        inv_EuroEfficiency = inverterDict['inv_EuroEfficiency']
+        inv_CECEfficiency = inverterDict['inv_CECEfficiency']
+        inv_Input1 = inverterDict['inv_Input1']
+        inv_Input2 = inverterDict['inv_Input2']
+        inv_Input3 = inverterDict['inv_Input3']
+        inv_Input4 = inverterDict['inv_Input4']
+        inv_Input5 = inverterDict['inv_Input5']
+        inv_Input6 = inverterDict['inv_Input6']
+        inv_Input7 = inverterDict['inv_Input7']
+        inv_Effvalue1 = inverterDict['inv_Effvalue1']
+        inv_Effvalue2 = inverterDict['inv_Effvalue2']
+        inv_Effvalue3 = inverterDict['inv_Effvalue3']
+        inv_Effvalue4 = inverterDict['inv_Effvalue4']
+        inv_Effvalue5 = inverterDict['inv_Effvalue5']
+        inv_Effvalue6 = inverterDict['inv_Effvalue6']
+        inv_Effvalue7 = inverterDict['inv_Effvalue7']
+        Inv_losses_hourly = []
+        P_out_ac1_hourly = []
+
+
+        # Creating an array for inverter efficiency values to use interpolation
+        Eff_Values1 = [inv_Input1, inv_Input2, inv_Input3, inv_Input4, inv_Input5, inv_Input6, inv_Input7]
+        Eff_Values2 = [inv_Effvalue1, inv_Effvalue2, inv_Effvalue3, inv_Effvalue4, inv_Effvalue5, inv_Effvalue6, inv_Effvalue7]
+
+        
+        if simulationDict['invLosses']==True:
+            if inverterDict['inv_MaxEfficiency']:
+                for i in range(0, len(P_out_dc_hourly)):
+                        inv_HourlyLoss = P_out_dc_hourly[i] * (1-inv_MaxEfficiency)
+                        Inv_losses_hourly.append(inv_HourlyLoss)
+                        print(str(inv_HourlyLoss))
+                
+            elif inverterDict['inv_EuroEfficiency']:
+                for i in range(0, len(P_out_dc_hourly)):
+                        inv_HourlyLoss = P_out_dc_hourly[i] * (1-inv_EuroEfficiency)
+                        Inv_losses_hourly.append(inv_HourlyLoss)
+                        print(str(inv_HourlyLoss))
+                
+            elif inverterDict['inv_CECEfficiency']:
+                for i in range(0, len(P_out_dc_hourly)):
+                        inv_HourlyLoss = P_out_dc_hourly[i] * (1-inv_CECEfficiency)
+                        Inv_losses_hourly.append(inv_HourlyLoss)
+                        print(str(inv_HourlyLoss))
+            else:
+                if inverterDict['inv_WeightedEff']:
+                    for i in range(0, len(P_out_dc_hourly)):  
+                        nInput = P_out_dc_hourly[i]/inv_Ratedpower
+                        inv_Interp = np.interp(nInput, Eff_Values1, Eff_Values2)
+                        inv_Hourlyloss = (1-inv_Interp) * P_out_dc_hourly[i]
+                        Inv_losses_hourly.append(inv_Hourlyloss)
+                
+        else:
+            for i in range(0, len(P_out_dc_hourly)):
+                inv_HourlyLoss = 0
+                Inv_losses_hourly.append(inv_HourlyLoss)
+                print(str(inv_HourlyLoss))
+       
+            
+        #Output of the inverter (Difference between input and loss)                                            
+        for i in range(len(Inv_losses_hourly)):
+            inv_out = P_out_dc_hourly[i] - Inv_losses_hourly[i]
+            P_out_ac1_hourly.append(inv_out)
+                    
+        
+
+        # Create dataframe with data for inverter
+        p_inv_df = pd.DataFrame({"timestamps":df_report.index, "Inv_losses":  Inv_losses_hourly, "P_out_ac1": P_out_ac1_hourly,})
+        p_bi_df = pd.merge(p_bi_df, p_I_df, p_inv_df, on="timestamps")    
+        p_bi_df.to_csv(resultsPath + "electrical_simulation" + datetime.datetime.now().strftime("%Y-%m-%d-%H-%M") + ".csv")
         
         
         
-        #Plot for Bifacial Power Output + Bifacial Gain
-        GUI.Window.makePlotBifacialRadiance(resultsPath,Bifacial_gain)
+        #Plot for Inverter loss
+        GUI.Window.makePlotinvLosses(resultsPath)
         
         return Bifacial_gain*100
+    
         
-    def simulate_simpleBifacial(moduleDict, simulationDict, WireDict, df_reportVF, df_reportRT, df_report, df, resultsPath):
+    def simulate_simpleBifacial(moduleDict, simulationDict, WireDict, inverterDict, df_reportVF, df_reportRT, df_report, df, resultsPath):
         """
         Applies a simplified version of the electrical simulation after PVSyst. Uses bifaciality factor to calculate rear efficiency and fill factors.
         Rear open-circuit voltage and short-circuit current are calculated using rear irradiance and temperature. 
@@ -774,7 +852,7 @@ class Electrical_simulation:
         return Bifacial_gain*100
         
         
-    def simulate_doubleDiode(moduleDict, simulationDict, WireDict, df_reportVF, df_reportRT, df_report, df, resultsPath):
+    def simulate_doubleDiode(moduleDict, simulationDict, WireDict, inverterDict, df_reportVF, df_reportRT, df_report, df, resultsPath):
         """
         Applies the one diode model for bifacial electrical simulation. Needs module front and rear parameters to work correctly.
         Calculates bifacial gain through a seperate monofacial electrical simulation.
@@ -1413,7 +1491,7 @@ class Electrical_simulation:
     
         return Bifacial_gain*100
 
-    def simulate_doubleDiodeBi(moduleDict, simulationDict, WireDict, df_reportVF, df_reportRT, df_report, df, resultsPath):
+    def simulate_doubleDiodeBi(moduleDict, simulationDict, WireDict, inverterDict, df_reportVF, df_reportRT, df_report, df, resultsPath):
         """
         Applies the one diode model for bifacial electrical simulation. Needs module front and rear parameters to work correctly.
         Calculates bifacial gain through a seperate monofacial electrical simulation.
