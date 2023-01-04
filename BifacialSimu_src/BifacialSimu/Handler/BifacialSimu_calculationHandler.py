@@ -455,7 +455,10 @@ class Electrical_simulation:
         # Create dataframe with data
         p_bi_df = pd.DataFrame({"timestamps":df_report.index, "P_bi ": P_bi_hourly_average, "P_m ": P_m_hourly_average})
         p_bi_df.set_index("timestamps")
-        p_bi_df.to_csv(resultsPath + "electrical_simulation" + datetime.datetime.now().strftime("%Y-%m-%d-%H-%M") + ".csv")        
+        p_bi_df.to_csv(resultsPath + "electrical_simulation" + datetime.datetime.now().strftime("%Y-%m-%d-%H-%M") + ".csv")
+
+        #Plot for Bifacial Power Output + Bifacial Gain
+        GUI.Window.makePlotBifacialRadiance(resultsPath,Bifacial_gain)        
 
         
         ####################################################
@@ -572,7 +575,7 @@ class Electrical_simulation:
 
         # Create dataframe with data for inverter
         p_inv_df = pd.DataFrame({"timestamps":df_report.index, "Inv_losses":  Inv_losses_hourly, "P_out_ac1": P_out_ac1_hourly,})
-        p_bi_df = pd.merge(p_bi_df, p_I_df, p_inv_df, on="timestamps")    
+        p_bi_df = pd.merge(p_bi_df, p_inv_df, on="timestamps")    
         p_bi_df.to_csv(resultsPath + "electrical_simulation" + datetime.datetime.now().strftime("%Y-%m-%d-%H-%M") + ".csv")
         
         
