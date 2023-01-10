@@ -96,8 +96,8 @@ class Electrical_simulation:
         # ACorDC: Whether to calculate resistance of DC or AC wire (dimensionless)
         # length: Average wire length (m)
         # diameter: Cross sectional diatemer of wire (mm)
-        # area: Cross sectional area of wire (mm2)
         # material: material of wire {0-> Cu, 1-> Al} (dimensionless)
+        # area: Cross sectional area of wire (mm2)
         # Wire_cond: Conductivity of the material of the wire (S/m)
         # wire_resistance: Calculated resistance of the wire segment (Ohm)
         
@@ -121,7 +121,9 @@ class Electrical_simulation:
             
         wire_resistance = length/(area*wire_cond)
 
-        return wire_resistance    
+        return wire_resistance   
+    
+    
     def simulate_oneDiode(moduleDict, simulationDict, WireDict, inverterDict, df_reportVF, df_reportRT, df_report, df, resultsPath):
         """
         Applies the one diode model for bifacial electrical simulation. Needs module front and rear parameters to work correctly.
@@ -132,6 +134,7 @@ class Electrical_simulation:
         moduleDict: module Dictionary containing module data
         simulationDict: simulation Dictionary, which can be found in BifacialSimuu_main.py
         WireDict: Wire Dictionary containing the the DC wire parameters, located in GUI.py
+        InverterDict: Inverter dictionary containing the inverter parameters, located in GUI.py
         df_reportVF: Viewfactor simulation report
         df_reportRT: Raytracing simulation report
         df_report: Final simulation report, containing VF and RT data
@@ -477,10 +480,9 @@ class Electrical_simulation:
             
             
             dcWire_res = Electrical_simulation.simulate_WireResistance(WireDict, ACorDC)
-            WireDict['wire_resistance'] = dcWire_res
+            WireDict['dcWire_Resistance'] = dcWire_res
             
             for i in range(0, len(I_sc_b_hourly_average)):
-                sum = 0
                 
                 I_sc_b = I_sc_b_hourly_average[i]
                 P_bi = P_bi_hourly_average[i]
@@ -496,9 +498,8 @@ class Electrical_simulation:
                                    "P_losses_dc": P_losses_dc_hourly, "P_out_dc": P_out_dc_hourly})
             p_bi_df = pd.merge(p_bi_df, p_I_df, on="timestamps")    
             p_bi_df.to_csv(resultsPath + "electrical_simulation" + datetime.datetime.now().strftime("%Y-%m-%d-%H-%M") + ".csv")
-            print("Wire Resistance: " + str(dcWire_res*1000) + " mOhms")
+            #print("DC Wire Resistance: " + str(dcWire_res*1000) + " mOhms")
 
-            GUI.Window.makePlotLosses(resultsPath)
                 
          
         
@@ -541,19 +542,19 @@ class Electrical_simulation:
                 for i in range(0, len(inv_Input)):
                         inv_HourlyLoss = inv_Input[i] * (1-inv_MaxEfficiency)
                         Inv_losses_hourly.append(inv_HourlyLoss)
-                        print(str(inv_HourlyLoss))
+                        #print(str(inv_HourlyLoss))
                 
             elif inverterDict['inv_EuroEfficiency']:
                 for i in range(0, len(inv_Input)):
                         inv_HourlyLoss = inv_Input[i] * (1-inv_EuroEfficiency)
                         Inv_losses_hourly.append(inv_HourlyLoss)
-                        print(str(inv_HourlyLoss))
+                        #print(str(inv_HourlyLoss))
                 
             elif inverterDict['inv_CECEfficiency']:
                 for i in range(0, len(inv_Input)):
                         inv_HourlyLoss = inv_Input[i] * (1-inv_CECEfficiency)
                         Inv_losses_hourly.append(inv_HourlyLoss)
-                        print(str(inv_HourlyLoss))
+                        #print(str(inv_HourlyLoss))
             else:
                 if inverterDict['inv_WeightedEff']:
                     for i in range(0, len(inv_Input)):  
@@ -568,7 +569,7 @@ class Electrical_simulation:
             for i in range(0, len(inv_Input)):
                 inv_HourlyLoss = 0
                 Inv_losses_hourly.append(inv_HourlyLoss)
-                print(str(inv_HourlyLoss))
+                #print(str(inv_HourlyLoss))
        
             
         #Output of the inverter (Difference between input and loss)                                            
@@ -587,6 +588,63 @@ class Electrical_simulation:
         
         #Plot for Inverter loss
         GUI.Window.makePlotinvLosses(resultsPath)
+        
+        
+        
+        #####            AC Wire losses              ######
+        
+        
+        if simulationDict['acWireLosses'] == True:
+            
+            ACorDC = 'ac'
+            I_ac_hourly = [] #Array to hold the hourly values of the current output from inverter
+            P_losses_ac_hourly = [] #Array to hold the hourly values of the losses from the AC Wire
+            P_out_ac2_hourly = [] #Array to hold the hourly values of the AC ouptut after subtracting Wire losses
+            Vac = 240 #Temporal. Must be in the inverter dictionary
+            nPhases = 1 #Temporal. Must be in the inverter dictionary
+            Power_Factor = 0.9 #Temporal. Must be in the inverter dictionary
+            cosPhi = Power_Factor
+            
+            acWire_res = Electrical_simulation.simulate_WireResistance(WireDict, ACorDC)
+            WireDict['acWire_Resistance'] = acWire_res
+            
+            #Calculating the current output of the inverter
+            if nPhases == 1:
+                for i in range(0, len(P_out_ac1_hourly)):
+                    sum = 0
+                    
+                    I_ac = P_out_ac1_hourly[i]/Vac
+                    I_ac_hourly.append(I_ac)
+                    
+            elif nPhases == 3:
+                for i in range(0, len(P_out_ac1_hourly)):
+                    
+                    I_ac = P_out_ac1_hourly[i]/(3*Vac*cosPhi)
+                    I_ac_hourly.append(I_ac)
+            
+            #Calculating the losses and final output
+            for i in range(0, len(I_ac_hourly)):
+                
+                I_ac = I_ac_hourly[i]
+                P_out_ac1 = P_out_ac1_hourly[i]
+                
+                P_losses_ac = acWire_res*I_ac*I_ac
+                P_out_ac2 = P_out_ac1 - P_losses_ac
+                
+                P_losses_ac_hourly.append(P_losses_ac)
+                P_out_ac2_hourly.append(P_out_ac2)
+            
+                        
+            p_I_ac_df = pd.DataFrame({"timestamps":df_report.index, "I_ac_hourly": I_ac_hourly,
+                                   "P_losses_ac_hourly": P_losses_ac_hourly, "P_out_ac2_hourly": P_out_ac2_hourly})
+            p_bi_df = pd.merge(p_bi_df, p_I_ac_df, on="timestamps")    
+            p_bi_df.to_csv(resultsPath + "electrical_simulation" + datetime.datetime.now().strftime("%Y-%m-%d-%H-%M") + ".csv")
+            #print("AC Wire Resistance: " + str(acWire_res*1000) + " mOhms")
+   
+            
+        if simulationDict['dcWireLosses'] == True or simulationDict['acWireLosses'] == True:
+            GUI.Window.makePlotLosses(resultsPath)            
+        
         
         return Bifacial_gain*100
     

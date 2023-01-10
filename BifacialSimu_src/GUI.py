@@ -134,7 +134,8 @@ SimulationDict = {
 'gcr' : 0.35, #ground coverage ratio (module area / land use)
 'module_type' : 'NREL row 2', #Name of Module
 'dcWireLosses': False, #Whether to calculate DC Wire losses or not
-'invLosses': True #Whether to calculate Inverter losses or not 
+'invLosses': True, #Whether to calculate Inverter losses or not
+'acWireLosses': True, #Whether to calculate AC Wire losses or not
 }
 
 # is in Function StartSimulation()
@@ -160,13 +161,14 @@ ModuleDict = {
 }
 
 WireDict = {
-    'dcWire_len': 1, #Average lentgh of wire from rows to inverters [m]
+    'dcWire_len': 1, #Average lentgh of wire from rows of modules to inverters [m]
     'dcWire_Diameter':1, #Wire diameter [mm]
     'dcWire_Material': 0, #Wire material (0->Cu, 1->Al)
+    'dcWire_Resistance' : 0,
     'acWire_len': 1, #Length of wires from inverter to load [m]
     'acWire_Diameter':1, #Wire diameter [mm]
     'acWire_Material': 0, #Wire material (0->Cu, 1->Al)
-    'wire_resistance' : 0,
+    'acWire_Resistance' : 0,
 }
 
 inverterDict = {
@@ -609,6 +611,12 @@ class Window(tk.Tk):
             if len(Entry_dcWire_Diameter.get()) !=0:
                 WireDict["dcWire_Diameter"]=float(Entry_dcWire_Diameter.get())
                 
+            if len(Entry_acWire_len.get()) !=0:
+                WireDict["acWire_len"]=float(Entry_acWire_len.get())
+                
+            if len(Entry_acWire_Diameter.get()) !=0:
+                WireDict["acWire_Diameter"]=float(Entry_acWire_Diameter.get())    
+                
 # =============================================================================
 #           Inverter Parameters
 # =============================================================================
@@ -1021,6 +1029,8 @@ class Window(tk.Tk):
             Entry_dcWire_len.insert(0, dcWire_len_configfile)
             Entry_dcWire_Diameter.insert(0, dcWire_Diameter_configfile)
             Entry_inv_Ratedpower.insert(0, inv_Ratedpower_configfile)
+            Entry_acWire_len.insert(0, acWire_len_configfile)
+            Entry_acWire_Diameter.insert(0, acWire_Diameter_configfile)
 
 
             key = entry_modulename_value.get()
@@ -1121,6 +1131,8 @@ class Window(tk.Tk):
             Entry_utcoffset.delete(0,END)
             Entry_dcWire_len.delete(0,END)
             Entry_dcWire_Diameter.delete(0,END)
+            Entry_acWire_len.delete(0,END)
+            Entry_acWire_Diameter.delete(0,END)
             Entry_inv_Ratedpower.delete(0,END)
             Entry_inv_MaxEfficiency.delete(0,END)
             Entry_inv_EuroEfficiency.delete(0,END)
@@ -1737,7 +1749,7 @@ class Window(tk.Tk):
         
      #DC Title
         dcWire_Label = ttk.Label(wireParameter_frame, text='DC wire', font=("Arial Bold", 13))
-        dcWire_Label.grid(row =2, column=0,padx=15, sticky="w")
+        dcWire_Label.grid(row=2, column=0,padx=15, sticky="w")
 
 
      #DC Wiring
@@ -1811,6 +1823,83 @@ class Window(tk.Tk):
         Label_dcWire_DiameterUnit.grid(row=5, column=2, sticky='w')
         Entry_dcWire_Diameter=ttk.Entry(wireParameter_frame, background="white", width=8)
         Entry_dcWire_Diameter.grid(row=5, column=1, sticky='w')
+
+    #AC Title
+        acWire_Label = ttk.Label(wireParameter_frame, text='AC wire', font=("Arial Bold", 13))
+        acWire_Label.grid(row=8, column=0,padx=15, sticky="w")
+    
+    
+    #AC Wiring
+       #Enable/Disable
+        def acWireLosses():
+           if rb_dcWireLosses.get()==1:
+               SimulationDict["acWireLosses"]=True
+               Label_acWireLength.config(state="normal")
+               Entry_acWire_len.config(state="normal")
+               Label_acWireLengthUnit.config(state="normal")
+               Label_acWireMaterial.config(state="normal")
+               rad1_acWireMaterial.config(state="normal")
+               rad2_acWireMaterial.config(state="normal")
+               Label_acWire_Diameter.config(state="normal")
+               Entry_acWire_Diameter.config(state="normal")
+               Label_acWire_DiameterUnit.config(state="normal")
+               Combo_acWire_Diameter.config(state='normal')
+               
+           if rb_acWireLosses.get()==0:
+               SimulationDict["acWireLosses"]=False
+               Label_acWireLength.config(state="disabled")
+               Entry_acWire_len.config(state="disabled")
+               Label_acWireLengthUnit.config(state="disabled")
+               Label_acWireMaterial.config(state="disabled")
+               rad1_acWireMaterial.config(state="disabled")
+               rad2_acWireMaterial.config(state="disabled")
+               Label_acWire_Diameter.config(state="disable")
+               Entry_acWire_Diameter.config(state="disable")
+               Label_acWire_DiameterUnit.config(state="disable")
+               Combo_acWire_Diameter.config(state='disable')
+               
+        rb_acWireLosses=IntVar()
+        rb_acWireLosses.set("0")
+      
+        rad1_acWireLosses=Radiobutton(wireParameter_frame, variable=rb_acWireLosses, width=6, text="Disable", value=0, command=lambda:acWireLosses())
+        rad2_acWireLosses=Radiobutton(wireParameter_frame, variable=rb_acWireLosses, width=6, text="Enable", value=1, command=lambda:acWireLosses())
+        rad1_acWireLosses.grid(row=8, column=1, sticky=W)
+        rad2_acWireLosses.grid(row=8, column=2, sticky=W)
+       
+       
+       #Length
+        Label_acWireLength=ttk.Label(wireParameter_frame, text="Average AC wire length:")
+        Label_acWireLength.grid(row=9, column=0, sticky=W)
+        Label_acWireLengthUnit=ttk.Label(wireParameter_frame, text="[m]")
+        Label_acWireLengthUnit.grid(row=9, column=2, sticky=W)
+        Entry_acWire_len=ttk.Entry(wireParameter_frame, background="white", width=8)
+        Entry_acWire_len.grid(row=9, column=1, sticky=W)
+       
+       #Material
+        def acWireMaterial():
+           if rb_acWireMaterial.get()==0:
+               WireDict["acWire_Material"]=0
+           if rb_acWireMaterial.get()==1:
+               WireDict["acWire_Material"]=1                 
+               
+        Label_acWireMaterial=ttk.Label(wireParameter_frame, text="Wire Material:")
+        Label_acWireMaterial.grid(row=10, column=0, sticky=W)
+      
+        rb_acWireMaterial=IntVar()
+        rb_acWireMaterial.set("0")
+      
+        rad1_acWireMaterial=Radiobutton(wireParameter_frame, variable=rb_acWireMaterial, width=6, text="Cooper", value=0, command=lambda:acWireMaterial())
+        rad2_acWireMaterial=Radiobutton(wireParameter_frame, variable=rb_acWireMaterial, width=8, text="Aluminum", value=1, command=lambda:acWireMaterial())
+        rad1_acWireMaterial.grid(row=10, column=1, sticky='w')
+        rad2_acWireMaterial.grid(row=10, column=2, sticky='w')
+       
+       #Diameter
+        Label_acWire_Diameter=ttk.Label(wireParameter_frame, text="Wire diameter:")
+        Label_acWire_Diameter.grid(row=11, column=0, sticky='w')
+        Label_acWire_DiameterUnit=ttk.Label(wireParameter_frame, text="[mm]")
+        Label_acWire_DiameterUnit.grid(row=11, column=2, sticky='w')
+        Entry_acWire_Diameter=ttk.Entry(wireParameter_frame, background="white", width=8)
+        Entry_acWire_Diameter.grid(row=11, column=1, sticky='w')
 
 
 # =============================================================================
@@ -2465,7 +2554,9 @@ class Window(tk.Tk):
             for key in jsondata_wire.keys():                     #to be able to access the keys
                 systemtuple = systemtuple + (str(key),)   #build the tuple of strings
             Combo_dcWire_Diameter['values'] = systemtuple[1:]
-            Combo_dcWire_Diameter.current(0)                         
+            Combo_dcWire_Diameter.current(0)
+            Combo_acWire_Diameter['values'] = systemtuple[1:]
+            Combo_acWire_Diameter.current(0)                         
             self.jsondata_wire = jsondata_wire
        
         def comboclick_wire(event):
@@ -2485,13 +2576,33 @@ class Window(tk.Tk):
  
                # set module entries loaded from json
                 Entry_dcWire_Diameter.insert(0,str(a['Diameter']))
+                
+            key2 = entry_acWire_Diameter_value.get() # what is the value selected?
+            if key2 != '':  # '' not a dict key
+                
+                a = self.jsondata_wire[key2]
+                self.wire = key2
+                         
+                
+                # clear module entries loaded from json
+                Entry_acWire_Diameter.delete(0,END)
+
+ 
+               # set module entries loaded from json
+                Entry_acWire_Diameter.insert(0,str(a['Diameter']))
         
         entry_dcWire_Diameter_value = tk.StringVar()
         Combo_dcWire_Diameter=ttk.Combobox(wireParameter_frame, textvariable=entry_dcWire_Diameter_value)
+        entry_acWire_Diameter_value = tk.StringVar()
+        Combo_acWire_Diameter=ttk.Combobox(wireParameter_frame, textvariable=entry_acWire_Diameter_value)
         
         Combo_dcWire_Diameter.grid(row=5, column=3, ipadx=5)
         getWireDiameterList()                                     #set the wire AWG values
         Combo_dcWire_Diameter.bind("<<ComboboxSelected>>", comboclick_wire)
+        
+        Combo_acWire_Diameter.grid(row=11, column=3, ipadx=5)
+        getWireDiameterList()                                     #set the wire AWG values
+        Combo_acWire_Diameter.bind("<<ComboboxSelected>>", comboclick_wire)
 
 
 # =============================================================================
@@ -2768,11 +2879,13 @@ class Window(tk.Tk):
         idx=pd.date_range(timestamp_start, periods=timestamp_end, freq="1H")
             
         P_losses_dc=data["P_losses_dc"]
+        P_losses_ac=data["P_losses_ac_hourly"]
            
         fig4 = plt.Figure()
         ax4= fig4.subplots()
             
-        ax4.plot(idx, P_losses_dc, label="P_losses_dc", color="red")
+        ax4.plot(idx, P_losses_dc, label="P_losses_dc", color="green")
+        ax4.plot(idx, P_losses_ac, label="P_losses_ac", color="brown")
             
         ax4.xaxis.set_minor_locator(dates.DayLocator(interval=1))   # every Day
         ax4.xaxis.set_minor_formatter(dates.DateFormatter('%d'))  # day and hours
@@ -2781,10 +2894,10 @@ class Window(tk.Tk):
         ax4.legend()
         ax4.set_ylabel('Power\n[W/m²]', size=17)
         ax4.set_xlabel("Time", size=17)
-        ax4.set_title('Power Losses\n', size=18)
+        ax4.set_title('Wire Losses\n', size=18)
             
         fig4.tight_layout()
-        fig4.savefig("Power_losses" + datetime.datetime.now().strftime("%Y-%m-%d-%H-%M") + ".png")
+        fig4.savefig("Wire_losses" + datetime.datetime.now().strftime("%Y-%m-%d-%H-%M") + ".png")
             
         canvas = FigureCanvasTkAgg(fig4, master=tk.Toplevel())
         canvas.get_tk_widget().pack(side=tk.TOP, fill=tk.BOTH, expand=1.0)
