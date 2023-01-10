@@ -2366,6 +2366,8 @@ class Window(tk.Tk):
         utcoffset_configfile=parser.get('default', 'utcoffset')
         dcWire_len_configfile=parser.get('default', 'dcWire_len')
         dcWire_Diameter_configfile=parser.get('default', 'dcWire_Diameter')
+        acWire_len_configfile=parser.get('default', 'acWire_len')
+        acWire_Diameter_configfile=parser.get('default', 'acWire_Diameter')
         inv_Ratedpower_configfile=parser.get('default', 'inv_Ratedpower')
         
         
