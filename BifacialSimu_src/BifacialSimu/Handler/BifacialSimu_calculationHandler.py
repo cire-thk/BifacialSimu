@@ -535,7 +535,7 @@ class Electrical_simulation:
         Eff_Values1 = [inv_Input1, inv_Input2, inv_Input3, inv_Input4, inv_Input5, inv_Input6, inv_Input7]
         Eff_Values2 = [inv_Effvalue1, inv_Effvalue2, inv_Effvalue3, inv_Effvalue4, inv_Effvalue5, inv_Effvalue6, inv_Effvalue7]
         
-        inv_Input = P_out_dc_hourly if len(P_out_dc_hourly) != 0 else P_m_hourly_average
+        inv_Input = P_out_dc_hourly if len(P_out_dc_hourly) != 0 else P_bi_hourly_average
         
         if simulationDict['invLosses']==True:
             if inverterDict['inv_MaxEfficiency']:
