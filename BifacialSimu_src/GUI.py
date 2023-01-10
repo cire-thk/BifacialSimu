@@ -162,7 +162,7 @@ ModuleDict = {
 class Window(tk.Tk):
     def __init__(self):
         tk.Tk.__init__(self)
-        self.geometry("1600x800")
+        self.geometry("1300x700")
         self.title('BifacialSimu')
         self.iconbitmap(Path(rootPath+"\Lib\logos\App_icon.ico"))
         yscroll = tk.Scrollbar(self, orient=tk.VERTICAL)
