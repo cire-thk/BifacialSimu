@@ -468,12 +468,13 @@ class Electrical_simulation:
         
         #####            DC Wire losses              ######
         
+        P_out_dc_hourly = []
         
         if simulationDict['dcWireLosses'] == True:
             
             ACorDC = 'dc'
             P_losses_dc_hourly = []
-            P_out_dc_hourly = []
+            
             
             dcWire_res = Electrical_simulation.simulate_WireResistance(WireDict, ACorDC)
             WireDict['wire_resistance'] = dcWire_res
@@ -525,56 +526,60 @@ class Electrical_simulation:
         inv_Effvalue6 = inverterDict['inv_Effvalue6']
         inv_Effvalue7 = inverterDict['inv_Effvalue7']
         Inv_losses_hourly = []
+        Eff_values_hourly = []
         P_out_ac1_hourly = []
 
 
         # Creating an array for inverter efficiency values to use interpolation
         Eff_Values1 = [inv_Input1, inv_Input2, inv_Input3, inv_Input4, inv_Input5, inv_Input6, inv_Input7]
         Eff_Values2 = [inv_Effvalue1, inv_Effvalue2, inv_Effvalue3, inv_Effvalue4, inv_Effvalue5, inv_Effvalue6, inv_Effvalue7]
-
+        
+        inv_Input = P_out_dc_hourly if len(P_out_dc_hourly) != 0 else P_m_hourly_average
         
         if simulationDict['invLosses']==True:
             if inverterDict['inv_MaxEfficiency']:
-                for i in range(0, len(P_out_dc_hourly)):
-                        inv_HourlyLoss = P_out_dc_hourly[i] * (1-inv_MaxEfficiency)
+                for i in range(0, len(inv_Input)):
+                        inv_HourlyLoss = inv_Input[i] * (1-inv_MaxEfficiency)
                         Inv_losses_hourly.append(inv_HourlyLoss)
                         print(str(inv_HourlyLoss))
                 
             elif inverterDict['inv_EuroEfficiency']:
-                for i in range(0, len(P_out_dc_hourly)):
-                        inv_HourlyLoss = P_out_dc_hourly[i] * (1-inv_EuroEfficiency)
+                for i in range(0, len(inv_Input)):
+                        inv_HourlyLoss = inv_Input[i] * (1-inv_EuroEfficiency)
                         Inv_losses_hourly.append(inv_HourlyLoss)
                         print(str(inv_HourlyLoss))
                 
             elif inverterDict['inv_CECEfficiency']:
-                for i in range(0, len(P_out_dc_hourly)):
-                        inv_HourlyLoss = P_out_dc_hourly[i] * (1-inv_CECEfficiency)
+                for i in range(0, len(inv_Input)):
+                        inv_HourlyLoss = inv_Input[i] * (1-inv_CECEfficiency)
                         Inv_losses_hourly.append(inv_HourlyLoss)
                         print(str(inv_HourlyLoss))
             else:
                 if inverterDict['inv_WeightedEff']:
-                    for i in range(0, len(P_out_dc_hourly)):  
-                        nInput = P_out_dc_hourly[i]/inv_Ratedpower
+                    for i in range(0, len(inv_Input)):  
+                        nInput = inv_Input[i]/inv_Ratedpower
                         inv_Interp = np.interp(nInput, Eff_Values1, Eff_Values2)
-                        inv_Hourlyloss = (1-inv_Interp) * P_out_dc_hourly[i]
+                        inv_Hourlyloss = (1-inv_Interp) * inv_Input[i]
                         Inv_losses_hourly.append(inv_Hourlyloss)
+                        Eff_values_hourly.append(inv_Interp)
+                        
                 
         else:
-            for i in range(0, len(P_out_dc_hourly)):
+            for i in range(0, len(inv_Input)):
                 inv_HourlyLoss = 0
                 Inv_losses_hourly.append(inv_HourlyLoss)
                 print(str(inv_HourlyLoss))
        
             
         #Output of the inverter (Difference between input and loss)                                            
-        for i in range(len(Inv_losses_hourly)):
-            inv_out = P_out_dc_hourly[i] - Inv_losses_hourly[i]
+        for i in range(len(inv_Input)):
+            inv_out = inv_Input[i] - Inv_losses_hourly[i]
             P_out_ac1_hourly.append(inv_out)
                     
         
 
         # Create dataframe with data for inverter
-        p_inv_df = pd.DataFrame({"timestamps":df_report.index, "Inv_losses":  Inv_losses_hourly, "P_out_ac1": P_out_ac1_hourly,})
+        p_inv_df = pd.DataFrame({"timestamps":df_report.index, "Inv_losses":  Inv_losses_hourly, "Eff_values": Eff_values_hourly, "P_out_ac1": P_out_ac1_hourly,})
         p_bi_df = pd.merge(p_bi_df, p_inv_df, on="timestamps")    
         p_bi_df.to_csv(resultsPath + "electrical_simulation" + datetime.datetime.now().strftime("%Y-%m-%d-%H-%M") + ".csv")
         
