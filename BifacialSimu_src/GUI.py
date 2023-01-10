@@ -2879,11 +2879,13 @@ class Window(tk.Tk):
         idx=pd.date_range(timestamp_start, periods=timestamp_end, freq="1H")
             
         P_losses_dc=data["P_losses_dc"]
+        P_losses_ac=data["P_losses_ac_hourly"]
            
         fig4 = plt.Figure()
         ax4= fig4.subplots()
             
-        ax4.plot(idx, P_losses_dc, label="P_losses_dc", color="red")
+        ax4.plot(idx, P_losses_dc, label="P_losses_dc", color="green")
+        ax4.plot(idx, P_losses_ac, label="P_losses_ac", color="brown")
             
         ax4.xaxis.set_minor_locator(dates.DayLocator(interval=1))   # every Day
         ax4.xaxis.set_minor_formatter(dates.DateFormatter('%d'))  # day and hours
@@ -2892,10 +2894,10 @@ class Window(tk.Tk):
         ax4.legend()
         ax4.set_ylabel('Power\n[W/m²]', size=17)
         ax4.set_xlabel("Time", size=17)
-        ax4.set_title('Power Losses\n', size=18)
+        ax4.set_title('Wire Losses\n', size=18)
             
         fig4.tight_layout()
-        fig4.savefig("Power_losses" + datetime.datetime.now().strftime("%Y-%m-%d-%H-%M") + ".png")
+        fig4.savefig("Wire_losses" + datetime.datetime.now().strftime("%Y-%m-%d-%H-%M") + ".png")
             
         canvas = FigureCanvasTkAgg(fig4, master=tk.Toplevel())
         canvas.get_tk_widget().pack(side=tk.TOP, fill=tk.BOTH, expand=1.0)
