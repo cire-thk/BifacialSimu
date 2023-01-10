@@ -2917,12 +2917,15 @@ class Window(tk.Tk):
         idx=pd.date_range(timestamp_start, periods=timestamp_end, freq="1H")
             
         Inv_losses=data["Inv_losses"]
+        Eff_values=data["Eff_values"]
+        print("eff:"+ str(Eff_values))
             
            
         fig5 = plt.Figure()
         ax5= fig5.subplots()
             
         ax5.plot(idx, Inv_losses, label="Inv_losses", color="blue")
+        ax5.plot(idx, Eff_values, label="Eff_values", color="red")
             
         ax5.xaxis.set_minor_locator(dates.DayLocator(interval=1))   # every Day
         ax5.xaxis.set_minor_formatter(dates.DateFormatter('%d'))  # day and hours
