@@ -17,7 +17,16 @@ overview:
     from Hesan Ziar, Furkan Fatih Sönmez, Olindo Isabella, and Miro Zeman; October 2019
     
 """
+import os
+import sys
 
+# Path handling
+rootPath = rootPath = os.path.realpath("../../")
+
+#adding rootPath to sysPath
+sys.path.append(rootPath)
+
+from pathlib import Path
 import pandas as pd
 import numpy as np
 import math
@@ -414,7 +423,7 @@ def calculateAlbedo(simulationDict, dataFrame, resultspath):
     
     # calculated values are saved to new csv
     albedo_results = pd.DataFrame({'datetime':cd, 'spectral Albedo':a_hourly, 'R': R_hourly, 'H': H_hourly, 'VF_s_a1': VF_S_A1, 'VF_8_2': VF_8_2_hourly, 'VF_8_4': VF_8_4_hourly, 'VF_8_5': VF_8_5_hourly, 'VF_s_a2': VF_S_A2})
-    albedo_results.to_csv(resultspath + '/spectral_Albedo.csv', sep=';', index=False)
+    albedo_results.to_csv(Path(resultspath + '/spectral_Albedo.csv'), sep=';', index=False)
     
     #########################################################################
         

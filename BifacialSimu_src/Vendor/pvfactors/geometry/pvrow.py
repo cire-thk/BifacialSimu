@@ -2,11 +2,9 @@
 
 import numpy as np
 from BifacialSimu_src.Vendor.pvfactors.config import COLOR_DIC
-from BifacialSimu_src.Vendor.pvfactors.geometry.base import \
-    BaseSide, _coords_from_center_tilt_length, PVSegment
+from BifacialSimu_src.Vendor.pvfactors.geometry.base import BaseSide, _coords_from_center_tilt_length, PVSegment
 from shapely.geometry import GeometryCollection, LineString
-from BifacialSimu_src.Vendor.pvfactors.geometry.timeseries import \
-    TsShadeCollection, TsLineCoords, TsSurface
+from BifacialSimu_src.Vendor.pvfactors.geometry.timeseries import TsShadeCollection, TsLineCoords, TsSurface
 from pvlib.tools import cosd, sind
 
 

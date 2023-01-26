@@ -24,10 +24,15 @@ from IPython import get_ipython
 get_ipython().magic('reset -sf')
 import seaborn as sns
 import os
+import sys
+
 # Path handling
 rootPath = os.path.realpath("../../")
-print(rootPath)
 
+#adding rootPath to sysPath
+sys.path.append(rootPath)
+
+from pathlib import Path
 import pandas as pd #pandas = can read .csv as input
 import matplotlib.pyplot as plt #display shadows
 import matplotlib.dates as mdates
@@ -465,7 +470,7 @@ class RayTrace:
                 # Set timeindex for report
                 
                 df_reportRT=df_reportRT.set_index(pd.date_range(start = dtStart - datetime.timedelta(hours=1), end = dtEnd, freq='H', closed='right'))
-                df_reportRT.to_csv(resultsPath + "/df_reportRT.csv")  
+                df_reportRT.to_csv(Path(resultsPath + "/df_reportRT.csv")  )
                 #print(df_rtraceFront)
                 #print(df_rtraceBack)
                 #print(df_rtrace)
@@ -676,7 +681,7 @@ class ViewFactors:
         
         
             variableAlbedo = pd.DataFrame({'datetime':df.index, 'variable_Albedo': df['albedo']})
-            variableAlbedo.to_csv(resultspath + '/variable_Albedo.csv', sep=';', index=False)
+            variableAlbedo.to_csv(Path(resultspath + '/variable_Albedo.csv'), sep=';', index=False)
             
             # Plot variable albedo
             plt.rc ('axes', labelsize = 13) # Schriftgröße der x- und y-Beschriftungen
@@ -728,7 +733,7 @@ class ViewFactors:
         
         #df = df.rename(columns = {'corrected timestamps': 'time'})
         
-        df.to_csv(resultsPath +"/Data.csv")
+        df.to_csv(Path(resultsPath +"/Data.csv"))
         ####################################################
         
         # Run full bifacial simulation
@@ -1152,7 +1157,7 @@ class ViewFactors:
             plot_irradiance2(df2)    # Plot mit der front und back irradiance für jede Reihen für jeden Tag
             
             # Print results as .csv in directory
-            df_reportVF.to_csv(resultsPath + "radiation_qabs_results.csv")
+            df_reportVF.to_csv(Path(resultsPath + "radiation_qabs_results.csv"))
             """
             # Plot total qinc front and back for every row
             f, ax = plt.subplots(3, figsize=(10, 6))
