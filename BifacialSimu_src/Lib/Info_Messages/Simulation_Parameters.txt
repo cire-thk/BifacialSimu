@@ -31,3 +31,15 @@ Constant Albedo Value:		This is the simplest and therefore least accurate implem
 				according to what the surface is made of, or alternatively a custom numerical value can be entered.
 				[the name of the Surface will not be modified after entering a custom value]
 
+Soiling Rate:			The soiling rate describes the loss of absorbed solar radiation per time unit due to soiling of the PV surface.
+				The soiling rate depends mainly on the dust content in the air [ug/m^3], weather and climate and thus on the region. The unit is [%/d]. The higher the soiling rate, the lower 
+				the lower the power output of the PV system. The soiling of the PV modules increases cumulatively with time until the system is cleaned or when it rains.
+
+Average Soiling Rate:		This is the simplest way to set the soiling rate. On the one hand, a constant soiling rate can be entered manually in the text field. If a measured soiling rate 
+				value is available, it can be entered here. On the other hand, a drop-down menu can be used to select preset constant soiling rates by world region (e.g. Scandinavia, 
+				South Asia, Western Europe, etc.). These values were determined using the PM2.5 fine dust content [ug/m^3] of the respective region averaged over one year.
+
+Soiling Rate from Weather Data:	This variant is the most accurate. Here, the nearest city to the simulation site is determined from a data 
+				collection of monthly soilingsrates of more than 500 cities. These soiling rates were calculated using the PM2.5 air fine dust content. After the 
+				nearest weather station is found, a list of soiling rates (Jan - Dec) is automatically set and the location of the weather station and the distance to it [km] are displayed.
+

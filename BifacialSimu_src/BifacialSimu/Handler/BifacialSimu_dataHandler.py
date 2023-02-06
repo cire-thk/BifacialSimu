@@ -30,7 +30,6 @@ import os #to import directories
 import sys
 import dateutil
 import numpy as np
-from pathlib import Path
 
 
 
@@ -40,9 +39,7 @@ from pathlib import Path
 # Path handling
 rootPath = os.path.dirname(os.path.dirname(os.path.realpath(".")))
 
-#adding rootPath to sysPath
-sys.path.append(rootPath)
-
+from BifacialSimu_src import WeatherData
 from BifacialSimu_src.BifacialSimu.Handler import BifacialSimu_radiationHandler #"from ." is essential to tell python that the module is found in this file's PATH
 
 class DataHandler:
@@ -89,8 +86,10 @@ class DataHandler:
             except ConnectionError: # no connection to automatically pull data
                 pass
             metdata = demo.readEPW(epwfile) # read in the EPW weather data from above
+            
         else:
             metdata = demo.readTMY(simulationDict['weatherFile'])
+
         
         return metdata, demo
     
@@ -148,5 +147,5 @@ class DataHandler:
         print('view_factor dataframe at data handler:')
         print(df)
 
-        df.to_csv(Path(resultsPath + "Dataframe_df.csv"))
+        df.to_csv(resultsPath + "Dataframe_df.csv")
         return df

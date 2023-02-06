@@ -40,7 +40,7 @@ The general architechture and functions are displayed in the following figure:
 ***
 
 ## Prerequisites
-Unfortnatly, BifacialSimu is not supported by Mac OS at the moment. We are working on this issue. If you want to contribute to solving this issue, please contact us.
+Unfortnatly, BifacialSimu is not supported by Linux at the moment. We are working on this issue. If you want to contribute to solving this issue, please contact us.
 
 BifacialSimu is run within a Python environment and dependent on a variety of libraries, most of which are contained within the installation of Anaconda. 
 The program [Radiance](https://github.com/NREL/Radiance/releases) is necessary in order to run BifacialSimu. Besides that relies BifacialSimu on following libraries:
@@ -108,14 +108,17 @@ Make sure to download and insert the jaloxa Windows Binaries into the Radiance b
 __Install BifacialSimu__
 
 To install BifacialSimu and Copies of [bifacial_radiance](https://github.com/NREL/bifacial_radiance) and [pvfavtors](https://github.com/SunPower/pvfactors), you can use:
-> pip install Bifacialsimu --ignore-installed
+> pip install BifacialSimu
 
 If that does not work for you, navigate to your local GitHub folder or download BifacialSimu on GitHub. 
 In spyder for example you can navigate using __cd__:
 > cd C:\Users\XXX\XXX\GitHub\bifacialSimu
 
 Now use:
-> pip install . --ignore-installed 
+> pip install . 
+
+You can also use:
+> pip install BifacialSimu
 
 Check, if these standard python packages have been installed:  
 − [Pvlib](https://pvlib-python.readthedocs.io/en/stable/index.html)  
@@ -146,12 +149,12 @@ This section serves as a Quick Start and also a way of checking that everything 
 As a first step, initiate the GUI by running the GUI.py file within your Python operating environment (Spyder or similar) as per the installation instructions. 
 This will then open the Graphical User Interface in a separate window and should look as per below.
 
-<p align="center"><img src="BifacialSimu_src/Lib/readme_pics/GUI.png" width="1000"><br/></p>
+<p align="center"><img src="BifacialSimu_src/Lib/readme_pics/GUI_2.png" width="1000"><br/></p>
 
 By clicking on the button "set default!" all active fields should be filled and ready to simulate. 
 Check that these match the below picture 
 
-<p align="center"><img src="BifacialSimu_src/Lib/readme_pics/GUI_default.png" width="1000"><br/></p>
+<p align="center"><img src="BifacialSimu_src/Lib/readme_pics/GUI_default_2.png" width="1000"><br/></p>
 
 Before starting the simulation check the Simulation Control and Module Parameter tabs. 
 It may also be advantageous to reduce the simulation time period for this test to one or two days in order to reduce actual simulation time, as per the below example, to one day.
@@ -289,6 +292,29 @@ If you choose to use the option "Hourly Spectral Albedo" you will need a separat
 
 ---
 
+__Simulation Parameter - Soiling Rate__  
+
+<p align="center"><img src="BifacialSimu_src/Lib/readme_pics/soiling_modes.png" width="500"><br/></p>
+
+The soiling rate describes the loss of power output of the PV modules [%/d] because of a reduction of irradiation that penetrates into the module due to soiling of the PV surface.
+The soiling rate depends mainly on the dust content in the air [ug/m^3], weather and climate and thus on the region.
+
+Usually the best choice of soiling mode ist "Soiling Rate from Weather Data", because it provides monthly soiling rates for soiling calculation.
+
+The simplest but most inaccurate way to set the soiling rate, is the mode "Average daily Soiling Rate".
+
+On the one hand, a constant soiling rate can be entered manually in the text field. If a measured soiling rate value is available, it can be entered here. On the other hand, a drop-down menu can be used to select preset constant soiling rates by world region (e.g. Scandinavia, South Asia, Western Europe, etc.) as shown in the picture below. These values were determined using the PM2.5 fine dust content [ug/m^3] of the respective region averaged over one year.
+
+<p align="center"><img src="BifacialSimu_src/Lib/readme_pics/soiling_drop.png" width="500"><br/></p>
+
+To use the mode "Soiling Rate from Weather Data" the simulation location has to be set in the Main Control. After inserting a local weather file or coordinates, the input has to be confirm via the Confrim-Button.
+Then the nearest city to the simulation site is determined from a data collection of monthly soilingsrates. Confirmation is required to update the soiling rates bevor starting the simulation. After the nearest weather station is found, a list of soiling rates (Jan - Dec) is automatically set and the location of the weather station and the distance to it [km] are displayed.
+
+<p align="center"><img src="BifacialSimu_src/Lib/readme_pics/soiling_weather_mode.png" width="500"><br/></p>  
+<p align="center"><img src="BifacialSimu_src/Lib/readme_pics/main_control_confirm.png" width="500"><br/></p>  
+
+---
+
 __Simulation Control - Simulation Options__
 
 This example runs through how to set the simulation mode for various use cases and important things that should be taken into consideration.
@@ -393,10 +419,6 @@ It is also possible to manually amend the axis titles within the matlibplot grap
 
 __Cannot load backend 'Qt5Agg'__ - If this error appears, you have to change the IPython Console from 'tk' to 'Qt5', f.e. in spyder.
 > "ImportError: Cannot load backend 'Qt5Agg' which requires the 'qt' interactive framework, as 'tk' is currently running."
-
-__Cannot uninstall 'TBB'__ - If this error appears, you have to change the IPython Console from 'tk' to 'Qt5', f.e. in spyder.
-"TBB is a system package and anaconda does not allow users to uninstall it. The reinstallation of the package should thus be avoided."
-> pip install TBB --ignore-installed
 
 ***
 

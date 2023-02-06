@@ -20,8 +20,7 @@ overview:
 
 # from IPython import get_ipython
 # get_ipython().magic('reset -sf')
-from pathlib import Path
-import sys
+
 import pandas as pd #pandas = can read .csv as input
 import matplotlib.pyplot as plt #display shadows
 import numpy as np
@@ -31,7 +30,7 @@ import datetime
 from tqdm import tqdm
 import math
 import dateutil.tz
-
+from BifacialSimu_src import GUI
 # seaborn makes your plots look better
 try:
     import seaborn as sns
@@ -46,12 +45,14 @@ except ImportError:
 # Path handling
 rootPath = rootPath = os.path.realpath("../../")
 
-#adding rootPath to sysPath
-sys.path.append(rootPath)
-
-
-from BifacialSimu_src import GUI
 from BifacialSimu_src.BifacialSimu.Handler import BifacialSimu_radiationHandler 
+
+# Include paths
+
+#sys.path.append(rootPath + "/BifacialSimu/Handler")
+
+
+
 
 # electric-calculation Klasse
     
@@ -80,7 +81,7 @@ class Electrical_simulation:
         if simulationDict['simulationMode'] == 3:
             df_report = df_reportRT
         #df_report = df_report.reindex(sorted(df_report.columns), axis=1)
-        df_report.to_csv(Path(resultsPath + "radiation_qabs_results.csv"))
+        df_report.to_csv(resultsPath + "radiation_qabs_results.csv")
         
         return df_report
     
@@ -148,7 +149,10 @@ class Electrical_simulation:
         T_koeff_I = moduleDict['T_koeff_I'] 
         T_koeff_V = moduleDict['T_koeff_V'] 
         T_amb = moduleDict['T_amb']
-        
+         
+        soilrate = simulationDict["fixSoilrate"]
+        days_until_clean = simulationDict['days_until_clean']
+
         q_stc_front = 1000  # [W/m^2] 
         q_stc_rear = 1000   # [W/m^2] 
         
@@ -186,6 +190,7 @@ class Electrical_simulation:
         
         
         
+        
         if simulationDict['simulationMode'] == 3:
             df = df.reset_index()
             
@@ -206,21 +211,44 @@ class Electrical_simulation:
         df['time'] = df['corrected_timestamp'].dt.strftime('%m_%d_%H')
         df = df.set_index('time')
         
-        
+        df_time_soiling = pd.DataFrame(df['corrected_timestamp'])
+        df_time_soiling['month'] = df['corrected_timestamp'].dt.strftime('%m') # Needed to choose wright soiling rate from SimulationDict
+        df_time_soiling = df_time_soiling.reset_index(drop = True)
+
+
         # Loop to calculate the Bifacial Output power for every row in every hour
+        
         for i in tqdm(range(0, simulationDict['nRows'])):
             
             key_front = "row_" + str(i) + "_qabs_front"
             key_back = "row_" + str(i) + "_qabs_back"
         
             P_bi_hourly = []
-          
+            
+            temp = 0 #couting variable in loop to calculate soilrate for consecutive hours
+            x = 0 #counting variable in loop to get current month from df_time_soiling
             for index, row in df_report.iterrows():
+                print(index, row)
+                # count number of iterations until 'days_until_clean' is reached. Then start from 0  
+                if temp == days_until_clean*24:
+                    temp = 0
+                    temp = temp +1
+                else:
+                    temp = temp +1
                 
-                row_qabs_front = df_report.loc[index,key_front]
-                row_qabs_back = df_report.loc[index,key_back]
+                if simulationDict["monthlySoilingrate"] == True:
+                    # If soiling rate from weatherdata is selected, choose the wright value from list "variableSoilrate"
+                    soilrate = simulationDict["variableSoilrate"][int(df_time_soiling['month'][x])] 
+                x = x+1
+                
+                                     
+                # calculate front row power output including the soiling rate determined in GUI
+                row_qabs_front = df_report.loc[index,key_front] * (1-soilrate*(temp)/(100*24))
+                
+                # calculate back row power output including the decreased soiling for backside of PV module
+                row_qabs_back = df_report.loc[index,key_back] * (1-soilrate*(temp)/(100*24*8.8))
                 T_Current = df.loc[index,'temperature']
-                
+
                 
                 #print("front: " + str(row_qabs_front))
                 #print("back: " + str(row_qabs_back))
@@ -326,13 +354,29 @@ class Electrical_simulation:
             
             key_front_mono = "row_" + str(i) + "_qabs_front"
             P_m_hourly = []
+            temp = 0  #couting variable in loop to calculate soilrate for consecutive hours
+            x = 0 #counting variable in loop to get current month from df_time_soiling
             
             for index, row in df_report.iterrows():
                 
-                #SG
-                row_qabs_front = df_report.loc[index,key_front_mono]
+                # count number of iterations until 'days_until_clean' is reached. Then start from 0
+                if temp == days_until_clean*24:
+                    temp = 0
+                    temp = temp +1
+                else:
+                    temp = temp +1
+                    
+                if simulationDict["monthlySoilingrate"] == True:
+                    # If soiling rate from weatherdata is selected, choose the wright value from list "variableSoilrate"
+                    soilrate = simulationDict["variableSoilrate"][int(df_time_soiling['month'][x])] 
+                    
+                x = x+1
+                    
+                # calculate front row power output including the soiling rate determined in GUI
+                row_qabs_front = df_report.loc[index,key_front_mono] * (1-soilrate*(temp)/(100*24)) #Michailow
                 T_Current = df.loc[index,'temperature']
 
+                
                 if math.isnan(row_qabs_front):
                     row_qabs_front = 0 
                 
@@ -396,7 +440,7 @@ class Electrical_simulation:
         # Create dataframe with data
         p_bi_df = pd.DataFrame({"timestamps":df_report.index, "P_bi ": P_bi_hourly_average, "P_m ": P_m_hourly_average})
         p_bi_df.set_index("timestamps")
-        p_bi_df.to_csv(Path(resultsPath + "electrical_simulation" + datetime.datetime.now().strftime("%Y-%m-%d-%H-%M") + ".csv"))
+        p_bi_df.to_csv(resultsPath + "electrical_simulation" + datetime.datetime.now().strftime("%Y-%m-%d-%H-%M") + ".csv")
         
         #Plot for Bifacial Power Output + Bifacial Gain
         GUI.Window.makePlotBifacialRadiance(resultsPath,Bifacial_gain)
@@ -468,6 +512,9 @@ class Electrical_simulation:
         T_koeff_V = moduleDict['T_koeff_V'] 
         T_amb = moduleDict['T_amb']
         
+        soilrate = simulationDict['fixSoilrate']
+        days_until_clean = simulationDict['days_until_clean']
+        
         q_stc_front = 1000  # [W/m^2] 
         q_stc_rear = 1000   # [W/m^2] 
         
@@ -492,6 +539,7 @@ class Electrical_simulation:
         df_report['corrected_timestamp'] = pd.to_datetime(df_report['timestamp'])
         df_report['time'] = df_report['corrected_timestamp'].dt.strftime('%m_%d_%H')
         df_report = df_report.set_index('time')
+
         
         if simulationDict['simulationMode'] == 3:
             df = df.reset_index()
@@ -514,6 +562,10 @@ class Electrical_simulation:
         df = df.set_index('time')
         print(df_report)
         
+        df_time_soiling = pd.DataFrame(df['corrected_timestamp'])
+        df_time_soiling['month'] = df['corrected_timestamp'].dt.strftime('%m') # Needed to choose wright soiling rate from SimulationDict
+        df_time_soiling = df_time_soiling.reset_index(drop = True)
+        
         
         
         # Loop to calculate the Bifacial Output power for every row in every hour
@@ -523,14 +575,32 @@ class Electrical_simulation:
             key_back = "row_" + str(i) + "_qabs_back"
         
             P_bi_hourly = []
-          
+            temp = 0   #couting variable in loop to calculate soilrate for consecutive hours 
+            x = 0 #counting variable in loop to get current month from df_time_soiling
+            
             for index, row in df_report.iterrows():
                 
-                #row_qabs_front = row[key_front]
-                #row_qabs_back = row[key_back]
+                # count number of iterations until 'days_until_clean' is reached. Then start from 0
+                if temp == days_until_clean*24:
+                    temp = 0
+                    temp = temp +1
+                else:
+                    temp = temp +1
+
+                if simulationDict["monthlySoilingrate"] == True:
+                    # If soiling rate from weatherdata is selected, choose the wright value from list "variableSoilrate"
+                    soilrate = simulationDict["variableSoilrate"][int(df_time_soiling['month'][x])] 
+                    
+                x = x+1
                 
-                row_qabs_front = df_report.loc[index,key_front]
-                row_qabs_back = df_report.loc[index,key_back]
+                    
+                
+                # calculate front row power output including the soiling rate determined in GUI
+                row_qabs_front = df_report.loc[index,key_front] * (1-soilrate*(temp)/(100*24))
+                
+                # calculate back row power output including the decreased soiling for backside of PV module
+                row_qabs_back = df_report.loc[index,key_back] * (1-soilrate*(temp)/(100*24*8.8))
+                
                 row_qabs_combined = row_qabs_front + (row_qabs_back*bi_factor)
                 T_Current = df.loc[index,'temperature']
                 
@@ -619,13 +689,27 @@ class Electrical_simulation:
         for i in tqdm(range(0, simulationDict['nRows'])):
             
             key_front_mono = "row_" + str(i) + "_qabs_front"
+            temp = 0  #couting variable in loop to calculate soilrate for consecutive hours 
+            x = 0 #counting variable in loop to get current month from df_time_soiling
             
             for index, row in df_report.iterrows():
                 
-                #SG
-                #row_qabs_front = row[key_front_mono]
-                #T_Current = df.loc[index,'temperature']
-                row_qabs_front = df_report.loc[index,key_front_mono]
+                # count number of iterations until 'days_until_clean' is reached. Then start from 0                
+                if temp == days_until_clean*24:
+                    temp = 0
+                    temp = temp +1
+                else:
+                    temp = temp +1
+
+                if simulationDict["monthlySoilingrate"] == True:
+                    # If soiling rate from weatherdata is selected, choose the wright value from list "variableSoilrate"
+                    soilrate = simulationDict["variableSoilrate"][int(df_time_soiling['month'][x])] 
+                    
+                x = x+1
+                    
+                   
+                # calculate front row power output including the soiling rate determined in GUI                 
+                row_qabs_front = df_report.loc[index,key_front_mono] * (1-soilrate*(temp)/(100*24))
                 T_Current = df.loc[index,'temperature']
 
                 # calculation of frontside power output
@@ -741,6 +825,9 @@ class Electrical_simulation:
         k = 1.3806503 * 10**(-23)       #Boltzmann constant [J/K]
         q_ec = 1.60217646 * 10**(-19)   #electron charge [C]
         
+        soilrate = simulationDict['fixSoilrate'] #Michailow
+        days_until_clean = simulationDict['days_until_clean']
+        
         q_stc_front = 1000  # [W/m^2] 
         q_stc_rear = 1000   # [W/m^2] 
         
@@ -788,6 +875,7 @@ class Electrical_simulation:
             #df['timestamp'] = df['timestamp'].dt.tz_localize(None)
             df = df.set_index('timestamp')
             
+            
             dtStart = datetime.datetime(simulationDict['startHour'][0], simulationDict['startHour'][1], simulationDict['startHour'][2], simulationDict['startHour'][3], tzinfo=dateutil.tz.tzoffset(None, simulationDict['utcOffset']*60*60))
         
         
@@ -797,6 +885,10 @@ class Electrical_simulation:
         
         df['time'] = df['corrected_timestamp'].dt.strftime('%m_%d_%H')
         df = df.set_index('time')
+        
+        df_time_soiling = pd.DataFrame(df['corrected_timestamp'])
+        df_time_soiling['month'] = df['corrected_timestamp'].dt.strftime('%m') # Needed to choose wright soiling rate from SimulationDict
+        df_time_soiling = df_time_soiling.reset_index(drop = True)
         
         #Diode ideality factors. a1 has to be 1 while a2 is flexible but it has to be above 1.2
         a1 = 1      
@@ -1016,11 +1108,30 @@ class Electrical_simulation:
             
             P_m_hourly = []
             P_bi_hourly = []
-          
+            temp = 0  #couting variable in loop to calculate soilrate for consecutive hours
+            x = 0 #counting variable in loop to get current month from df_time_soiling
+            
             for index, row in df_report.iterrows():
                 
-                row_qabs_front = df_report.loc[index,key_front]
-                row_qabs_back = df_report.loc[index,key_back]
+                # count number of iterations until 'days_until_clean' is reached. Then start from 0
+                if temp == days_until_clean*24:
+                    temp = 0
+                    temp = temp +1
+                else:
+                    temp = temp +1
+
+                if simulationDict["monthlySoilingrate"] == True:
+                    # If soiling rate from weatherdata is selected, choose the wright value from list "variableSoilrate"
+                    soilrate = simulationDict["variableSoilrate"][int(df_time_soiling['month'][x])] 
+                    
+                x = x+1
+                
+                  
+                # calculate front row power output including the soiling rate determined in GUI
+                row_qabs_front = df_report.loc[index,key_front] * (1-soilrate*(temp)/(100*24))
+                
+                # calculate back row power output including the decreased soiling for backside of PV module   
+                row_qabs_back = df_report.loc[index,key_back] * (1-soilrate*(temp)/(100*24*8.8))
                 T_Current = df.loc[index,'temperature']
                 
                 
@@ -1383,6 +1494,9 @@ class Electrical_simulation:
         k = 1.3806503 * 10**(-23)       #Boltzmann constant [J/K]
         q_ec = 1.60217646 * 10**(-19)   #electron charge [C]
         
+        soilrate = simulationDict['fixSoilrate'] #Michailow
+        days_until_clean = simulationDict['days_until_clean']
+        
         q_stc_front = 1000  # [W/m^2] 
         q_stc_rear = 1000   # [W/m^2] 
         
@@ -1420,6 +1534,7 @@ class Electrical_simulation:
         
         
         
+        
         if simulationDict['simulationMode'] == 3:
             df = df.reset_index()
             
@@ -1439,6 +1554,10 @@ class Electrical_simulation:
         
         df['time'] = df['corrected_timestamp'].dt.strftime('%m_%d_%H')
         df = df.set_index('time')
+        
+        df_time_soiling = pd.DataFrame(df['corrected_timestamp'])
+        df_time_soiling['month'] = df['corrected_timestamp'].dt.strftime('%m') # Needed to choose wright soiling rate from SimulationDict
+        df_time_soiling = df_time_soiling.reset_index(drop = True)
         
         #Diode ideality factors. a1 has to be 1 while a2 is flexible but it has to be above 1.2
         a1 = 1      
@@ -1565,11 +1684,30 @@ class Electrical_simulation:
             
             P_m_hourly = []
             P_bi_hourly = []
-          
+            temp = 0  #couting variable in loop to calculate soilrate for consecutive hours
+            x = 0 #counting variable in loop to get current month from df_time_soiling
+            
             for index, row in df_report.iterrows():
                 
-                row_qabs_front = df_report.loc[index,key_front]
-                row_qabs_back = df_report.loc[index,key_back]
+                # count number of iterations until 'days_until_clean' is reached. Then start from 0
+                if temp == days_until_clean*24:
+                    temp = 0
+                    temp = temp +1
+                else:
+                    temp = temp +1
+                    
+                if simulationDict["monthlySoilingrate"] == True:
+                    # If soiling rate from weatherdata is selected, choose the wright value from list "variableSoilrate"
+                    soilrate = simulationDict["variableSoilrate"][int(df_time_soiling['month'][x])] 
+                    
+                x = x+1
+                 
+                    
+                # calculate front row power output including the soiling rate determined in GUI
+                row_qabs_front = df_report.loc[index,key_front] * (1-soilrate*(temp)/(100*24))
+                
+                # calculate back row power output including the decreased soiling for backside of PV module
+                row_qabs_back = df_report.loc[index,key_back] * (1-soilrate*(temp)/(100*24*8.8))
                 T_Current = df.loc[index,'temperature']
                 
                 
@@ -1933,6 +2071,10 @@ class Electrical_simulation:
             T_koeff_V = moduleDict['T_koeff_V'] 
             T_amb = moduleDict['T_amb']
             
+            
+            soilrate = simulationDict['fixSoilrate'] #Michailow
+            days_until_clean = simulationDict['days_until_clean']
+
             q_stc_front = 1000  # [W/m^2] 
             q_stc_rear = 1000   # [W/m^2] 
             
@@ -1977,25 +2119,43 @@ class Electrical_simulation:
             
             df['time'] = df['corrected_timestamp'].dt.strftime('%m_%d_%H')
             df = df.set_index('time')
-            print(df_report)
             
+            df_time_soiling = pd.DataFrame(df['corrected_timestamp'])
+            df_time_soiling['month'] = df['corrected_timestamp'].dt.strftime('%m') # Needed to choose wright soiling rate from SimulationDict
+            df_time_soiling = df_time_soiling.reset_index(drop = True)
             
-            
-            # Loop to calculate the Monofacial Output power for every row in every hour
+            # Loop to calculate the Bifacial Output power for every row in every hour
             for i in tqdm(range(0, simulationDict['nRows'])):
                 
                 key_front = "row_" + str(i) + "_qabs_front"
                 key_back = "row_" + str(i) + "_qabs_back"
             
                 P_bi_hourly = []
-              
+                temp = 0  #couting variable in loop to calculate soilrate for consecutive hours
+                x = 0 #counting variable in loop to get current month from df_time_soiling
+                
                 for index, row in df_report.iterrows():
                     
-                    #row_qabs_front = row[key_front]
-                    #row_qabs_back = row[key_back]
+                    # count number of iterations until 'days_until_clean' is reached. Then start from 0 
+                    if temp == days_until_clean*24:
+                        temp = 0
+                        temp = temp +1
+                    else:
+                        temp = temp +1
+
+                    if simulationDict["monthlySoilingrate"] == True:
+                        # If soiling rate from weatherdata is selected, choose the wright value from list "variableSoilrate"
+                        soilrate = simulationDict["variableSoilrate"][int(df_time_soiling['month'][x])] 
+                        
+                    x = x+1
                     
-                    row_qabs_front = df_report.loc[index,key_front]
-                    row_qabs_back = df_report.loc[index,key_back]
+
+                    # calculate front row power output including the soiling rate determined in GUI                   
+                    row_qabs_front = df_report.loc[index,key_front] * (1-soilrate*(temp)/(100*24))
+                    
+                    # calculate back row power output including the decreased soiling for backside of PV module 
+                    row_qabs_back = df_report.loc[index,key_back] * (1-soilrate*(temp)/(100*24*8.8))
+
                     T_Current = df.loc[index,'temperature']
                     
                     
@@ -2095,13 +2255,27 @@ class Electrical_simulation:
             for i in tqdm(range(0, simulationDict['nRows'])):
                 
                 key_front_mono = "row_" + str(i) + "_qabs_front"
+                temp = 0  #couting variable in loop to calculate soilrate for consecutive hours 
+                x = 0 #counting variable in loop to get current month from df_time_soiling
                 
                 for index, row in df_report.iterrows():
                     
-                    #SG
-                    #row_qabs_front = row[key_front_mono]
-                    #T_Current = df.loc[index,'temperature']
-                    row_qabs_front = df_report.loc[index,key_front_mono]
+                    # count number of iterations until 'days_until_clean' is reached. Then start from 0
+                    if temp == days_until_clean*24:
+                        temp = 0
+                        temp = temp +1
+                    else:
+                        temp = temp +1   
+                        
+                    if simulationDict["monthlySoilingrate"] == True:
+                        # If soiling rate from weatherdata is selected, choose the wright value from list "variableSoilrate"
+                        soilrate = simulationDict["variableSoilrate"][int(df_time_soiling['month'][x])] 
+                        
+                    x = x+1
+                    
+                   
+                    # calculate front row power output including the soiling rate determined in GUI                    
+                    row_qabs_front = df_report.loc[index,key_front_mono] * 1-soilrate*(temp)/(100*24)
                     T_Current = df.loc[index,'temperature']
 
                     if math.isnan(row_qabs_front):
