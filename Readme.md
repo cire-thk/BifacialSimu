@@ -99,6 +99,7 @@ for Mac OS X: The installation of XQuartz is required for Radiance to run, this 
 <p align="center"><img src="BifacialSimu_src/Lib/readme_pics/XQuartz_Readme.png" width="500"><br/></p>
 
 An in-depth guide and the installation of Radiance can be found on the [Radiance Github Page](https://github.com/NREL/Radiance/releases). 
+Make sure to add the radiance_bin to the system variable path, not the user variable path!
 Make sure to download the correct package according to your operating system.
 
 <p align="center"><img src="BifacialSimu_src/Lib/readme_pics/Radiance_Readme.png" width="500"><br/></p>
