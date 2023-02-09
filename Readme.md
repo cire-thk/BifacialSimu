@@ -399,6 +399,8 @@ __Cannot uninstall 'TBB'__ - If this error appears, you have to change the IPyth
 "TBB is a system package and anaconda does not allow users to uninstall it. The reinstallation of the package should thus be avoided."
 > pip install TBB --ignore-installed
 
+__rtrace cannot be found__ - if you are doing a Raytracing simulation and this error occurs, it means incorrectly installed bifacial_radiance. To handle this error make sure the radiance_bin is added to the system variables. You can test weather your installation is correct by opening the cmd console and type in ratrace as a command. When your installation is correct the outcome is as follows: "rtrace: fatal - missing octree argument".
+
 ***
 
 ## Program Function
