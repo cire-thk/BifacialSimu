@@ -1096,6 +1096,43 @@ class Window(tk.Tk):
             offset_result= round(Longitude*24/360)
             Entry_utcoffset.delete(0,END)
             Entry_utcoffset.insert(0, int(offset_result))
+            
+        # Function to set 'longitude' and 'latitude' in SimulationDict. Needed for getSoilingWeatherdata()     
+        def Set_lat_lng():
+            
+            # Get 'longitude' and 'latitude' from entryboxes, when trying to download weatherfile
+            if len(Entry_longitude.get()) != 0 and len(Entry_longitude.get()) != 0 and rb_weatherfile.get() == 1:
+                try:
+                    SimulationDict["longitude"] = float(Entry_longitude.get())
+                    SimulationDict["latitude"] = float(Entry_latitude.get())
+                except:
+                    messagebox.showwarning(
+                        "Main Control", "PLease enter coordinates according to following exampe (lat, lon): 50.9, 7.0 ")
+                    pass
+            
+            # When local file is used, try to get 'longitude' and 'latitude' from TMY files with help of pvlib.iotools
+            elif len(Entry_weatherfile.get()) != 0 and rb_weatherfile.get() == 0:
+                try:
+                    tmydata, tmymetadata = pvlib.iotools.read_tmy3(Entry_weatherfile.get())
+                    SimulationDict["longitude"] = tmymetadata['longitude']
+                    SimulationDict["latitude"] = tmymetadata['latitude']
+                except:
+                    messagebox.showwarning(
+                         "Main Control", "PLease enter a weather file in TMY format")
+            
+                    
+            # If both options did not work, show warning messagebox
+            else:
+                messagebox.showwarning(
+                    "Main Control", "Please insert a TMY weather file or enter coordinates of the simulation location")
+        
+            Soiling() #Update Soilingrates for new Weatherdata or Location
+            
+            # Show message to user, when PV-Module tilt is over 85°
+            if (float(Entry_Tilt.get()) > 85.0):
+                messagebox.showwarning(
+                    "Main Control", "Note that the soiling rate is significantly reduced if modules are nearly vertical!")
+                     
                      
         #Changing the weatherfile
         Lab_weatherfile=ttk.Label(namecontrol_frame, text="Add Path of weatherfile:")
@@ -1126,6 +1163,12 @@ class Window(tk.Tk):
         #Setting UTC offset of Longitude and Latitude coordinates
         Calculate_UTC= ttk.Button(namecontrol_frame,text= "Set UTC offset", command=lambda: Set_UTC_offset())
         Calculate_UTC.grid(column=2, row=6,sticky=W)
+        
+        # Confirm Main Control inputs to update soiling rate with Set_lat_lng()
+        Confirm_main_control = ttk.Button(
+            namecontrol_frame, text="Confirm Main Control inputs", command=lambda: Set_lat_lng())
+        Confirm_main_control.grid(column=1, row=8, sticky=W)
+  
   
 # =============================================================================
 #     Parameter of the Simulation Parameter Frame
@@ -1316,7 +1359,7 @@ class Window(tk.Tk):
             Label_weatherstation.config(state="normal")
             Entry_distance.config(state="normal")
             Entry_weatherstation.config(state="normal")
-            #getSoilingWeatherdata() # Insures that soiling rate is updated with getSoilingWeatherdata() when Weatherdata has changed
+            getSoilingWeatherdata() # Insures that soiling rate is updated with getSoilingWeatherdata() when Weatherdata has changed
             if (rb_Soiling.get() == 0):
                 SimulationDict["monthlySoilingrate"] = False
                 Entry_Soilrate.config(state="normal")
@@ -1369,6 +1412,63 @@ class Window(tk.Tk):
 
                 # set module entries loaded from json
                 Entry_Soilrate.insert(0, str(b['soilrate']))
+                
+        # Calculate nearest location from data set with locations to given coordinates 'v'
+        def closest (data, v):
+            return min(data, key=lambda p: GD(v, p).km)
+        
+        # Find nearest location from data set 'soilingrate_coordinates_data_2022.csv' and set soiling rate accordingly
+        def getSoilingWeatherdata():
+            
+            # Load csv file with soiling rates from over 500 locations  and convert to pandas dataframe
+            soilingrate_Weatherdata = pd.read_csv(rootPath + '\Lib\input_soiling\soilingrate_coordinates_monthly_2022.csv')
+            soilingrate_Weatherdata = pd.DataFrame(soilingrate_Weatherdata)
+            
+            cities = [] # Array to collect pairs of latitude and longitude for each location
+            soilingrate_Weatherdata = soilingrate_Weatherdata.reset_index() # Create index with range of numbers starting with '0'
+            
+            # Collcect all pairs of coordinates from soiling_Weatherdata in cities[]
+            # for count in soilingrate_Weatherdata.index:
+
+            count = 0    
+            while count < len(soilingrate_Weatherdata['City, Country']):
+                coord = (soilingrate_Weatherdata["lat"][count], soilingrate_Weatherdata["lng"][count])
+                cities.append(coord)
+                count = count + 12
+    
+
+            
+            # Find nearest location to given latitude and longitude from SimulationDict
+            nearest_location = closest(cities, (SimulationDict["latitude"],SimulationDict["longitude"]))
+            indexout = cities.index(nearest_location)
+
+            
+            
+            # clear weatherstation and distance entries         
+            Entry_weatherstation.delete(0, END)
+            Entry_distance.delete(0, END)
+            
+            
+            # set weatherstation entry with nearest location from soilingrate_Weatherdata
+            Entry_weatherstation.insert(0, soilingrate_Weatherdata['City, Country'].values[indexout*12])
+                
+            # set distance entry with distance from simulation location to nearest weatherstation from given data with geodesic      
+            Entry_distance.insert(0, round(GD((SimulationDict["latitude"],SimulationDict["longitude"]),cities[indexout]).km, 2))
+            
+            
+            # When radiobutton 'soilingrate from weatherdata' active, set new soilingrate
+            if (rb_Soiling.get() == 1):
+                Entry_Soilrate.delete(0, END)
+                if len(Entry_month_start.get()) != 0:
+                    Entry_Soilrate.insert(0, soilingrate_Weatherdata['Soiling_Rate'].values[indexout*12+ int(Entry_month_start.get())-1])
+                else:
+                    Entry_Soilrate.insert(0, soilingrate_Weatherdata['Soiling_Rate'].values[indexout*12])
+                #soilingrate_Weatherdata = soilingrate_Weatherdata.set_index('City, Country')
+                SimulationDict["variableSoiling"] = soilingrate_Weatherdata['Soiling_Rate'].iloc[indexout*12:(indexout*12+12)].values.tolist()
+                print("Monthly Soiling Rates:", SimulationDict["variableSoiling"])
+                    
+            
+
         
         # Radiobuttons Soiling
         rb_Soiling = IntVar()
@@ -1962,7 +2062,7 @@ class Window(tk.Tk):
             #pack the image in the frame
             Label2_logo=ttk.Label(namecontrol_frame, image=self.logo2)
             Label2_logo.image=logo2
-            Label2_logo.grid(row=8,column=0, columnspan=3)
+            Label2_logo.grid(row=9,column=0, columnspan=3)
         
         logo2()
         
