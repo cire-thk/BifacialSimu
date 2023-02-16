@@ -1308,6 +1308,35 @@ class Window(tk.Tk):
         rad3_Albedo.grid(column=0,row=18, sticky=W)
         rad4_Albedo.grid(column=1,row=18, columnspan=2, sticky=W)
         
+        # Choosing between manual input / input via Combobox or calculated soiling rate from Weatherdata
+        def Soiling():
+            Entry_Soilrate.config(state="normal")
+            Combo_Soilrate.config(state="normal")
+            Label_distance.config(state="normal")
+            Label_weatherstation.config(state="normal")
+            Entry_distance.config(state="normal")
+            Entry_weatherstation.config(state="normal")
+            #getSoilingWeatherdata() # Insures that soiling rate is updated with getSoilingWeatherdata() when Weatherdata has changed
+            if (rb_Soiling.get() == 0):
+                SimulationDict["monthlySoilingrate"] = False
+                Entry_Soilrate.config(state="normal")
+                Combo_Soilrate.config(state="normal")
+                Label_distance.config(state="disabled")
+                Label_weatherstation.config(state="disabled")
+                Entry_distance.config(state="disabled")
+                Entry_weatherstation.config(state="disabled")
+            elif (rb_Soiling.get() == 1):
+                SimulationDict["monthlySoilingrate"] = True
+                Entry_Soilrate.config(state="disabled")
+                Combo_Soilrate.config(state="disabled")
+                Label_distance.config(state="normal")
+                Label_weatherstation.config(state="normal")
+                Entry_distance.config(state="normal")
+                Entry_weatherstation.config(state="normal")
+                messagebox.showinfo(
+                    "Main Control", "Confirm Main and Simulation Control inputs when done!") # Input has to be confirmed with Button to update soiling rate
+                
+        
         # Get Soiling Rate Value from Json file
         def getSoilingJSONlist():
 
