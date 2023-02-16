@@ -1977,6 +1977,7 @@ class Window(tk.Tk):
         Measuredalbedo()
         Electricalmode()
         Backtracking()
+        Soiling()  
         
 # =============================================================================
 #         Control Buttons for the Simulation    
