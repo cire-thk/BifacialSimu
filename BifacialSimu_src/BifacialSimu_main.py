@@ -68,6 +68,11 @@ SimulationDict = {
 'modulex' : 0.992, #length of modules in x-axis                       
 'albedo' : 0.259, # Measured Albedo average value
 'hourlyMeasuredAlbedo' : False,
+'fixSoilrate': 0.1, # Soiling rate default value
+'variableSoilrate' : [0.1, 0.1, 0.1, 0.1, 0.1, 0.1, 0.1, 0.1, 0.1, 0.1, 0.1, 0.1],
+'days_until_clean' : 15, #Default value for cleaning period of PV moduls
+'monthlySoilingrate' : False,
+
 'frontReflect' : 0.03, #front surface reflectivity of PV rows
 'BackReflect' : 0.05, #back surface reflectivity of PV rows
 'longitude' : -105.172, 
