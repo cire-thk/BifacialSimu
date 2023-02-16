@@ -61,6 +61,10 @@ import pandas as pd
 import threading #for using multiple threads to make the GUI responsive during simulations
 from BifacialSimu_src import globals
 
+from geopy.distance import geodesic as GD # needed to find closest weatherstation to simulation location, pip install geopy
+import pvlib #needed to read TMY file to get coordinates
+
+
 globals.initialize()
 
 
@@ -130,6 +134,10 @@ SimulationDict = {
 'hourlySpectralAlbedo' : True, # Option to calculate a spectral Albedo 
 'variableAlbedo': False, # Option to calculate sun position dependend, variable albedo
 'albedo' : 0.26, # Measured Albedo average value, if hourly isn't available
+'fixSoilrate': 0.1, # Soiling rate default value
+'variableSoilrate' : [0.1, 0.1, 0.1, 0.1, 0.1, 0.1, 0.1, 0.1, 0.1, 0.1, 0.1, 0.1],
+'days_until_clean' : 15, #Default value for cleaning period of PV moduls
+'monthlySoilingrate' : False,
 'frontReflect' : 0.03, #front surface reflectivity of PV rows
 'BackReflect' : 0.05, #back surface reflectivity of PV rows
 'longitude' : -105.172, 
@@ -507,6 +515,13 @@ class Window(tk.Tk):
                 SimulationDict["hub_height"]=float(Entry_HubHeight.get()) 
                 # Calculate the clearance height of the PV rows, measured at the bottom edge
                 SimulationDict['clearance_height']  = (SimulationDict['hub_height'] - (math.sin(SimulationDict['tilt'])*SimulationDict['moduley']/2))
+                
+            if len(Entry_Soilrate.get()) != 0:
+                SimulationDict["fixSoilrate"] = float(Entry_Soilrate.get())
+                
+            if len(Entry_clean.get()) != 0:
+                SimulationDict["days_until_clean"] = float(Entry_clean.get())
+
 
 
 # =============================================================================
@@ -563,6 +578,7 @@ class Window(tk.Tk):
                 
             if len(Entry_Ns.get()) !=0:
                 ModuleDict["Ns"]=float(Entry_Ns.get())           
+                
                 
             
 # =============================================================================
@@ -882,10 +898,12 @@ class Window(tk.Tk):
             clearall()
             Combo_Module.current(0)
             Combo_Albedo.current(0)
+            Combo_Soilrate.current(0)
             rad1_weatherfile.invoke()
             rad1_simulationMode.invoke()
             rad1_rb_SingleAxisTracking.invoke()
             rad1_Albedo.invoke()
+            rad1_Soiling.invoke()
             rad1_ElectricalMode.invoke()
             rad1_BacktrackingMode.invoke()
             Entry_Name.insert(0, simulationName_configfile)
@@ -945,6 +963,14 @@ class Window(tk.Tk):
             Entry_albedo.delete(0,END)
             Entry_albedo.insert(0,str(a['Albedo']))
        
+            key2 = entry_soilrate_value.get()             
+            b = self.jsondata_soiling[key2]             
+            self.soilrate = key2             
+            Entry_Soilrate.delete(0, END)
+            Entry_Soilrate.insert(0, str(b['soilrate']))
+    
+            Entry_clean.insert(0, 15) # set default cleaning period [d]
+
         
 # Entry for delete button
             
@@ -992,6 +1018,9 @@ class Window(tk.Tk):
             Entry_zeta.delete(0,END)
             Entry_albedo.delete(0,END)
             Entry_utcoffset.delete(0,END)
+            Entry_Soilrate.delete(0, END) 
+            Entry_clean.delete (0, END)
+
 
             
            # Combo_Module.delete(0,END)
@@ -1278,6 +1307,84 @@ class Window(tk.Tk):
         rad2_Albedo.grid(column=1,row=17, columnspan=2, sticky=W)
         rad3_Albedo.grid(column=0,row=18, sticky=W)
         rad4_Albedo.grid(column=1,row=18, columnspan=2, sticky=W)
+        
+        # Get Soiling Rate Value from Json file
+        def getSoilingJSONlist():
+
+            # Load Json file from folder
+            with open(rootPath + '\Lib\input_soiling\Soiling.json') as file:
+                jsondata_soiling = json.load(file)
+
+            systemtuple = ('',) # Needed to enable selection of module
+            for key in jsondata_soiling.keys():  # um auf die Modul Keys zurückgreifen zu können
+                # build the tuple of strings
+                systemtuple = systemtuple + (str(key),)
+            Combo_Soilrate['values'] = systemtuple[1:]
+            
+            # Set Combobox on first module
+            Combo_Soilrate.current(0)
+            self.jsondata_soiling = jsondata_soiling
+            
+        
+        def comboclick_soilrate(event):
+
+            key2 = entry_soilrate_value.get()  # what is the value selected?
+
+            if key2 != '':  # '' not a dict key
+
+                b = self.jsondata_soiling[key2]
+                self.soilrate = key2
+
+                # clear module entries loaded from json
+                Entry_Soilrate.delete(0, END)
+
+                # set module entries loaded from json
+                Entry_Soilrate.insert(0, str(b['soilrate']))
+        
+        # Radiobuttons Soiling
+        rb_Soiling = IntVar()
+        rb_Soiling.set("0")
+        rad1_Soiling = Radiobutton(simulationParameter_frame, variable=rb_Soiling, width=26,
+                                   text="Average daily Soiling Rate [%/d]", value=0)#, command=lambda: Soiling())
+        rad2_Soiling = Radiobutton(simulationParameter_frame, variable=rb_Soiling,
+                                   width=25, text="Soiling Rate from Weather Data", value=1)#, command=lambda: Soiling())
+        rad1_Soiling.grid(column=0, row=20, sticky=W)
+        rad2_Soiling.grid(column=0, row=21, sticky=W)
+
+        
+        # Radiobuttons Soiling
+        Entry_Soilrate = ttk.Entry(
+            simulationParameter_frame, background="white", width=10)
+        Entry_Soilrate.grid(column=1, row=20, sticky=W)
+        Entry_weatherstation = ttk.Entry(
+            simulationParameter_frame, background="white", width=35)
+        Entry_weatherstation.grid(column=2, row=22, sticky=W)
+        Entry_distance = ttk.Entry(
+            simulationParameter_frame, background="white", width=35)
+        Entry_distance.grid(column=2, row=23, sticky="W")
+        Entry_clean = ttk.Entry(
+            simulationParameter_frame, background="white", width=35)
+        Entry_clean.grid(column=2, row=24, sticky="W")
+
+        # Combobox Soiling
+        entry_soilrate_value = tk.StringVar()
+        Combo_Soilrate = ttk.Combobox(
+            simulationParameter_frame, textvariable=entry_soilrate_value)
+        Combo_Soilrate.grid(column=2, row=20, ipadx=50)
+        getSoilingJSONlist()  # set the module name values
+        Combo_Soilrate.bind("<<ComboboxSelected>>", comboclick_soilrate)
+
+
+        # Labels Soiling
+        Label_weatherstation = ttk.Label(
+            simulationParameter_frame, text="Weatherstation:")
+        Label_weatherstation.grid(column=0, row=22, sticky=W)
+        Label_distance = ttk.Label(
+            simulationParameter_frame, text="Distance from Station [km]:")
+        Label_distance.grid(column=0, row=23, sticky="W")
+        Label_clean = ttk.Label(
+            simulationParameter_frame, text="Raining / Cleaning period of PV surface [d]:")
+        Label_clean.grid(column=0, row=24, sticky="W")
   
     
  
