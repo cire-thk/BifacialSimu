@@ -379,7 +379,7 @@ class Electrical_simulation:
                 #row_qabs_front = df_report.loc[index,key_front_mono] # old, without soiling 
                 
                 # calculate front row power output including the soiling rate determined in GUI                               
-                row_qabs_front = df_report.loc[index,key_front] * (1-soilrate*(temp)/(24))   
+                row_qabs_front = df_report.loc[index,key_front_mono] * (1-soilrate*(temp)/(100*24))   
 
                 T_Current = df.loc[index,'temperature']
 
