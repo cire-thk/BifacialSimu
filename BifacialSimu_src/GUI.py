@@ -1374,9 +1374,9 @@ class Window(tk.Tk):
         rb_Soiling = IntVar()
         rb_Soiling.set("0")
         rad1_Soiling = Radiobutton(simulationParameter_frame, variable=rb_Soiling, width=26,
-                                   text="Average daily Soiling Rate [%/d]", value=0)#, command=lambda: Soiling())
+                                   text="Average daily Soiling Rate [%/d]", value=0, command=lambda: Soiling())
         rad2_Soiling = Radiobutton(simulationParameter_frame, variable=rb_Soiling,
-                                   width=25, text="Soiling Rate from Weather Data", value=1)#, command=lambda: Soiling())
+                                   width=25, text="Soiling Rate from Weather Data", value=1, command=lambda: Soiling())
         rad1_Soiling.grid(column=0, row=20, sticky=W)
         rad2_Soiling.grid(column=0, row=21, sticky=W)
 
