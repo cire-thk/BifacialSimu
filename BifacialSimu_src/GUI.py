@@ -560,7 +560,7 @@ class Window(tk.Tk):
 # =============================================================================
             
             
-            resultsPath = Controller.DataHandler().setDirectories()
+            resultsPath = Controller.DataHandler().setDirectories() #WHY IMPORT FROM CONTROLLER AND NOT HANDLER??
             print('created resultsPath at: ' + resultsPath)     
             
             
@@ -1534,28 +1534,28 @@ class Window(tk.Tk):
         
         Label_TkoeffP=ttk.Label(ModuleParameter_frame, text="T_koeff_P:")
         Label_TkoeffP.grid(column=0, row=16, sticky=W)
-        Label_TkoeffPPar=ttk.Label(ModuleParameter_frame, text="[1 / °C]")
+        Label_TkoeffPPar=ttk.Label(ModuleParameter_frame, text="[1 / \u00b0C]")
         Label_TkoeffPPar.grid(column=2, row=16, sticky=W)
         Entry_TkoeffP=ttk.Entry(ModuleParameter_frame, background="white", width=8)
         Entry_TkoeffP.grid(column=1, row=16, sticky=W) 
         
         Label_Tamb=ttk.Label(ModuleParameter_frame, text="T_amb:")
         Label_Tamb.grid(column=0, row=17, sticky=W)
-        Label_TambPar=ttk.Label(ModuleParameter_frame, text="[°C]")
+        Label_TambPar=ttk.Label(ModuleParameter_frame, text="[\u00b0C]")
         Label_TambPar.grid(column=2, row=17, sticky=W)
         Entry_Tamb=ttk.Entry(ModuleParameter_frame, background="white", width=8)
         Entry_Tamb.grid(column=1, row=17, sticky=W) 
         
         Label_TkoeffI=ttk.Label(ModuleParameter_frame, text="T_koeff_I:")
         Label_TkoeffI.grid(column=0, row=18, sticky=W)
-        Label_TkoeffIPar=ttk.Label(ModuleParameter_frame, text="[1 / °C]")
+        Label_TkoeffIPar=ttk.Label(ModuleParameter_frame, text="[1 / \u00b0C]")
         Label_TkoeffIPar.grid(column=2, row=18, sticky=W)
         Entry_TkoeffI=ttk.Entry(ModuleParameter_frame, background="white", width=8)
         Entry_TkoeffI.grid(column=1, row=18, sticky=W) 
         
         Label_TkoeffV=ttk.Label(ModuleParameter_frame, text="T_koeff_V:")
         Label_TkoeffV.grid(column=0, row=19, sticky=W)
-        Label_TkoeffVPar=ttk.Label(ModuleParameter_frame, text="[1 / °C]")
+        Label_TkoeffVPar=ttk.Label(ModuleParameter_frame, text="[1 / \u00b0C]")
         Label_TkoeffVPar.grid(column=2, row=19, sticky=W)
         Entry_TkoeffV=ttk.Entry(ModuleParameter_frame, background="white", width=8)
         Entry_TkoeffV.grid(column=1, row=19, sticky=W) 
@@ -1574,6 +1574,7 @@ class Window(tk.Tk):
         Entry_Ns=ttk.Entry(ModuleParameter_frame, background="white", width=8)
         Entry_Ns.grid(column=1, row=20, sticky=W) 
         
+
         
 # =============================================================================
 #          Config file (default.ini) 
@@ -1862,7 +1863,7 @@ class Window(tk.Tk):
         Button_clear.grid(column=1,row=1)
         Button_stopSimulation=ttk.Button(simulationFunction_frame, text="Stop Simulation!", command=Break_Simulation)
         Button_stopSimulation.grid(column=3,row=1)
-
+        
         
 
     def _on_frame_configure(self, event=None):
