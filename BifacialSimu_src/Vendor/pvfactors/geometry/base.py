@@ -6,8 +6,7 @@ from BifacialSimu_src.Vendor.pvfactors.config import (
     DEFAULT_NORMAL_VEC, COLOR_DIC, DISTANCE_TOLERANCE, PLOT_FONTSIZE,
     ALPHA_TEXT, MAX_X_GROUND)
 from BifacialSimu_src.Vendor.pvfactors.geometry.plot import plot_coords, plot_bounds, plot_line
-from BifacialSimu_src.Vendor.pvfactors.geometry.utils import \
-    is_collinear, check_collinear, are_2d_vecs_collinear, difference, contains
+from BifacialSimu_src.Vendor.pvfactors.geometry.utils import is_collinear, check_collinear, are_2d_vecs_collinear, difference, contains
 from shapely.geometry import GeometryCollection, LineString
 from shapely.geometry.collection import geos_geometrycollection_from_py
 from shapely.ops import linemerge

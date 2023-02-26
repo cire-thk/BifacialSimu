@@ -3,8 +3,7 @@ geometries."""
 
 import numpy as np
 from BifacialSimu_src.Vendor.pvfactors.config import X_ORIGIN_PVROWS, DISTANCE_TOLERANCE
-from BifacialSimu_src.Vendor.pvfactors.geometry.base import \
-    _get_solar_2d_vectors, BasePVArray, _get_rotation_from_tilt_azimuth
+from BifacialSimu_src.Vendor.pvfactors.geometry.base import _get_solar_2d_vectors, BasePVArray, _get_rotation_from_tilt_azimuth
 from BifacialSimu_src.Vendor.pvfactors.geometry.pvrow import TsPVRow
 from BifacialSimu_src.Vendor.pvfactors.geometry.pvground import TsGround
 

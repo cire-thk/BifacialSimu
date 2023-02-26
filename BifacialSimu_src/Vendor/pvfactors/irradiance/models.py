@@ -4,13 +4,9 @@ from pvlib.tools import cosd
 from pvlib.irradiance import aoi as aoi_function
 from pvlib.irradiance import get_total_irradiance
 import numpy as np
-from BifacialSimu_src.Vendor.pvfactors.irradiance.utils import \
-    perez_diffuse_luminance, calculate_horizon_band_shading, \
-    calculate_circumsolar_shading
+from BifacialSimu_src.Vendor.pvfactors.irradiance.utils import perez_diffuse_luminance, calculate_horizon_band_shading, calculate_circumsolar_shading
 from BifacialSimu_src.Vendor.pvfactors.irradiance.base import BaseModel
-from BifacialSimu_src.Vendor.pvfactors.config import \
-    DEFAULT_HORIZON_BAND_ANGLE, SKY_REFLECTIVITY_DUMMY, \
-    DEFAULT_CIRCUMSOLAR_ANGLE
+from BifacialSimu_src.Vendor.pvfactors.config import DEFAULT_HORIZON_BAND_ANGLE, SKY_REFLECTIVITY_DUMMY, DEFAULT_CIRCUMSOLAR_ANGLE
 
 
 class IsotropicOrdered(BaseModel):

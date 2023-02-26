@@ -3,8 +3,7 @@
 import numpy as np
 from BifacialSimu_src.Vendor.pvfactors.__init__ import PVFactorsError
 from BifacialSimu_src.Vendor.pvfactors.config import TOL_COLLINEAR, DISTANCE_TOLERANCE
-from shapely.geometry import \
-    Point, GeometryCollection, LineString, MultiLineString
+from shapely.geometry import Point, GeometryCollection, LineString, MultiLineString
 
 
 def difference(u, v):
