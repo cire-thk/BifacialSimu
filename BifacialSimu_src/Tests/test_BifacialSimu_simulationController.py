@@ -1,7 +1,7 @@
-# import sys
+import sys
 import os
 rootPath = os.path.realpath("../")
-
+sys.path.append(rootPath)
 import unittest
 import pandas as pd
 from BifacialSimu_src.BifacialSimu.Handler.BifacialSimu_calculationHandler import Electrical_simulation

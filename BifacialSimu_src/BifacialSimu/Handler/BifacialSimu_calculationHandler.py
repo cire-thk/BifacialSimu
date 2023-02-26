@@ -274,8 +274,11 @@ class Electrical_simulation:
             average = sum / float(len(P_bi_hourly_arrays))
             
             P_bi_hourly_average.append(average)
-            
+        
        
+# =============================================================================
+#        at this point we have an hourly average of P_bi for every row in every hour
+# =============================================================================
         
         # The time gets implemented in the GUI
     # p_bi_df.to_csv(resultsPath + "electrical_simulation" + datetime.datetime.now().strftime("%Y-%m-%d-%H-%M") + ".csv")
@@ -367,7 +370,24 @@ class Electrical_simulation:
             P_m_hourly_average.append(average_m)
                  #else:
                     #print("Power: 0.0")
-        
+             
+                    
+        mismatch_array=Electrical_simulation.calculate_mismatch(P_m_hourly_average, P_mpp0)
+        print('SHOWING MISMATCH RESULTS\n')
+        print(mismatch_array)
+        # Plot the data
+        x = np.arange(1, len(mismatch_array) + 1)  # Shift index by 1
+        y = mismatch_array
+        plt.plot(x, y)
+
+        # Add labels and title
+        plt.xlabel('Hours')
+        plt.ylabel('Mismatch in %')
+        plt.title('Hourly Mismatch Loses')
+
+        # Show the plot
+        plt.show()
+         
         annual_power_per_module_m = (sum_energy_m/simulationDict['nRows']) #[W] annual monofacial output power per module
         '''print("Yearly monofacial output power per module: " + str(annual_power_per_module_m) + " W/module")
         print("Yearly monofacial output energy per module: " + str(annual_power_per_module_m/1000) + " kWh/module") # Because the input data is per hour, the Energy is equivalent to the performance
@@ -390,7 +410,7 @@ class Electrical_simulation:
         # Bifacial Gain Calculation
         
         Bifacial_gain= (annual_power_per_peak_b - annual_power_per_peak_m) / annual_power_per_peak_m
-        print("Bifacial Gain: " + str(Bifacial_gain*100) + " %")
+        # print("Bifacial Gain: " + str(Bifacial_gain*100) + " %")
         
                 
         # Create dataframe with data
@@ -402,7 +422,27 @@ class Electrical_simulation:
         GUI.Window.makePlotBifacialRadiance(resultsPath,Bifacial_gain)
         
         return Bifacial_gain*100
+    
+    def calculate_mismatch(P_array, P_cell):
         
+        mismatch=[]
+        m=0       
+        
+        if P_cell==0:
+            print('ERROR: Please enter the Module MPP in GUI (P_mpp value is 0)')
+            mismatch=float('nan')
+            return mismatch
+        
+        else:
+            for i in range(len(P_array)):  
+            
+                m= (1-(P_array[i])/P_cell)*100
+                mismatch.append(m)
+                
+            return mismatch 
+
+
+    
     def simulate_simpleBifacial(moduleDict, simulationDict, df_reportVF, df_reportRT, df_report, df, resultsPath):
         """
         Applies a simplified version of the electrical simulation after PVSyst. Uses bifaciality factor to calculate rear efficiency and fill factors.
@@ -736,8 +776,7 @@ class Electrical_simulation:
         T_koeff_I = moduleDict['T_koeff_I'] 
         T_koeff_V = moduleDict['T_koeff_V'] 
         T_amb = moduleDict['T_amb']
-        Ns = moduleDict['Ns']      #Number of cells in module
-        
+                
         k = 1.3806503 * 10**(-23)       #Boltzmann constant [J/K]
         q_ec = 1.60217646 * 10**(-19)   #electron charge [C]
         
@@ -1378,7 +1417,7 @@ class Electrical_simulation:
         
         # Note for later!:
         # moduleDict['Ns'] is not defined in moduleDict! (This can gave an error) 
-        Ns = moduleDict['Ns']      #Number of cells in module
+        # Ns = moduleDict['Ns']      #Number of cells in module
         
         k = 1.3806503 * 10**(-23)       #Boltzmann constant [J/K]
         q_ec = 1.60217646 * 10**(-19)   #electron charge [C]
