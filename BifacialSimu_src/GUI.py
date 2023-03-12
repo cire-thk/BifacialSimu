@@ -63,7 +63,6 @@ from BifacialSimu_src import globals
 
 globals.initialize()
 
-
 # aliases for Tkinter functions
 END = tk.END
 W = tk.W
@@ -384,6 +383,11 @@ class Window(tk.Tk):
         my_notebook.add(namecontrol_frame, text="Main Control")
         my_notebook.add(simulationMode_frame, text="Simulation Control")
         my_notebook.add(ModuleParameter_frame, text="Module Parameter")
+        
+        # Inserting Mismatch Button
+        globals.checkbutton_state=IntVar()
+        Mismatch_checkbutton = tk.Checkbutton(simulationMode_frame, text="Plot Mismatch Power Losses", variable= globals.checkbutton_state)
+        Mismatch_checkbutton.grid(column=0, row=10, sticky="W")
 
         
         # Starting the simulation
@@ -587,7 +591,8 @@ class Window(tk.Tk):
           
             makePlotAbsIrr(resultsPath)
             makePlotirradiance(resultsPath)
-                #makePlotBifacialRadiance(resultsPath) 
+            makePlotBifacialRadiance(resultsPath) 
+            makePlotMismatch(resultsPath,globals.checkbutton_state)
 
           
 # =============================================================================
@@ -757,7 +762,48 @@ class Window(tk.Tk):
 #                 ##plt.show()
 #                 
 # =============================================================================
-# Simulation Mode 4 needs to get debugged            
+# Simulation Mode 4 needs to get debugged       
+# =============================================================================
+ 
+        def makePlotMismatch(resultsPath,checkbutton_state):
+            if checkbutton_state.get()== 1 :
+                plt.style.use("seaborn")
+                
+                data=pd.read_csv(resultsPath + "electrical_simulation" + datetime.datetime.now().strftime("%Y-%m-%d-%H-%M") + ".csv")
+                date=pd.read_csv(resultsPath + "/Data.csv")
+                
+                
+                timestamp_end= len(date.timestamp)
+                timestamp_start= date.timestamp[0]
+                idx=pd.date_range(timestamp_start, periods=timestamp_end, freq="1H")
+                
+                mismatch=data["Mismatch"]
+                
+                fig3 = plt.Figure()
+                ax3= fig3.subplots()
+                
+                ax3.plot(idx,mismatch, label="Mismatch")
+                
+                ax3.xaxis.set_minor_locator(dates.DayLocator(interval=1))   # every Day
+                ax3.xaxis.set_minor_formatter(dates.DateFormatter('%d'))  # day and hours
+                ax3.xaxis.set_major_locator(dates.MonthLocator(interval=1))    # every Month
+                ax3.xaxis.set_major_formatter(dates.DateFormatter('\n%m-%Y'))             
+                ax3.legend()
+                ax3.set_ylabel('Mismatch\n[%]', size=17)
+                ax3.set_xlabel("Time", size=17)
+                ax3.set_title('Mismatch Power Losses', size=18)
+                
+                # saving resluts to .png file
+                fig3.tight_layout()
+                fig3.savefig("Bifacial_output_Power_" + datetime.datetime.now().strftime("%Y-%m-%d-%H-%M") + ".png")
+                
+                # showing results in a window
+                canvas = FigureCanvasTkAgg(fig3, master=tk.Toplevel())
+                canvas.get_tk_widget().pack(side=tk.TOP, fill=tk.BOTH, expand=1.0)
+                canvas.draw()
+                
+            else:
+                return
             
         def makePlotirradiance(resultsPath):
             if SimulationDict["simulationMode"]==1 or SimulationDict["simulationMode"]==2:
@@ -1149,6 +1195,7 @@ class Window(tk.Tk):
         Label_enddate.grid(column=0,row=8, sticky="W")
         Label_utcoffset.grid(column=0,row=9, sticky="W")
         
+               
 
         Entry_year_start=ttk.Entry(simulationMode_frame, background="white", width=16)
         Entry_month_start=ttk.Entry(simulationMode_frame, background="white", width=4)
@@ -1878,7 +1925,8 @@ class Window(tk.Tk):
 
     def _on_frame_configure(self, event=None):
         self.canvas.configure(scrollregion=self.canvas.bbox("all"))
-
+    
+    
     def makePlotBifacialRadiance(resultsPath, Bifacial_gain):
         
         if SimulationDict["simulationMode"]==1 or SimulationDict["simulationMode"]==2: 

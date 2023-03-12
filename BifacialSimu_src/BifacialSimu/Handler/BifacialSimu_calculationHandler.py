@@ -52,6 +52,10 @@ sys.path.append(rootPath)
 
 from BifacialSimu_src import GUI
 from BifacialSimu_src.BifacialSimu.Handler import BifacialSimu_radiationHandler 
+from BifacialSimu_src import globals
+
+
+
 
 # electric-calculation Klasse
     
@@ -373,20 +377,11 @@ class Electrical_simulation:
              
                     
         mismatch_array=Electrical_simulation.calculate_mismatch(P_m_hourly_average, P_mpp0)
-        print('SHOWING MISMATCH RESULTS\n')
-        print(mismatch_array)
-        # Plot the data
-        x = np.arange(1, len(mismatch_array) + 1)  # Shift index by 1
-        y = mismatch_array
-        plt.plot(x, y)
+        
+             
 
-        # Add labels and title
-        plt.xlabel('Hours')
-        plt.ylabel('Mismatch in %')
-        plt.title('Hourly Mismatch Loses')
+       
 
-        # Show the plot
-        plt.show()
          
         annual_power_per_module_m = (sum_energy_m/simulationDict['nRows']) #[W] annual monofacial output power per module
         '''print("Yearly monofacial output power per module: " + str(annual_power_per_module_m) + " W/module")
@@ -414,12 +409,13 @@ class Electrical_simulation:
         
                 
         # Create dataframe with data
-        p_bi_df = pd.DataFrame({"timestamps":df_report.index, "P_bi ": P_bi_hourly_average, "P_m ": P_m_hourly_average})
+        p_bi_df = pd.DataFrame({"timestamps":df_report.index, "P_bi ": P_bi_hourly_average, "P_m ": P_m_hourly_average, "Mismatch":mismatch_array})
         p_bi_df.set_index("timestamps")
         p_bi_df.to_csv(Path(resultsPath + "electrical_simulation" + datetime.datetime.now().strftime("%Y-%m-%d-%H-%M") + ".csv"))
         
         #Plot for Bifacial Power Output + Bifacial Gain
-        GUI.Window.makePlotBifacialRadiance(resultsPath,Bifacial_gain)
+        # GUI.Window.makePlotBifacialRadiance(resultsPath,Bifacial_gain)
+        # GUI.Window.makePlotMismatch(resultsPath,checkbutton_state)
         
         return Bifacial_gain*100
     
