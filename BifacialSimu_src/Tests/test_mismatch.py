@@ -12,24 +12,6 @@ import matplotlib.pyplot as plt
 from BifacialSimu.Handler.BifacialSimu_calculationHandler import Electrical_simulation as ES
 
 
-a=np.array([32, 41, 28, 39, 45])
-b= 50
-
-m= ES.calculate_mismatch(a, b)
-
-# Plot the data
-x = np.arange(1, len(m) + 1)  # Shift index by 1
-y = m
-plt.plot(x, y)
-
-# Add labels and title
-plt.xlabel('Hours')
-plt.ylabel('Mismatch in %')
-plt.title('Hourly Mismatch Loses')
-
-# Show the plot
-plt.show()
-
 
 class TestMistmatch (unittest.TestCase):
     
