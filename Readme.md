@@ -242,6 +242,16 @@ More info to this can be found in [Electrical Simulation](#electrical-simulation
 
 ## **Inverter Parameter**
 
+The inverter losses will be estimated in this part based on the efficiency of various types of inverters, and the user will enter the values based on the inverter datasheet and the manufacturer's datasheet. The following types of inverter efficiency exist:
+
+>Maximum efficiency - Fixed value
+>European efficiency - Fixed value
+>CEC efficiency - Fixed value
+>Weighted efficiency - Variety of value
+
+The efficiency ranges and values are collected from the graph in the inverter's datasheet.
+It should be noted that if one of the efficiency types is chosen, the information in the other fields should be erased.
+
 
 ***
 ## Examples
@@ -345,15 +355,15 @@ Before going further, you have to choose whether calculate the inverter loss or 
 
 <p align="center"><img src="BifacialSimu_src/Lib/readme_pics/inverter_choice.png" width="500"><br/></p>
 
-Once you enable it, your next step is to choose the inverter brand or insert the inverter data in each individual field. There has been already a few inverter data are included in the drop-down menu:
+Once you enable it, your next step is to choose the inverter brand or insert the inverter data in each field. There have already been a few inverter data included in the drop-down menu:
 
 <p align="center"><img src="BifacialSimu_src/Lib/readme_pics/inverter_json.png" width="500"><br/></p>
 
-Depends on what type of efficiency you would use in your calculation, fill the belonging fields out.
+Fill the belonging fields out depending on what type of efficiency you would use in your calculation.
 
 <p align="center"><img src="BifacialSimu_src/Lib/readme_pics/inverter_tab.png" width="500"><br/></p>
 
-It's important to note her that unneccesarry fields for the simulation must be removed.
+It's important to note that unnecessary fields for the simulation must be removed.
 
 
 ***
@@ -409,7 +419,8 @@ This graph also displays the total irradiance of the system, this time broken do
 
 <p align="center"><img src="BifacialSimu_src/Lib/readme_pics/inverter_losses.png" width="700"><br/></p> 
 
-This particular graph illustrates the inverter losses in the system, the blue lines represents the amount of losses in the inverter due to its efficiency, while the red one demonstrates the efficiency values in a time series with days
+This particular graph illustrates the inverter losses in the system. 
+The blue lines represent the number of losses in the inverter due to its efficiency, while the red one demonstrates the efficiency values in a time series with days.
 
 ***
 
