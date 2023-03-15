@@ -167,7 +167,7 @@ Now check under Module Parameters that all relevant parameters have been filled 
 
 Next step would be check the Inverter Parameter tab. If you want to consider inverter losses in the simulation respective fields should be filled.
 
-<p align="center"><img src="BifacialSimu_src/Lib/readme_pics/inverter_parameter.png" width="1000"><br/></p>
+<p align="center"><img src="BifacialSimu_src/Lib/readme_pics/inverter_parameter.png" width="500"><br/></p>
 
 The simulation can now be carried out by clicking on the button "Start Simulation!" under Main Control. 
 This may take a while depending upon your computer's specifications, please have patience.
