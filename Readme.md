@@ -239,6 +239,17 @@ A glossary of the adjustable parameters can be found below:
 Important to note is that when no rear side irradiance values are present (e.g. V_oc_r) then you must select "without rear values". 
 More info to this can be found in [Electrical Simulation](#electrical-simulation) and within the next section.
 
+### **Wire Parameter**
+
+The wire parameters are required to calculate the ohmic losses due to the resistivity of the cables. The following parameters are required:
+
+>Average DC wire length - average length of the cables from the PV array to the inverter and back, in m
+>Wire material - either cooper or aluminum, this determines the resistivity of the material
+>Wire diameter - the cross sectional diameter of the wire, in mm
+
+The wire diameter can be entered manually or selected by the available gauges from the drop down menu.
+The ohmic losses can be calculated for the DC cables, AC cables or both.
+
 
 ### **Inverter Parameter**
 
