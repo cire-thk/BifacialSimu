@@ -542,18 +542,21 @@ class Electrical_simulation:
                 for i in range(0, len(inv_Input)):
                         inv_HourlyLoss = inv_Input[i] * (1-inv_MaxEfficiency)
                         Inv_losses_hourly.append(inv_HourlyLoss)
+                        Eff_values_hourly.append(inv_MaxEfficiency)
                         #print(str(inv_HourlyLoss))
                 
             elif inverterDict['inv_EuroEfficiency']:
                 for i in range(0, len(inv_Input)):
                         inv_HourlyLoss = inv_Input[i] * (1-inv_EuroEfficiency)
                         Inv_losses_hourly.append(inv_HourlyLoss)
+                        Eff_values_hourly.append(inv_EuroEfficiency)
                         #print(str(inv_HourlyLoss))
                 
             elif inverterDict['inv_CECEfficiency']:
                 for i in range(0, len(inv_Input)):
                         inv_HourlyLoss = inv_Input[i] * (1-inv_CECEfficiency)
                         Inv_losses_hourly.append(inv_HourlyLoss)
+                        Eff_values_hourly.append(inv_CECEfficiency)
                         #print(str(inv_HourlyLoss))
             else:
                 if inverterDict['inv_WeightedEff']:
