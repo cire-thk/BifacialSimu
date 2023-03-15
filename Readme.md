@@ -238,6 +238,11 @@ A glossary of the adjustable parameters can be found below:
 
 Important to note is that when no rear side irradiance values are present (e.g. V_oc_r) then you must select "without rear values". 
 More info to this can be found in [Electrical Simulation](#electrical-simulation) and within the next section.
+
+
+## **Inverter Parameter**
+
+
 ***
 ## Examples
 This section provides a number of examples to help with learning what each part of BifacialSimu does and how to operate it.
@@ -377,6 +382,13 @@ The absolute irradiance on the modules is shown in this graph over the entire si
 
 
 This graph also displays the total irradiance of the system, this time broken down into the Global Horizontal Irradiance (ghi), Diffuse Horizontal Irradiance (dhi) and Direct Normal Irradiance (dni).
+
+
+---
+
+<p align="center"><img src="BifacialSimu_src/Lib/readme_pics/inverter_losses.png" width="700"><br/></p> 
+
+This particular graph illustrates the inverter losses in the system, the blue lines represents the amount of losses in the inverter due to its efficiency, while the red one demonstrates the efficiency values in a time series with days
 
 ***
 
