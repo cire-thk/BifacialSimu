@@ -178,19 +178,19 @@ inverterDict = {
     'inv_CECEfficiency': 0, #California efficiency of inverter [%]
     'inv_WeightedEff': True, #Check whether weighted efficiency selector or not
     'inv_Input1': 0, #Range for inverter input
-    'inv_Input2': 0.05, #Range for inverter input
-    'inv_Input3': 0.1, #Range for inverter input
-    'inv_Input4': 0.2, #Range for inverter input
-    'inv_Input5': 0.3, #Range for inverter input
-    'inv_Input6': 0.5, #Range for inverter input
+    'inv_Input2': 0.2, #Range for inverter input
+    'inv_Input3': 0.4, #Range for inverter input
+    'inv_Input4': 0.5, #Range for inverter input
+    'inv_Input5': 0.6, #Range for inverter input
+    'inv_Input6': 0.8, #Range for inverter input
     'inv_Input7': 1, #Range for inverter input
     'inv_Effvalue1': 0, #Efficiency value for respective range
-    'inv_Effvalue2': 0.92, #Efficiency value for respective range
-    'inv_Effvalue3': 0.94, #Efficiency value for respective range
-    'inv_Effvalue4': 0.95, #Efficiency value for respective range
-    'inv_Effvalue5': 0.97, #Efficiency value for respective range
-    'inv_Effvalue6': 0.98, #Efficiency value for respective range
-    'inv_Effvalue7': 0.96 #Efficiency value for respective range
+    'inv_Effvalue2': 0.96, #Efficiency value for respective range
+    'inv_Effvalue3': 0.97, #Efficiency value for respective range
+    'inv_Effvalue4': 0.98, #Efficiency value for respective range
+    'inv_Effvalue5': 0.985, #Efficiency value for respective range
+    'inv_Effvalue6': 0.985, #Efficiency value for respective range
+    'inv_Effvalue7': 0.985 #Efficiency value for respective range
        
 }
 
@@ -2158,7 +2158,7 @@ class Window(tk.Tk):
                     
                     
             if rb_Efficiencytype.get()==3:
-                    inverterDict["inv_WeightedEff"]=True
+                    inverterDict["Weighted efficiency"]=True
                     Label_inv_MaxEfficiency.config(state="disabled")
                     Entry_inv_MaxEfficiency.config(state="disabled")
                     Label_inv_MaxEfficiencyUnit.config(state="disabled")
@@ -2202,10 +2202,10 @@ class Window(tk.Tk):
         rb_Efficiencytype=IntVar()
         rb_Efficiencytype.set("0")
        
-        rad1_Efficiencytype=Radiobutton(inverterParameter_frame, variable=rb_Efficiencytype, width=10, text="Max efficiency", value=0, command=lambda:Efficiencytype())
+        rad1_Efficiencytype=Radiobutton(inverterParameter_frame, variable=rb_Efficiencytype, width=10, text="Max.efficiency", value=0, command=lambda:Efficiencytype())
         rad2_Efficiencytype=Radiobutton(inverterParameter_frame, variable=rb_Efficiencytype, width=10, text="EURO efficiency", value=1, command=lambda:Efficiencytype())
         rad3_Efficiencytype=Radiobutton(inverterParameter_frame, variable=rb_Efficiencytype, width=10, text="CEC efficiency", value=2, command=lambda:Efficiencytype())
-        rad4_Efficiencytype=Radiobutton(inverterParameter_frame, variable=rb_Efficiencytype, width=10, text="inv_WeightedEff", value=3, command=lambda:Efficiencytype())
+        rad4_Efficiencytype=Radiobutton(inverterParameter_frame, variable=rb_Efficiencytype, width=10, text="Weighted.eff", value=3, command=lambda:Efficiencytype())
         rad1_Efficiencytype.grid(row=4, column=1, sticky=W)
         rad2_Efficiencytype.grid(row=5, column=1, sticky=W)
         rad3_Efficiencytype.grid(row=6, column=1, sticky=W)
@@ -2259,39 +2259,39 @@ class Window(tk.Tk):
         
     
     #Table
-        Inverter_Label = ttk.Label(inverterParameter_frame, text='WeightedEff', font=("Arial Bold", 13))
+        Inverter_Label = ttk.Label(inverterParameter_frame, text='Weighted efficiency', font=("Arial Bold", 13))
         Inverter_Label.grid(row=8, column=0,padx=20, sticky="w")
     
         
     
     #Input power
-        Label_inv_Ranges=ttk.Label(inverterParameter_frame, text="Ranges:")
+        Label_inv_Ranges=ttk.Label(inverterParameter_frame, text="Efficiency ranges:")
         Label_inv_Ranges.grid(row=9, column=1,padx=20, sticky="w")
-        Label_inv_Input1=ttk.Label(inverterParameter_frame, text="inv_Input1:")
+        Label_inv_Input1=ttk.Label(inverterParameter_frame, text="Input 1:")
         Label_inv_Input1.grid(row=10, column=0,padx=20, sticky="w")
         Entry_inv_Input1=ttk.Entry(inverterParameter_frame, background="white", width=8)
         Entry_inv_Input1.grid(row=10, column=1,padx=20, sticky="w")
-        Label_inv_Input2=ttk.Label(inverterParameter_frame, text="inv_Input2:")
+        Label_inv_Input2=ttk.Label(inverterParameter_frame, text="Input 2:")
         Label_inv_Input2.grid(row=11, column=0,padx=20, sticky="w")
         Entry_inv_Input2=ttk.Entry(inverterParameter_frame, background="white", width=8)
         Entry_inv_Input2.grid(row=11, column=1,padx=20, sticky="w")
-        Label_inv_Input3=ttk.Label(inverterParameter_frame, text="inv_Input3:")
+        Label_inv_Input3=ttk.Label(inverterParameter_frame, text="Input 3:")
         Label_inv_Input3.grid(row=12, column=0,padx=20, sticky="w")
         Entry_inv_Input3=ttk.Entry(inverterParameter_frame, background="white", width=8)
         Entry_inv_Input3.grid(row=12, column=1,padx=20, sticky="w")
-        Label_inv_Input4=ttk.Label(inverterParameter_frame, text="inv_Input4:")
+        Label_inv_Input4=ttk.Label(inverterParameter_frame, text="Input 4:")
         Label_inv_Input4.grid(row=13, column=0,padx=20, sticky="w")
         Entry_inv_Input4=ttk.Entry(inverterParameter_frame, background="white", width=8)
         Entry_inv_Input4.grid(row=13, column=1,padx=20, sticky="w")
-        Label_inv_Input5=ttk.Label(inverterParameter_frame, text="inv_Input5:")
+        Label_inv_Input5=ttk.Label(inverterParameter_frame, text="Input 5:")
         Label_inv_Input5.grid(row=14, column=0,padx=20, sticky="w")
         Entry_inv_Input5=ttk.Entry(inverterParameter_frame, background="white", width=8)
         Entry_inv_Input5.grid(row=14, column=1,padx=20, sticky="w")
-        Label_inv_Input6=ttk.Label(inverterParameter_frame, text="inv_Input6:")
+        Label_inv_Input6=ttk.Label(inverterParameter_frame, text="Input 6:")
         Label_inv_Input6.grid(row=15, column=0,padx=20, sticky="w")
         Entry_inv_Input6=ttk.Entry(inverterParameter_frame, background="white", width=8)
         Entry_inv_Input6.grid(row=15, column=1,padx=20, sticky="w")
-        Label_inv_Input7=ttk.Label(inverterParameter_frame, text="inv_Input7:")
+        Label_inv_Input7=ttk.Label(inverterParameter_frame, text="Input 7:")
         Label_inv_Input7.grid(row=16, column=0,padx=20, sticky="w")
         Entry_inv_Input7=ttk.Entry(inverterParameter_frame, background="white", width=8)
         Entry_inv_Input7.grid(row=16, column=1,padx=20, sticky="w")
@@ -2299,33 +2299,33 @@ class Window(tk.Tk):
         
 
     #Input power
-        Label_inv_Effvalues=ttk.Label(inverterParameter_frame, text="Effvalues:")
+        Label_inv_Effvalues=ttk.Label(inverterParameter_frame, text="Efficiency values:")
         Label_inv_Effvalues.grid(row=9, column=3,padx=20, sticky="w")
-        Label_inv_Effvalue1=ttk.Label(inverterParameter_frame, text="inv_Effvalue1:")
+        Label_inv_Effvalue1=ttk.Label(inverterParameter_frame, text="Value 1:")
         Label_inv_Effvalue1.grid(row=10, column=2,padx=20, sticky="w")
         Entry_inv_Effvalue1=ttk.Entry(inverterParameter_frame, background="white", width=8)
         Entry_inv_Effvalue1.grid(row=10, column=3,padx=20, sticky="w")
-        Label_inv_Effvalue2=ttk.Label(inverterParameter_frame, text="inv_Effvalue2:")
+        Label_inv_Effvalue2=ttk.Label(inverterParameter_frame, text="Value 2:")
         Label_inv_Effvalue2.grid(row=11, column=2,padx=20, sticky="w")
         Entry_inv_Effvalue2=ttk.Entry(inverterParameter_frame, background="white", width=8)
         Entry_inv_Effvalue2.grid(row=11, column=3,padx=20, sticky="w")
-        Label_inv_Effvalue3=ttk.Label(inverterParameter_frame, text="inv_Effvalue3:")
+        Label_inv_Effvalue3=ttk.Label(inverterParameter_frame, text="Value 3:")
         Label_inv_Effvalue3.grid(row=12, column=2,padx=20, sticky="w")
         Entry_inv_Effvalue3=ttk.Entry(inverterParameter_frame, background="white", width=8)
         Entry_inv_Effvalue3.grid(row=12, column=3,padx=20, sticky="w")
-        Label_inv_Effvalue4=ttk.Label(inverterParameter_frame, text="inv_Effvalue4:")
+        Label_inv_Effvalue4=ttk.Label(inverterParameter_frame, text="Value 4:")
         Label_inv_Effvalue4.grid(row=13, column=2,padx=20, sticky="w")
         Entry_inv_Effvalue4=ttk.Entry(inverterParameter_frame, background="white", width=8)
         Entry_inv_Effvalue4.grid(row=13, column=3,padx=20, sticky="w")
-        Label_inv_Effvalue5=ttk.Label(inverterParameter_frame, text="inv_Effvalue5:")
+        Label_inv_Effvalue5=ttk.Label(inverterParameter_frame, text="Value 5:")
         Label_inv_Effvalue5.grid(row=14, column=2,padx=20, sticky="w")
         Entry_inv_Effvalue5=ttk.Entry(inverterParameter_frame, background="white", width=8)
         Entry_inv_Effvalue5.grid(row=14, column=3,padx=20, sticky="w")
-        Label_inv_Effvalue6=ttk.Label(inverterParameter_frame, text="inv_Effvalue6:")
+        Label_inv_Effvalue6=ttk.Label(inverterParameter_frame, text="Value 6:")
         Label_inv_Effvalue6.grid(row=15, column=2,padx=20, sticky="w")
         Entry_inv_Effvalue6=ttk.Entry(inverterParameter_frame, background="white", width=8)
         Entry_inv_Effvalue6.grid(row=15, column=3,padx=20, sticky="w")
-        Label_inv_Effvalue7=ttk.Label(inverterParameter_frame, text="inv_Effvalue7:")
+        Label_inv_Effvalue7=ttk.Label(inverterParameter_frame, text="Value 7:")
         Label_inv_Effvalue7.grid(row=16, column=2,padx=20, sticky="w")
         Entry_inv_Effvalue7=ttk.Entry(inverterParameter_frame, background="white", width=8)
         Entry_inv_Effvalue7.grid(row=16, column=3,padx=20, sticky="w")
@@ -2918,7 +2918,6 @@ class Window(tk.Tk):
             
         Inv_losses=data["Inv_losses"]
         Eff_values=data["Eff_values"]
-        print("eff:"+ str(Eff_values))
             
            
         fig5 = plt.Figure()
