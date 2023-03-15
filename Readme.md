@@ -335,6 +335,27 @@ It's important to note here that if no values are provided for any of the rear s
 Once a module has been selected it is also possible to amend the values in each individual field, this can be useful when comparing similar modules that aren't already in BifacialSimu's database. 
 These settings however will not be saved so make a note of them for future reference.  
 
+---
+
+__Inverter Parameter - Inverter Choice and Loss Simulation__
+
+This section will guide you on how to consider inverter losses in the simulation.
+
+Before going further, you have to choose whether calculate the inverter loss or not by enabling or disabling the tab, as shown below:
+
+<p align="center"><img src="BifacialSimu_src/Lib/readme_pics/inverter_choice.png" width="500"><br/></p>
+
+Once you enable it, your next step is to choose the inverter brand or insert the inverter data in each individual field. There has been already a few inverter data are included in the drop-down menu:
+
+<p align="center"><img src="BifacialSimu_src/Lib/readme_pics/inverter_json.png" width="500"><br/></p>
+
+Depends on what type of efficiency you would use in your calculation, fill the belonging fields out.
+
+<p align="center"><img src="BifacialSimu_src/Lib/readme_pics/inverter_tab.png" width="500"><br/></p>
+
+It's important to note her that unneccesarry fields for the simulation must be removed.
+
+
 ***
 ## Results
 Once a simulation has successfully completed, various graphs will be automatically generated with matplotlib which can then be exported. 
