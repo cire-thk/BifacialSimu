@@ -506,7 +506,20 @@ class Electrical_simulation:
         
         #####            Inverter losses             ######   
     
-#=====================Calculating Inverter Losses==============================            
+
+        ####################################################
+        # Variables required for simulation
+        
+        # Inverter loss: Whether to calculate inverter loss (Enable/Disable)
+        # Rated power: Rated power of the inverter (W)
+        # MaxEfficiency: Maximum efficiency value (%)
+        # EuroEfficiency: European efficiency value (%)
+        # CECEfficiency: California Energy Commission efficiency value (%)
+        # WeightedEff: Whether to calculate weighted efficiency (Radiobutton)
+        # Eff_Ranges: Range between the inverter input (%)
+        # Eff_Values: Efficiency values for respective range (%)
+        
+        ####################################################           
 
         inv_Ratedpower = inverterDict['inv_Ratedpower']        
         inv_MaxEfficiency = inverterDict['inv_MaxEfficiency']
@@ -532,8 +545,8 @@ class Electrical_simulation:
 
 
         # Creating an array for inverter efficiency values to use interpolation
-        Eff_Values1 = [inv_Input1, inv_Input2, inv_Input3, inv_Input4, inv_Input5, inv_Input6, inv_Input7]
-        Eff_Values2 = [inv_Effvalue1, inv_Effvalue2, inv_Effvalue3, inv_Effvalue4, inv_Effvalue5, inv_Effvalue6, inv_Effvalue7]
+        Eff_Ranges = [inv_Input1, inv_Input2, inv_Input3, inv_Input4, inv_Input5, inv_Input6, inv_Input7]
+        Eff_Values = [inv_Effvalue1, inv_Effvalue2, inv_Effvalue3, inv_Effvalue4, inv_Effvalue5, inv_Effvalue6, inv_Effvalue7]
         
         inv_Input = P_out_dc_hourly if len(P_out_dc_hourly) != 0 else P_bi_hourly_average
         
@@ -562,7 +575,7 @@ class Electrical_simulation:
                 if inverterDict['inv_WeightedEff']:
                     for i in range(0, len(inv_Input)):  
                         nInput = inv_Input[i]/inv_Ratedpower
-                        inv_Interp = np.interp(nInput, Eff_Values1, Eff_Values2)
+                        inv_Interp = np.interp(nInput, Eff_Ranges, Eff_Values)
                         inv_Hourlyloss = (1-inv_Interp) * inv_Input[i]
                         Inv_losses_hourly.append(inv_Hourlyloss)
                         Eff_values_hourly.append(inv_Interp)
