@@ -358,7 +358,34 @@ class Window(tk.Tk):
             more_info_button = Button(info_frame,text='More Information', command= lambda:github_infopage("yes"))
             more_info_button.grid(row=0,column=0)
             
+        # Wire Parameter tab
+        def button_WP():
+            # f= open(rootPath+"\Lib\Info_Messages\Wire_Parameters.txt")
+            # text_WP= f.read()
+            # f.close()
+            # response = messagebox.askokcancel("Functions Info!", text_SP) 
+            # if response == 1:
+            #     webbrowser.open("https://github.com/cire-thk/BifacialSimu#readme",new=1)
+            # global pop_SP
+            pop_SP = Toplevel()
+            pop_SP.title("Wire Parameter Info!")
+            pop_SP.geometry("1400x700")
+            pop_SP.iconbitmap(rootPath+"\Lib\Button_Images\info_logo.ico")
+            f= open(rootPath+"\Lib\Info_Messages\Wire_Parameters.txt")
+            text_SP= f.read()
+            f.close()
+            # since ° is a unicode character it should be replaced by its character unicode to be read properly from .txt files
+            text_SP=text_SP.replace("Â°", "\u00b0")
+             
+            SP_Info = Label(pop_SP, text=text_SP,bg="white", font=("Arial",8),justify="left")
+            SP_Info.pack(pady=5)
             
+            info_frame= Frame(pop_SP, bg="white")
+            info_frame.pack(pady=5)
+            
+
+            more_info_button = Button(info_frame,text='More Information', command= lambda:github_infopage("yes"))
+            more_info_button.grid(row=0,column=0)    
         
         # Inverter Parameter tab
         def button_IP():
@@ -412,6 +439,9 @@ class Window(tk.Tk):
         # Simulation Parameter tab
         Info_SP = Button(simulationParameter_frame, image=Info_image,command = button_SP, borderwidth=0)
         Info_SP.grid(row=0,column=1)
+        # Simulation Parameter tab
+        Info_WP = Button(wireParameter_frame, image=Info_image,command = button_WP, borderwidth=0)
+        Info_WP.grid(row=0,column=1)
         # Inverter Parameter tab
         Info_IP = Button(inverterParameter_frame, image=Info_image,command = button_IP, borderwidth=0)
         Info_IP.grid(row=0,column=2)
