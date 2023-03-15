@@ -240,9 +240,11 @@ Important to note is that when no rear side irradiance values are present (e.g. 
 More info to this can be found in [Electrical Simulation](#electrical-simulation) and within the next section.
 
 
-## **Inverter Parameter**
+### **Inverter Parameter**
 
-The inverter losses will be estimated in this part based on the efficiency of various types of inverters, and the user will enter the values based on the inverter datasheet and the manufacturer's datasheet. The following types of inverter efficiency exist:
+The inverter losses will be estimated in this part based on the efficiency of various types of inverters, and the user will enter the values based on the inverter datasheet and the manufacturer's datasheet. 
+
+The following types of inverter efficiency exist:
 
 >Maximum efficiency - Fixed value
 >European efficiency - Fixed value
