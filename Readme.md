@@ -165,10 +165,16 @@ Now check under Module Parameters that all relevant parameters have been filled 
 
 <p align="center"><img src="BifacialSimu_src/Lib/readme_pics/Mod_Par_default.png" width="500"><br/></p>
 
+Next step would be check the Inverter Parameter tab. If you want to consider inverter losses in the simulation respective fields should be filled.
+
+<p align="center"><img src="BifacialSimu_src/Lib/readme_pics/inverter_parameter.png" width="1000"><br/></p>
+
 The simulation can now be carried out by clicking on the button "Start Simulation!" under Main Control. 
 This may take a while depending upon your computer's specifications, please have patience.
 
 <p align="center"><img src="BifacialSimu_src/Lib/readme_pics/GUI_start_sim.png" width="1000"><br/></p>
+
+
 
 Once this has completed a variety of graphs will be produced which can be further analysed and exported. Incidentally, the data for these graphs will have been saved in the designated outputs folder produced for this specific simulation which can be found in the same folder as the installation of BifacialSimu:
 
