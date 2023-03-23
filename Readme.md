@@ -40,7 +40,7 @@ The general architechture and functions are displayed in the following figure:
 ***
 
 ## Prerequisites
-Unfortnatly, BifacialSimu is not supported by Linux at the moment. We are working on this issue. If you want to contribute to solving this issue, please contact us.
+Unfortnatly, BifacialSimu is not supported by Mac OS at the moment. We are working on this issue. If you want to contribute to solving this issue, please contact us.
 
 BifacialSimu is run within a Python environment and dependent on a variety of libraries, most of which are contained within the installation of Anaconda. 
 The program [Radiance](https://github.com/NREL/Radiance/releases) is necessary in order to run BifacialSimu. Besides that relies BifacialSimu on following libraries:
@@ -99,6 +99,7 @@ for Mac OS X: The installation of XQuartz is required for Radiance to run, this 
 <p align="center"><img src="BifacialSimu_src/Lib/readme_pics/XQuartz_Readme.png" width="500"><br/></p>
 
 An in-depth guide and the installation of Radiance can be found on the [Radiance Github Page](https://github.com/NREL/Radiance/releases). 
+Make sure to add the radiance_bin to the system variable path, not the user variable path!
 Make sure to download the correct package according to your operating system.
 
 <p align="center"><img src="BifacialSimu_src/Lib/readme_pics/Radiance_Readme.png" width="500"><br/></p>
@@ -108,17 +109,14 @@ Make sure to download and insert the jaloxa Windows Binaries into the Radiance b
 __Install BifacialSimu__
 
 To install BifacialSimu and Copies of [bifacial_radiance](https://github.com/NREL/bifacial_radiance) and [pvfavtors](https://github.com/SunPower/pvfactors), you can use:
-> pip install BifacialSimu
+> pip install Bifacialsimu --ignore-installed
 
 If that does not work for you, navigate to your local GitHub folder or download BifacialSimu on GitHub. 
 In spyder for example you can navigate using __cd__:
 > cd C:\Users\XXX\XXX\GitHub\bifacialSimu
 
 Now use:
-> pip install . 
-
-You can also use:
-> pip install BifacialSimu
+> pip install . --ignore-installed 
 
 Check, if these standard python packages have been installed:  
 − [Pvlib](https://pvlib-python.readthedocs.io/en/stable/index.html)  
@@ -463,6 +461,8 @@ __Cannot load backend 'Qt5Agg'__ - If this error appears, you have to change the
 __Cannot uninstall 'TBB'__ - If this error appears, you have to change the IPython Console from 'tk' to 'Qt5', f.e. in spyder.
 "TBB is a system package and anaconda does not allow users to uninstall it. The reinstallation of the package should thus be avoided."
 > pip install TBB --ignore-installed
+
+__rtrace cannot be found__ - if you are doing a Raytracing simulation and this error occurs, it means incorrectly installed bifacial_radiance. To handle this error make sure the radiance_bin is added to the system variables. You can test weather your installation is correct by opening the cmd console and type in ratrace as a command. When your installation is correct the outcome is as follows: "rtrace: fatal - missing octree argument".
 
 ***
 

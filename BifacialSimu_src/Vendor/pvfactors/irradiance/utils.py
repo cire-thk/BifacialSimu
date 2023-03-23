@@ -8,8 +8,7 @@ from pvlib import atmosphere, irradiance
 from pvlib.tools import cosd, sind
 import math
 from BifacialSimu_src.Vendor.pvfactors.__init__ import PVFactorsError
-from BifacialSimu_src.Vendor.pvfactors.config import \
-    SIGMA, N_SIGMA, GAUSSIAN_DIAMETER_CIRCUMSOLAR, RADIUS_CIRCUMSOLAR
+from BifacialSimu_src.Vendor.pvfactors.config import SIGMA, N_SIGMA, GAUSSIAN_DIAMETER_CIRCUMSOLAR, RADIUS_CIRCUMSOLAR
 
 
 def perez_diffuse_luminance(timestamps, surface_tilt, surface_azimuth,

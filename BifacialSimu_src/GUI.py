@@ -53,6 +53,7 @@ import json
 from PIL import ImageTk,Image
 import datetime
 import csv
+import inspect
 import numpy as np
 import pandas as pd
 #import time
@@ -61,7 +62,6 @@ import threading #for using multiple threads to make the GUI responsive during s
 from BifacialSimu_src import globals
 
 globals.initialize()
-
 
 # aliases for Tkinter functions
 END = tk.END
@@ -73,10 +73,12 @@ IntVar = tk.IntVar
 PhotoImage = tk.PhotoImage
 
 # Import of needed paths
-# Path handling
-rootPath = os.path.realpath(".")
-# print(rootPath)
+# Get path of this (GUI.py) file. See: https://stackoverflow.com/a/44592299
+filename = inspect.getframeinfo(inspect.currentframe()).filename
+rootPath = os.path.dirname(os.path.abspath(filename))
 
+# Include path in system path, so that python would find the Modules
+sys.path.append(rootPath)
 # Include paths
 # sys.path.append(rootPath + "/BifacialSimu/Controller")
 # sys.path.append(rootPath + "/BifacialSimu/Handler")
@@ -197,9 +199,12 @@ inverterDict = {
 class Window(tk.Tk):
     def __init__(self):
         tk.Tk.__init__(self)
-        self.geometry("1600x800")
+        self.geometry("1300x700")
         self.title('BifacialSimu')
-        self.iconbitmap(rootPath+"\Lib\logos\App_icon.ico")
+        if sys.platform == "linux":
+            self.iconbitmap("@" + rootPath + "/Lib/logos/App_icon.xbm")
+        else:
+            self.iconbitmap(rootPath + "/Lib/logos/App_icon.ico")
         yscroll = tk.Scrollbar(self, orient=tk.VERTICAL)
         xscroll = tk.Scrollbar(self, orient=tk.HORIZONTAL)
         yscroll.pack(side=tk.RIGHT, fill=tk.Y)
@@ -421,14 +426,17 @@ class Window(tk.Tk):
 #         assigning the info Button Icon to a variable
 # =============================================================================
 
-        namecontrol_frame.infoButton_MC= PhotoImage(file= rootPath+'\Lib\Button_Images\Button-Info-icon.png')
+        namecontrol_frame.infoButton_MC= PhotoImage(file= rootPath+'/Lib/Button_Images/Button-Info-icon.png')
         Info_image= namecontrol_frame.infoButton_MC
         
 # =============================================================================
 #         #inserting info buttons in frames: 
 # =============================================================================
+
+
         # Main Control tab
         Info_MC = Button(namecontrol_frame, image=Info_image,command = button_MC, borderwidth=0)
+
         Info_MC.grid(row=0,column=1)
         # Simulation Control tab
         Info_SC = Button(simulationMode_frame, image=Info_image,command = button_SC, borderwidth=0)
@@ -487,6 +495,11 @@ class Window(tk.Tk):
         my_notebook.add(ModuleParameter_frame, text="Module Parameter")
         my_notebook.add(wireParameter_frame, text="Wire Parameter")
         my_notebook.add(inverterParameter_frame, text="Inverter Parameter")
+        
+        # Inserting Mismatch Button
+        globals.checkbutton_state=IntVar()
+        Mismatch_checkbutton = tk.Checkbutton(simulationMode_frame, text="Plot Mismatch Power Losses", variable= globals.checkbutton_state)
+        Mismatch_checkbutton.grid(column=0, row=10, sticky="W")
 
         
         # Starting the simulation
@@ -747,7 +760,7 @@ class Window(tk.Tk):
 # =============================================================================
             
             
-            resultsPath = Controller.DataHandler().setDirectories()
+            resultsPath = Controller.DataHandler().setDirectories() #WHY IMPORT FROM CONTROLLER AND NOT HANDLER??
             print('created resultsPath at: ' + resultsPath)     
             
             
@@ -764,7 +777,8 @@ class Window(tk.Tk):
           
             makePlotAbsIrr(resultsPath)
             makePlotirradiance(resultsPath)
-                #makePlotBifacialRadiance(resultsPath) 
+            makePlotBifacialRadiance(resultsPath) 
+            makePlotMismatch(resultsPath,globals.checkbutton_state)
 
           
 # =============================================================================
@@ -934,7 +948,48 @@ class Window(tk.Tk):
 #                 ##plt.show()
 #                 
 # =============================================================================
-# Simulation Mode 4 needs to get debugged            
+# Simulation Mode 4 needs to get debugged       
+# =============================================================================
+ 
+        def makePlotMismatch(resultsPath,checkbutton_state):
+            if checkbutton_state.get()== 1 :
+                plt.style.use("seaborn")
+                
+                data=pd.read_csv(resultsPath + "electrical_simulation" + datetime.datetime.now().strftime("%Y-%m-%d-%H-%M") + ".csv")
+                date=pd.read_csv(resultsPath + "/Data.csv")
+                
+                
+                timestamp_end= len(date.timestamp)
+                timestamp_start= date.timestamp[0]
+                idx=pd.date_range(timestamp_start, periods=timestamp_end, freq="1H")
+                
+                mismatch=data["Mismatch"]
+                
+                fig3 = plt.Figure()
+                ax3= fig3.subplots()
+                
+                ax3.plot(idx,mismatch, label="Mismatch")
+                
+                ax3.xaxis.set_minor_locator(dates.DayLocator(interval=1))   # every Day
+                ax3.xaxis.set_minor_formatter(dates.DateFormatter('%d'))  # day and hours
+                ax3.xaxis.set_major_locator(dates.MonthLocator(interval=1))    # every Month
+                ax3.xaxis.set_major_formatter(dates.DateFormatter('\n%m-%Y'))             
+                ax3.legend()
+                ax3.set_ylabel('Mismatch\n[%]', size=17)
+                ax3.set_xlabel("Time", size=17)
+                ax3.set_title('Mismatch Power Losses', size=18)
+                
+                # saving resluts to .png file
+                fig3.tight_layout()
+                fig3.savefig("Bifacial_output_Power_" + datetime.datetime.now().strftime("%Y-%m-%d-%H-%M") + ".png")
+                
+                # showing results in a window
+                canvas = FigureCanvasTkAgg(fig3, master=tk.Toplevel())
+                canvas.get_tk_widget().pack(side=tk.TOP, fill=tk.BOTH, expand=1.0)
+                canvas.draw()
+                
+            else:
+                return
             
         def makePlotirradiance(resultsPath):
             if SimulationDict["simulationMode"]==1 or SimulationDict["simulationMode"]==2:
@@ -1374,6 +1429,7 @@ class Window(tk.Tk):
         Label_enddate.grid(column=0,row=8, sticky="W")
         Label_utcoffset.grid(column=0,row=9, sticky="W")
         
+               
 
         Entry_year_start=ttk.Entry(simulationMode_frame, background="white", width=16)
         Entry_month_start=ttk.Entry(simulationMode_frame, background="white", width=4)
@@ -1769,28 +1825,28 @@ class Window(tk.Tk):
         
         Label_TkoeffP=ttk.Label(ModuleParameter_frame, text="T_koeff_P:")
         Label_TkoeffP.grid(column=0, row=16, sticky=W)
-        Label_TkoeffPPar=ttk.Label(ModuleParameter_frame, text="[1 / °C]")
+        Label_TkoeffPPar=ttk.Label(ModuleParameter_frame, text="[1 / \u00b0C]")
         Label_TkoeffPPar.grid(column=2, row=16, sticky=W)
         Entry_TkoeffP=ttk.Entry(ModuleParameter_frame, background="white", width=8)
         Entry_TkoeffP.grid(column=1, row=16, sticky=W) 
         
         Label_Tamb=ttk.Label(ModuleParameter_frame, text="T_amb:")
         Label_Tamb.grid(column=0, row=17, sticky=W)
-        Label_TambPar=ttk.Label(ModuleParameter_frame, text="[°C]")
+        Label_TambPar=ttk.Label(ModuleParameter_frame, text="[\u00b0C]")
         Label_TambPar.grid(column=2, row=17, sticky=W)
         Entry_Tamb=ttk.Entry(ModuleParameter_frame, background="white", width=8)
         Entry_Tamb.grid(column=1, row=17, sticky=W) 
         
         Label_TkoeffI=ttk.Label(ModuleParameter_frame, text="T_koeff_I:")
         Label_TkoeffI.grid(column=0, row=18, sticky=W)
-        Label_TkoeffIPar=ttk.Label(ModuleParameter_frame, text="[1 / °C]")
+        Label_TkoeffIPar=ttk.Label(ModuleParameter_frame, text="[1 / \u00b0C]")
         Label_TkoeffIPar.grid(column=2, row=18, sticky=W)
         Entry_TkoeffI=ttk.Entry(ModuleParameter_frame, background="white", width=8)
         Entry_TkoeffI.grid(column=1, row=18, sticky=W) 
         
         Label_TkoeffV=ttk.Label(ModuleParameter_frame, text="T_koeff_V:")
         Label_TkoeffV.grid(column=0, row=19, sticky=W)
-        Label_TkoeffVPar=ttk.Label(ModuleParameter_frame, text="[1 / °C]")
+        Label_TkoeffVPar=ttk.Label(ModuleParameter_frame, text="[1 / \u00b0C]")
         Label_TkoeffVPar.grid(column=2, row=19, sticky=W)
         Entry_TkoeffV=ttk.Entry(ModuleParameter_frame, background="white", width=8)
         Entry_TkoeffV.grid(column=1, row=19, sticky=W) 
@@ -2395,13 +2451,14 @@ class Window(tk.Tk):
         Label_inv_Effvalue7.grid(row=16, column=2,padx=20, sticky="w")
         Entry_inv_Effvalue7=ttk.Entry(inverterParameter_frame, background="white", width=8)
         Entry_inv_Effvalue7.grid(row=16, column=3,padx=20, sticky="w")
+
         
 # =============================================================================
 #          Config file (default.ini) 
 # =============================================================================
          
         parser = ConfigParser()
-        parser.read(rootPath + '\Lib\default\default.ini')
+        parser.read(rootPath + '/Lib/default/default.ini')
         simulationName_configfile=parser.get('default', 'simulationName')
        # simulationMode_configfile=parser.get('default', 'simulationMode')
         weatherFile_configfile=parser.get('default', "weatherFile")
@@ -2449,7 +2506,7 @@ class Window(tk.Tk):
             """
             
            # jsonfile = ('module2.json')
-            with open(rootPath + '\Lib\input_albedo\Albedo.json') as file:          #Laden des Json FIle aus dem Ordner
+            with open(rootPath + '/Lib/input_albedo/Albedo.json') as file:          #Laden des Json FIle aus dem Ordner
                 jsondata_albedo = json.load(file)
             
             systemtuple = ('',)                     #Ohne können die Module nicht ausgewählt werden
@@ -2506,7 +2563,7 @@ class Window(tk.Tk):
             """
             
            # jsonfile = ('module.json')
-            with open(rootPath + '\Lib\input_module\module.json') as file:          #Laden des Json FIle aus dem Ordner
+            with open(rootPath + '/Lib/input_module/module.json') as file:          #Laden des Json FIle aus dem Ordner
                 jsondata = json.load(file)
             
             systemtuple = ('',)                     
@@ -2776,7 +2833,7 @@ class Window(tk.Tk):
 
         #Loading the image in the program
         def logo():
-            self.logo = Image.open(rootPath+'\Lib\logos\logo_BifacialSimu_transparentresized.png')
+            self.logo = Image.open(rootPath+'/Lib/logos/logo_BifacialSimu_transparentresized.png')
             logo=self.logo
             #resizing the image
             self.resized=logo.resize((100, 100), Image.ANTIALIAS)
@@ -2792,7 +2849,7 @@ class Window(tk.Tk):
 
         #Loading the second image in the program
         def logo2():
-            self.logo2 = Image.open(rootPath+'\Lib\default\Example_Config.png')
+            self.logo2 = Image.open(rootPath+'/Lib/default/Example_Config.png')
             logo2=self.logo2
             #resizing the image
             self.resized2=logo2.resize((400, 350), Image.ANTIALIAS)
@@ -2849,7 +2906,7 @@ class Window(tk.Tk):
         Button_clear.grid(column=1,row=1)
         Button_stopSimulation=ttk.Button(simulationFunction_frame, text="Stop Simulation!", command=Break_Simulation)
         Button_stopSimulation.grid(column=3,row=1)
-
+        
         
 
     def _on_frame_configure(self, event=None):
@@ -2859,6 +2916,7 @@ class Window(tk.Tk):
         # =============================================================================
         #            Plots  
         # =============================================================================
+
 
     def makePlotBifacialRadiance(resultsPath, Bifacial_gain):
         
