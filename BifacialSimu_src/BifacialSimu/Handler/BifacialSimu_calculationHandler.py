@@ -566,28 +566,28 @@ class Electrical_simulation:
         inv_Input = P_out_dc_hourly if len(P_out_dc_hourly) != 0 else P_bi_hourly_average
         
         if simulationDict['invLosses']==True:
-            if inverterDict['inv_MaxEfficiency']:
+            if inverterDict['inv_MaxEfficiency_Selected']:
                 for i in range(0, len(inv_Input)):
                         inv_HourlyLoss = inv_Input[i] * (1-inv_MaxEfficiency)
                         Inv_losses_hourly.append(inv_HourlyLoss)
                         Eff_values_hourly.append(inv_MaxEfficiency)
                         #print(str(inv_HourlyLoss))
                 
-            elif inverterDict['inv_EuroEfficiency']:
+            elif inverterDict['inv_EuroEfficiency_Selected']:
                 for i in range(0, len(inv_Input)):
                         inv_HourlyLoss = inv_Input[i] * (1-inv_EuroEfficiency)
                         Inv_losses_hourly.append(inv_HourlyLoss)
                         Eff_values_hourly.append(inv_EuroEfficiency)
                         #print(str(inv_HourlyLoss))
                 
-            elif inverterDict['inv_CECEfficiency']:
+            elif inverterDict['inv_CECEfficiency_Selected']:
                 for i in range(0, len(inv_Input)):
                         inv_HourlyLoss = inv_Input[i] * (1-inv_CECEfficiency)
                         Inv_losses_hourly.append(inv_HourlyLoss)
                         Eff_values_hourly.append(inv_CECEfficiency)
                         #print(str(inv_HourlyLoss))
             else:
-                if inverterDict['inv_WeightedEff']:
+                if inverterDict['inv_WeightedEff_Selected']:
                     for i in range(0, len(inv_Input)):  
                         nInput = inv_Input[i]/inv_Ratedpower
                         inv_Interp = np.interp(nInput, Eff_Ranges, Eff_Values)
@@ -599,16 +599,17 @@ class Electrical_simulation:
         else:
             for i in range(0, len(inv_Input)):
                 inv_HourlyLoss = 0
+                Eff_values_hourly.append(0)
                 Inv_losses_hourly.append(inv_HourlyLoss)
                 #print(str(inv_HourlyLoss))
        
             
         #Output of the inverter (Difference between input and loss)                                            
-        for i in range(len(inv_Input)):
+        for i in range(0, len(inv_Input)):
             inv_out = inv_Input[i] - Inv_losses_hourly[i]
             P_out_ac1_hourly.append(inv_out)
                     
-        
+
 
         # Create dataframe with data for inverter
         p_inv_df = pd.DataFrame({"timestamps":df_report.index, "Inv_losses":  Inv_losses_hourly, "Eff_values": Eff_values_hourly, "P_out_ac1": P_out_ac1_hourly,})
@@ -618,7 +619,7 @@ class Electrical_simulation:
         
         
         #Plot for Inverter loss
-        GUI.Window.makePlotinvLosses(resultsPath)
+        #GUI.Window.makePlotinvLosses(resultsPath)
         
         
         
