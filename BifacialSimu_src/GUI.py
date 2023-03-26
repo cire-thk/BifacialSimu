@@ -174,11 +174,15 @@ WireDict = {
 }
 
 inverterDict = {
+    'inv_MaxEfficiency_Selected': 0,
+    'inv_EuroEfficiency_Selected': 0,
+    'inv_CECEfficiency_Selected': 0,
+    'inv_WeightedEfficiency_Selected': 0,
     'inv_Ratedpower': 0, #Rated power of inverter [W]
     'inv_MaxEfficiency': 0, #Maximum efficiency of inverter [%]
     'inv_EuroEfficiency': 0, #European efficiency of inverter [%]
     'inv_CECEfficiency': 0, #California efficiency of inverter [%]
-    'inv_WeightedEff': True, #Check whether weighted efficiency selector or not
+    'inv_WeightedEff': 0, #Check whether weighted efficiency selector or not
     'inv_Input1': 0, #Ranges for inverter efficinecy input
     'inv_Input2': 0.2, #Ranges for inverter efficinecy input
     'inv_Input3': 0.4, #Ranges for inverter efficinecy input
@@ -500,6 +504,11 @@ class Window(tk.Tk):
         globals.checkbutton_state=IntVar()
         Mismatch_checkbutton = tk.Checkbutton(simulationMode_frame, text="Plot Mismatch Power Losses", variable= globals.checkbutton_state)
         Mismatch_checkbutton.grid(column=0, row=10, sticky="W")
+        
+        # Inserting Inverter loss Button
+        globals.checkbutton_state_inv=IntVar()
+        Invloss_checkbutton = tk.Checkbutton(inverterParameter_frame, text="Plot Inverter Losses", variable= globals.checkbutton_state_inv)
+        Invloss_checkbutton.grid(column=0, row=17, sticky="W")
 
         
         # Starting the simulation
@@ -777,8 +786,9 @@ class Window(tk.Tk):
           
             makePlotAbsIrr(resultsPath)
             makePlotirradiance(resultsPath)
-            makePlotBifacialRadiance(resultsPath) 
+            makePlotBifacialRadiance(resultsPath)
             makePlotMismatch(resultsPath,globals.checkbutton_state)
+            makePlotinvLosses(resultsPath,globals.checkbutton_state_inv)
 
           
 # =============================================================================
@@ -1104,6 +1114,50 @@ class Window(tk.Tk):
             fig3.savefig("Bifacial_output_Power_" + datetime.datetime.now().strftime("%Y-%m-%d-%H-%M") + ".png")
             #os.rename(resultsPath + "/electrical_simulation.csv", resultsPath + "electrical_simulation_" + datetime.datetime.now().strftime("%Y-%m-%d-%H-%M") + ".csv") 
 
+# =============================================================================
+
+        def makePlotinvLosses(resultsPath,checkbutton_state_inv):
+            if checkbutton_state_inv.get()== 1 :
+                plt.style.use("seaborn")
+                    
+                    
+                data=pd.read_csv(resultsPath + "electrical_simulation" + datetime.datetime.now().strftime("%Y-%m-%d-%H-%M") + ".csv")
+                date=pd.read_csv(resultsPath + "/Data.csv")
+                timestamp_start=date.timestamp [0]
+                timestamp_end=len(date.timestamp)
+                idx=pd.date_range(timestamp_start, periods=timestamp_end, freq="1H")
+                    
+                Inv_losses=data["Inv_losses"]
+                Eff_values=data["Eff_values"]
+                    
+                   
+                fig5 = plt.Figure()
+                ax5= fig5.subplots()
+                    
+                ax5.plot(idx, Inv_losses, label="Inv_losses", color="blue")
+                ax5.plot(idx, Eff_values, label="Eff_values", color="red")
+                    
+                ax5.xaxis.set_minor_locator(dates.DayLocator(interval=1))   # every Day
+                ax5.xaxis.set_minor_formatter(dates.DateFormatter('%d'))  # day and hours
+                ax5.xaxis.set_major_locator(dates.MonthLocator(interval=1))    # every Month
+                ax5.xaxis.set_major_formatter(dates.DateFormatter('\n%m-%Y'))             
+                ax5.legend()
+                ax5.set_ylabel('Power\n[W/m²]', size=17)
+                ax5.set_xlabel("Time", size=17)
+                ax5.set_title('Inverter losses\n', size=18)
+                
+                # saving results to .png file
+                fig5.tight_layout()
+                fig5.savefig("Inv_losses" + datetime.datetime.now().strftime("%Y-%m-%d-%H-%M") + ".png")
+                    
+                # showing results in a window
+                canvas = FigureCanvasTkAgg(fig5, master=tk.Toplevel())
+                canvas.get_tk_widget().pack(side=tk.TOP, fill=tk.BOTH, expand=1.0)
+                canvas.draw()
+                
+            else:
+                return
+            
 #                 
 # =============================================================================
 # Entries for default settings
@@ -2037,7 +2091,7 @@ class Window(tk.Tk):
      #inverter loss radio button
         #Enable/Disable
         def invLosses():
-            if rb_invLosses.get()==0:
+            if rb_invLosses.get()==1:
                 SimulationDict["invLosses"]=True
                 Label_inv_Ratedpower.config(state="normal")
                 Entry_inv_Ratedpower.config(state="normal")
@@ -2084,7 +2138,7 @@ class Window(tk.Tk):
 
                 
                 
-            if rb_invLosses.get()==1:
+            if rb_invLosses.get()==0:
                 SimulationDict["invLosses"]=False
                 Label_inv_Ratedpower.config(state="disabled")
                 Entry_inv_Ratedpower.config(state="disabled")
@@ -2133,19 +2187,21 @@ class Window(tk.Tk):
         rb_invLosses=IntVar()
         rb_invLosses.set("0")
    
-        rad1_invLosses=Radiobutton(inverterParameter_frame, variable=rb_invLosses, width=10, text="Enable", value=0, command=lambda:invLosses())
-        rad2_invLosses=Radiobutton(inverterParameter_frame, variable=rb_invLosses, width=10, text="Disable", value=1, command=lambda:invLosses())
+        rad1_invLosses=Radiobutton(inverterParameter_frame, variable=rb_invLosses, width=10, text="Disable", value=0, command=lambda:invLosses())
+        rad2_invLosses=Radiobutton(inverterParameter_frame, variable=rb_invLosses, width=10, text="Enable", value=1, command=lambda:invLosses())
         rad1_invLosses.grid(row=1, column=1, sticky=W)
         rad2_invLosses.grid(row=1, column=2, sticky=W)
         
         
     #Efficiencytype radio button
         def Efficiencytype():
-                        
             #inverter type
             #Enable/Disable
             if rb_Efficiencytype.get()==0:
-                    inverterDict["Max efficiency"]=True
+                    inverterDict["inv_MaxEfficiency_Selected"]=1
+                    inverterDict["inv_EuroEfficiency_Selected"]=0
+                    inverterDict["inv_CECEfficiency_Selected"]=0
+                    inverterDict["inv_WeightedEff_Selected"]=0
                     Label_inv_MaxEfficiency.config(state="normal")
                     Entry_inv_MaxEfficiency.config(state="normal")
                     Label_inv_MaxEfficiencyUnit.config(state="normal")
@@ -2190,7 +2246,10 @@ class Window(tk.Tk):
                   
                   
             if rb_Efficiencytype.get()==1:
-                    inverterDict["Euro efficiency"]=True
+                    inverterDict["inv_EuroEfficiency_Selected"]=1
+                    inverterDict["inv_MaxEfficiency_Selected"]=0
+                    inverterDict["inv_CECEfficiency_Selected"]=0
+                    inverterDict["inv_WeightedEff_Selected"]=0
                     Label_inv_MaxEfficiency.config(state="disabled")
                     Entry_inv_MaxEfficiency.config(state="disabled")
                     Label_inv_MaxEfficiencyUnit.config(state="disabled")
@@ -2233,7 +2292,10 @@ class Window(tk.Tk):
                   
               
             if rb_Efficiencytype.get()==2:
-                    inverterDict["CEC efficiency"]=True
+                    inverterDict["inv_CECEfficiency_Selected"]=1
+                    inverterDict["inv_EuroEfficiency_Selected"]=0
+                    inverterDict["inv_MaxEfficiency_Selected"]=0
+                    inverterDict["inv_WeightedEff_Selected"]=0
                     Label_inv_MaxEfficiency.config(state="disabled")
                     Entry_inv_MaxEfficiency.config(state="disabled")
                     Label_inv_MaxEfficiencyUnit.config(state="disabled")
@@ -2280,7 +2342,10 @@ class Window(tk.Tk):
                     
                     
             if rb_Efficiencytype.get()==3:
-                    inverterDict["Weighted efficiency"]=True
+                    inverterDict["inv_WeightedEff_Selected"]=1
+                    inverterDict["inv_CECEfficiency_Selected"]=0
+                    inverterDict["inv_EuroEfficiency_Selected"]=0
+                    inverterDict["inv_MaxEfficiency_Selected"]=0
                     Label_inv_MaxEfficiency.config(state="disabled")
                     Entry_inv_MaxEfficiency.config(state="disabled")
                     Label_inv_MaxEfficiencyUnit.config(state="disabled")
@@ -2757,6 +2822,7 @@ class Window(tk.Tk):
                 self.Inverter_type = key2
                 SimulationDict["inverter_type"]=self.Inverter_type            
 
+                Entry_inv_Ratedpower.delete(0,END)
                 Entry_inv_MaxEfficiency.delete(0,END)
                 Entry_inv_EuroEfficiency.delete(0,END)
                 Entry_inv_CECEfficiency.delete(0,END)
@@ -2779,6 +2845,7 @@ class Window(tk.Tk):
                 
                 
                 if rb_ElectricalMode.get()==0:
+                    Entry_inv_Ratedpower.insert(0,str(o['Rated power']))
                     Entry_inv_MaxEfficiency.insert(0,str(o['Max efficiency']))
                     Entry_inv_EuroEfficiency.insert(0,str(o['Euro efficiency']))
                     Entry_inv_CECEfficiency.insert(0,str(o['CEC efficiency']))
@@ -2797,6 +2864,7 @@ class Window(tk.Tk):
                     Entry_inv_Effvalue6.insert(0,str(o['inv_Effvalue6']))
                     Entry_inv_Effvalue7.insert(0,str(o['inv_Effvalue7']))
                 else:                                                               
+                    Entry_inv_Ratedpower.insert(0,str(o['0']))
                     Entry_inv_MaxEfficiency.insert(0,str(o['0'])) 
                     Entry_inv_EuroEfficiency.insert(0,str(o['0']))
                     Entry_inv_CECEfficiency.insert(0,str(o['0']))
@@ -2875,6 +2943,9 @@ class Window(tk.Tk):
         Electricalmode()
         Backtracking()
         dcWireLosses()
+        acWireLosses()
+        invLosses()
+        
         
 # =============================================================================
 #         Control Buttons for the Simulation    
@@ -3030,41 +3101,7 @@ class Window(tk.Tk):
         canvas.draw()
         
 
-    def makePlotinvLosses(resultsPath):
-        plt.style.use("seaborn")
-            
-            
-        data=pd.read_csv(resultsPath + "electrical_simulation" + datetime.datetime.now().strftime("%Y-%m-%d-%H-%M") + ".csv")
-        date=pd.read_csv(resultsPath + "/Data.csv")
-        timestamp_start=date.timestamp [0]
-        timestamp_end=len(date.timestamp)
-        idx=pd.date_range(timestamp_start, periods=timestamp_end, freq="1H")
-            
-        Inv_losses=data["Inv_losses"]
-        Eff_values=data["Eff_values"]
-            
-           
-        fig5 = plt.Figure()
-        ax5= fig5.subplots()
-            
-        ax5.plot(idx, Inv_losses, label="Inv_losses", color="blue")
-        ax5.plot(idx, Eff_values, label="Eff_values", color="red")
-            
-        ax5.xaxis.set_minor_locator(dates.DayLocator(interval=1))   # every Day
-        ax5.xaxis.set_minor_formatter(dates.DateFormatter('%d'))  # day and hours
-        ax5.xaxis.set_major_locator(dates.MonthLocator(interval=1))    # every Month
-        ax5.xaxis.set_major_formatter(dates.DateFormatter('\n%m-%Y'))             
-        ax5.legend()
-        ax5.set_ylabel('Power\n[W/m²]', size=17)
-        ax5.set_xlabel("Time", size=17)
-        ax5.set_title('Inverter losses\n', size=18)
-            
-        fig5.tight_layout()
-        fig5.savefig("Inv_losses" + datetime.datetime.now().strftime("%Y-%m-%d-%H-%M") + ".png")
-            
-        canvas = FigureCanvasTkAgg(fig5, master=tk.Toplevel())
-        canvas.get_tk_widget().pack(side=tk.TOP, fill=tk.BOTH, expand=1.0)
-        canvas.draw()        
+   
 
 def gui():    
     root = Window()
