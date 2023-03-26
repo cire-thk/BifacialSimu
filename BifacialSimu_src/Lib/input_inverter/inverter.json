@@ -1,6 +1,9 @@
 {
 	"default": {
+    	"Rated power": 300,
 		"Max efficiency": 0.97,
+		"Euro efficiency": 0.964,
+		"CEC efficiency": 0.967,
 		"inv_Input1": 0,
 		"inv_Input2": 0.05,
 		"inv_Input3": 0.1,
@@ -17,6 +20,7 @@
 		"inv_Effvalue7": 0.95
     },
     "SMA-Sunny-Boy-3.0": {
+        "Rated power": 3000,
 		"Max efficiency": 0.97,
 		"Euro efficiency": 0.964,
 		"CEC efficiency": 0.967,
@@ -36,6 +40,7 @@
 		"inv_Effvalue7": 0.98
     },
 	"SG250HX":{
+    	"Rated power": 250000,
 		"Max efficiency": 0.99,
 		"Euro efficiency": 0.988,
 		"CEC efficiency": 0.967,
@@ -55,6 +60,7 @@
 		"inv_Effvalue7": 0.96
 	},	
 	"PVS300-TL":{
+    	"Rated power": 3400,
 		"Max efficiency": 0.971,
 		"Euro efficiency": 0.96,
 		"CEC efficiency": 0.967,
@@ -74,6 +80,7 @@
 		"inv_Effvalue7": 0.95
 	},
 	"CSI-4KTL1-GI-FL":{
+    	"Rated power": 4600,
 		"Max efficiency": 0.981,
 		"Euro efficiency": 0.973,
 		"CEC efficiency": 0.967,
@@ -93,6 +100,7 @@
 		"inv_Effvalue7": 0.97
 	},
 	"SE3K":{
+    	"Rated power": 3000,
 		"Max efficiency": 0.98,
 		"Euro efficiency": 0.967,
 		"CEC efficiency": 0.967,
