@@ -509,6 +509,11 @@ class Window(tk.Tk):
         globals.checkbutton_state_inv=IntVar()
         Invloss_checkbutton = tk.Checkbutton(inverterParameter_frame, text="Plot Inverter Losses", variable= globals.checkbutton_state_inv)
         Invloss_checkbutton.grid(column=0, row=17, sticky="W")
+        
+        # Inserting Cable loss Button
+        globals.checkbutton_state_wire=IntVar()
+        Wireloss_checkbutton = tk.Checkbutton(wireParameter_frame, text="Plot Wire Losses", variable= globals.checkbutton_state_wire)
+        Wireloss_checkbutton.grid(column=0, row=12, sticky="W")
 
         
         # Starting the simulation
@@ -789,6 +794,7 @@ class Window(tk.Tk):
             makePlotBifacialRadiance(resultsPath)
             makePlotMismatch(resultsPath,globals.checkbutton_state)
             makePlotinvLosses(resultsPath,globals.checkbutton_state_inv)
+            makePlotWireLosses(resultsPath,globals.checkbutton_state_wire)
 
           
 # =============================================================================
@@ -1114,6 +1120,46 @@ class Window(tk.Tk):
             fig3.savefig("Bifacial_output_Power_" + datetime.datetime.now().strftime("%Y-%m-%d-%H-%M") + ".png")
             #os.rename(resultsPath + "/electrical_simulation.csv", resultsPath + "electrical_simulation_" + datetime.datetime.now().strftime("%Y-%m-%d-%H-%M") + ".csv") 
 
+# =============================================================================
+
+        def makePlotWireLosses(resultsPath, checkbutton_state_wire):
+            if checkbutton_state_wire.get()== 1 :
+                plt.style.use("seaborn")
+                    
+                    
+                data=pd.read_csv(resultsPath + "electrical_simulation" + datetime.datetime.now().strftime("%Y-%m-%d-%H-%M") + ".csv")
+                date=pd.read_csv(resultsPath + "/Data.csv")
+                timestamp_start=date.timestamp [0]
+                timestamp_end=len(date.timestamp)
+                idx=pd.date_range(timestamp_start, periods=timestamp_end, freq="1H")
+                    
+                P_losses_dc=data["P_losses_dc"]
+                P_losses_ac=data["P_losses_ac_hourly"]
+                   
+                fig4 = plt.Figure()
+                ax4= fig4.subplots()
+                    
+                ax4.plot(idx, P_losses_dc, label="P_losses_dc", color="green")
+                ax4.plot(idx, P_losses_ac, label="P_losses_ac", color="brown")
+                    
+                ax4.xaxis.set_minor_locator(dates.DayLocator(interval=1))   # every Day
+                ax4.xaxis.set_minor_formatter(dates.DateFormatter('%d'))  # day and hours
+                ax4.xaxis.set_major_locator(dates.MonthLocator(interval=1))    # every Month
+                ax4.xaxis.set_major_formatter(dates.DateFormatter('\n%m-%Y'))             
+                ax4.legend()
+                ax4.set_ylabel('Power\n[W/m²]', size=17)
+                ax4.set_xlabel("Time", size=17)
+                ax4.set_title('Wire Losses\n', size=18)
+                    
+                fig4.tight_layout()
+                fig4.savefig("Wire_losses" + datetime.datetime.now().strftime("%Y-%m-%d-%H-%M") + ".png")
+                    
+                canvas = FigureCanvasTkAgg(fig4, master=tk.Toplevel())
+                canvas.get_tk_widget().pack(side=tk.TOP, fill=tk.BOTH, expand=1.0)
+                canvas.draw()
+            else:
+                return
+            
 # =============================================================================
 
         def makePlotinvLosses(resultsPath,checkbutton_state_inv):
@@ -3065,40 +3111,7 @@ class Window(tk.Tk):
             #os.rename(resultsPath + "/electrical_simulation.csv", resultsPath + "electrical_simulation_" + datetime.datetime.now().strftime("%Y-%m-%d-%H-%M") + ".csv") 
 
 
-    def makePlotLosses(resultsPath):
-        plt.style.use("seaborn")
-            
-            
-        data=pd.read_csv(resultsPath + "electrical_simulation" + datetime.datetime.now().strftime("%Y-%m-%d-%H-%M") + ".csv")
-        date=pd.read_csv(resultsPath + "/Data.csv")
-        timestamp_start=date.timestamp [0]
-        timestamp_end=len(date.timestamp)
-        idx=pd.date_range(timestamp_start, periods=timestamp_end, freq="1H")
-            
-        P_losses_dc=data["P_losses_dc"]
-        P_losses_ac=data["P_losses_ac_hourly"]
-           
-        fig4 = plt.Figure()
-        ax4= fig4.subplots()
-            
-        ax4.plot(idx, P_losses_dc, label="P_losses_dc", color="green")
-        ax4.plot(idx, P_losses_ac, label="P_losses_ac", color="brown")
-            
-        ax4.xaxis.set_minor_locator(dates.DayLocator(interval=1))   # every Day
-        ax4.xaxis.set_minor_formatter(dates.DateFormatter('%d'))  # day and hours
-        ax4.xaxis.set_major_locator(dates.MonthLocator(interval=1))    # every Month
-        ax4.xaxis.set_major_formatter(dates.DateFormatter('\n%m-%Y'))             
-        ax4.legend()
-        ax4.set_ylabel('Power\n[W/m²]', size=17)
-        ax4.set_xlabel("Time", size=17)
-        ax4.set_title('Wire Losses\n', size=18)
-            
-        fig4.tight_layout()
-        fig4.savefig("Wire_losses" + datetime.datetime.now().strftime("%Y-%m-%d-%H-%M") + ".png")
-            
-        canvas = FigureCanvasTkAgg(fig4, master=tk.Toplevel())
-        canvas.get_tk_widget().pack(side=tk.TOP, fill=tk.BOTH, expand=1.0)
-        canvas.draw()
+    
         
 
    

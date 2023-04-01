@@ -674,8 +674,8 @@ class Electrical_simulation:
             #print("AC Wire Resistance: " + str(acWire_res*1000) + " mOhms")
    
             
-        if simulationDict['dcWireLosses'] == True or simulationDict['acWireLosses'] == True:
-            GUI.Window.makePlotLosses(resultsPath)            
+        #if simulationDict['dcWireLosses'] == True or simulationDict['acWireLosses'] == True:
+            #GUI.Window.makePlotLosses(resultsPath)            
         
         
         return Bifacial_gain*100
