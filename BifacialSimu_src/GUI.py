@@ -1133,14 +1133,18 @@ class Window(tk.Tk):
                 timestamp_end=len(date.timestamp)
                 idx=pd.date_range(timestamp_start, periods=timestamp_end, freq="1H")
                     
-                P_losses_dc=data["P_losses_dc"]
-                P_losses_ac=data["P_losses_ac_hourly"]
+                if SimulationDict['dcWireLosses'] == True:
+                    P_losses_dc=data["P_losses_dc"]
+                if SimulationDict['acWireLosses'] == True:    
+                    P_losses_ac=data["P_losses_ac_hourly"]
                    
                 fig4 = plt.Figure()
                 ax4= fig4.subplots()
                     
-                ax4.plot(idx, P_losses_dc, label="P_losses_dc", color="green")
-                ax4.plot(idx, P_losses_ac, label="P_losses_ac", color="brown")
+                if SimulationDict['dcWireLosses'] == True:
+                    ax4.plot(idx, P_losses_dc, label="P_losses_dc", color="green")
+                if SimulationDict['acWireLosses'] == True:
+                    ax4.plot(idx, P_losses_ac, label="P_losses_ac", color="brown")
                     
                 ax4.xaxis.set_minor_locator(dates.DayLocator(interval=1))   # every Day
                 ax4.xaxis.set_minor_formatter(dates.DateFormatter('%d'))  # day and hours
