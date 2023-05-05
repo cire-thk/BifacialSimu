@@ -23,11 +23,13 @@ overview:
 #matplotlib.use("TkAgg")
 import sys
 import math
-
 import os
 import webbrowser
 from tkinter import *
-
+import time
+from datetime import datetime
+from timezonefinder import TimezoneFinder as tf
+import pytz
 
 try:
     import tkinter as tk
@@ -213,12 +215,7 @@ class Window(tk.Tk):
 # =============================================================================
         # Main Control tab:
         def button_MC():
-            # f_MC= open(rootPath+"\Lib\Info_Messages\Main_Control.txt")
-            # text_MC= f_MC.read()
-            # f_MC.close()
-            # response=messagebox.askokcancel("Functions Info!", text_MC)
-            # if response == 1:
-            #     webbrowser.open("https://github.com/cire-thk/BifacialSimu#readme",new=1)
+            
             pop = Toplevel()
             pop.title("Main Control Info!")
             pop.geometry("1000x400")
@@ -244,13 +241,7 @@ class Window(tk.Tk):
                                   
         # Simulation Control tab
         def button_SC():
-            # f_SC= open(rootPath+"\Lib\Info_Messages\Simulation_Control.txt")
-            # text_SC= f_SC.read()
-            # f_SC.close()
-            # response=messagebox.askokcancel("Functions Info!", text_SC)
-            # if response == 1:
-            #     webbrowser.open("https://github.com/cire-thk/BifacialSimu#readme",new=1)
-               
+                           
             pop = Toplevel()
             pop.title("Simulation Control Info!")
             pop.geometry("1400x700")
@@ -273,12 +264,7 @@ class Window(tk.Tk):
             
         # Module Parameter tab
         def button_MP():
-            # f_MP= open(rootPath+"\Lib\Info_Messages\Module_Parameter.txt")
-            # text_MP= f_MP.read()
-            # f_MP.close()
-            # response=messagebox.askokcancel("Functions Info!", text_MP) 
-            # if response == 1:
-            #     webbrowser.open("https://github.com/cire-thk/BifacialSimu#readme",new=1)
+            
              pop= Toplevel()
              pop.title("Module Parameter Info!")
              pop.geometry("1300x760")
@@ -394,7 +380,7 @@ class Window(tk.Tk):
         my_notebook.add(simulationMode_frame, text="Simulation Control")
         my_notebook.add(ModuleParameter_frame, text="Module Parameter")
         
-        # Inserting Button Mismatch Button
+        # Inserting Button for Plotting Mismatch Button
         checkbutton_state=IntVar()
         Mismatch_checkbutton = tk.Checkbutton(simulationMode_frame, text="Plot Mismatch Power Losses", variable= checkbutton_state)
         Mismatch_checkbutton.grid(column=0, row=14, sticky="W")
@@ -411,7 +397,7 @@ class Window(tk.Tk):
         
         # Inserting  Button for Plotting Bifacial Radiance
         plot_BiRadiance_button=IntVar()
-        BifacialRadiance_checkbutton = tk.Checkbutton(simulationMode_frame, text="Plot Bifacial Radiance", variable= plot_BiRadiance_button)
+        BifacialRadiance_checkbutton = tk.Checkbutton(simulationMode_frame, text="Plot Bifacial Output Power", variable= plot_BiRadiance_button)
         BifacialRadiance_checkbutton.grid(column=1, row=15, sticky="W")
 
         
@@ -1138,10 +1124,32 @@ class Window(tk.Tk):
             SimulationDict["spectralReflectancefile"]=Entry_reflectivityfile.get()
             
         def Set_UTC_offset():
+            """ This function takes the coordinates entered by the user in the GUI, and returns as a result the resulting UTC timezone offset of the given location.
+                The coordinates should be entered according to the following format:
+                Longitudes: +/- 00.000000, where '+' represents East and '-' represents West
+                Latitudes:  +/- 00.000000, where '+' represents North and '-' represents South"""
+                
+            #User Longitude and Latitude entries    
             Longitude= float(Entry_longitude.get())
-            offset_result= round(Longitude*24/360)
+            Latitude= float(Entry_latitude.get())
+            
+            #this part gets time zone name only
+            tz_GMT = tf().timezone_at(lng=0, lat=0)             #GMT is required to calculate the difference and obtain the UTC
+            tz= tf().timezone_at(lng=Longitude, lat=Latitude)   #This is the coordinates entered by the user
+            
+            #create a timezone object here:
+            timezone_GMT= pytz.timezone(tz_GMT)
+            timezone= pytz.timezone(tz)
+
+            #Getting actual time in each time zone 
+            GMT_time= datetime.datetime.now(timezone_GMT)
+            tested_time= datetime.datetime.now(timezone)
+
+            #Subtracting both times to obtain the difference in hours, which is the UTC offset required
+            UTC_offset= tested_time.hour- GMT_time.hour
+         
             Entry_utcoffset.delete(0,END)
-            Entry_utcoffset.insert(0, int(offset_result))
+            Entry_utcoffset.insert(0, int(UTC_offset))
                      
         #Changing the weatherfile
         Lab_weatherfile=ttk.Label(namecontrol_frame, text="Add Path of weatherfile:")
