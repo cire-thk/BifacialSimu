@@ -108,14 +108,21 @@ class DataHandler:
         resultsPath: output filepath       
         """
         df = metdata.solpos
-
-        df['ghi'] = metdata.ghi
-        df['dhi'] = metdata.dhi
-        df['dni'] = metdata.dni
-
-        df['temperature'] = metdata.temp_air
-        df['pressure'] = metdata.pressure
-        df['albedo'] = metdata.albedo
+        try:
+            
+            df['ghi'] = metdata.ghi
+            df['dhi'] = metdata.dhi
+            df['dni'] = metdata.dni
+            df['temperature'] = metdata.temp_air
+            df['pressure'] = metdata.pressure
+            df['albedo'] = metdata.albedo
+        
+        except:
+            df['ghi'] = metdata.ghi
+            df['dhi'] = metdata.dhi
+            df['dni'] = metdata.dni
+            df['temperature'] = metdata.temp_air
+            df['albedo'] = metdata.albedo
         
         #define start and end Date for dataframe
         #dtStart = datetime.datetime(simulationDict['startHour'][0], simulationDict['startHour'][1], simulationDict['startHour'][2], simulationDict['startHour'][3], tzinfo=dateutil.tz.tzoffset(None, simulationDict['utcOffset']*60*60))
