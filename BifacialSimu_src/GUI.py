@@ -944,7 +944,7 @@ class Window(tk.Tk):
             Combo_Module.current(0)
             Combo_Albedo.current(0)
             rad1_weatherfile.invoke()
-            rad1_simulationMode.invoke()
+            rad2_simulationMode.invoke()
             rad1_rb_SingleAxisTracking.invoke()
             rad1_Albedo.invoke()
             rad1_ElectricalMode.invoke()
