@@ -1,4 +1,4 @@
-# -*- coding: utf-8 -*-
+    # -*- coding: utf-8 -*-
 """
 Created on Mon Jun  7 11:39:16 2021
 
@@ -142,6 +142,9 @@ class Electrical_simulation:
         V_oc_r0 = moduleDict['V_oc_r']
         V_oc_f0 = moduleDict['V_oc_f']
         
+        soilrate = simulationDict['fixSoilrate']
+        days_until_clean = simulationDict['days_until_clean']
+        
         #module = moduleParameter['module']
         #inverter = moduleParameter['inverter']
         
@@ -187,6 +190,9 @@ class Electrical_simulation:
         df_report['time'] = df_report['corrected_timestamp'].dt.strftime('%m_%d_%H')
         df_report = df_report.set_index('time')
         
+        df_time_soiling = pd.DataFrame(df['corrected_timestamp'])
+        df_time_soiling['month'] = df['corrected_timestamp'].dt.strftime('%m') # Needed to choose wright soiling rate from SimulationDict                                            
+        df_time_soiling = df_time_soiling.reset_index(drop = True)
         
         
         
@@ -218,55 +224,183 @@ class Electrical_simulation:
             key_back = "row_" + str(i) + "_qabs_back"
         
             P_bi_hourly = []
-          
-            for index, row in df_report.iterrows():
+            
+            temp = 0  #couting variable in loop to calculate soilrate for consecutive hours
+            x = 0 #counting variable in loop to get current month from df_time_soiling
+            
+            
+            if simulationDict["mathematicalSoilingrate"] == True:
+                soilrate = SimulationDict["hourlySoilrate"]
                 
-                row_qabs_front = df_report.loc[index,key_front]
-                row_qabs_back = df_report.loc[index,key_back]
-                T_Current = df.loc[index,'temperature']
-                
-                
-                #print("front: " + str(row_qabs_front))
-                #print("back: " + str(row_qabs_back))
-                if math.isnan(row_qabs_front) or row_qabs_front < 0.0:
-                    row_qabs_front = 0
+                for i, in enumerate(soilrate):
                     
-                if math.isnan(row_qabs_back) or row_qabs_back < 0.0:
-                    row_qabs_back = 0
+                    for index, row in df_report.iterrows():
+                        
+                        row_qabs_front = df_report.loc[index,key_front] * (1 - soilrate[i])
+                        row_qabs_back = df_report.loc[index,key_back] * (1 - (soilrate[i]/(8.8)))
+                        T_Current = df.loc[index,'temperature']
+                        
+                        
+                        #print("front: " + str(row_qabs_front))
+                        #print("back: " + str(row_qabs_back))
+                        
+                        if math.isnan(row_qabs_front) or row_qabs_front < 0.0:
+                            row_qabs_front = 0
+                            
+                        if math.isnan(row_qabs_back) or row_qabs_back < 0.0:
+                            row_qabs_back = 0
 
+                        
+                        if row_qabs_back + row_qabs_front > 0.0:
+                            
+                            I_sc_f = I_sc_f0 * (1 + T_koeff_I * (T_Current - T_amb))     
+                            I_sc_r = I_sc_r0 * (1 + T_koeff_I * (T_Current - T_amb))
+                            
+                            V_oc_f = V_oc_f0 * (1 + T_koeff_V * (T_Current - T_amb))
+                            V_oc_r = V_oc_r0 * (1 + T_koeff_V * (T_Current - T_amb))
+                            
+                            FF_f = FF_f0 * ((1 + T_koeff_P * (T_Current-T_amb)) / ((1 + T_koeff_I * (T_Current - T_amb)) * (1 + T_koeff_V * (T_Current - T_amb))))
+                            FF_r = FF_r0 * ((1 + T_koeff_P * (T_Current-T_amb)) / ((1 + T_koeff_I * (T_Current - T_amb)) * (1 + T_koeff_V * (T_Current - T_amb))))
+                            
+                            I_sc_b = (row_qabs_front / q_stc_front) * I_sc_f + (row_qabs_back / q_stc_rear) * I_sc_r
+                            R_I_sc_b = I_sc_b / I_sc_f
+                            V_oc_b = V_oc_f + ((V_oc_r - V_oc_f) * np.log(R_I_sc_b) / np.log(I_sc_r / I_sc_f))
+                            
+                            pFF = ((I_sc_r0/I_sc_f0) * FF_f0 - (FF_r0 * (V_oc_r0 / V_oc_f0))) / ((I_sc_r0/I_sc_f0) - (V_oc_r0 / V_oc_f0))
+                            FF_b = pFF - (R_I_sc_b * (V_oc_f0 / V_oc_b) * (pFF - FF_f0))
+                        
+                            P_bi = FF_b * V_oc_b * I_sc_b
+                            #print("Power: " + str(P_bi))
+                    
+                            sum_energy_b += P_bi # Sum up the energy of every row in every hour
+                    
+                        else:
+                            P_bi=0
+                        
+                        P_bi_hourly.append(P_bi)
+                        
+                    # Append P_bi_hourly array to arrays
+                    P_bi_hourly_arrays.append(P_bi_hourly)
+            #
+            elif simulationDict["monthlySoilingrate"] == True:
                 
-                if row_qabs_back + row_qabs_front > 0.0:
+                for index, row in df_report.iterrows():
                     
-                    I_sc_f = I_sc_f0 * (1 + T_koeff_I * (T_Current - T_amb))     
-                    I_sc_r = I_sc_r0 * (1 + T_koeff_I * (T_Current - T_amb))
+                    if temp == days_until_clean*24:
+                        temp = 0                     
+                        temp = temp +1                 
+                    else:
+                        temp = temp +1
+                    soilrate = simulationDict["variableSoilrate"][int(df_time_soiling['month'][x])]
+                    x = x+1
                     
-                    V_oc_f = V_oc_f0 * (1 + T_koeff_V * (T_Current - T_amb))
-                    V_oc_r = V_oc_r0 * (1 + T_koeff_V * (T_Current - T_amb))
+                    # calculate front row power output including the soiling rate determined in GUI                               
+                    row_qabs_front = df_report.loc[index,key_front] * (1 - (soilrate*(temp)/(24)))   
+                    # calculate back row power output including the decreased soiling for backside of PV module                                 
+                    row_qabs_back = df_report.loc[index,key_back] * (1 - (soilrate*(temp)/(24*8.8)))
                     
-                    FF_f = FF_f0 * ((1 + T_koeff_P * (T_Current-T_amb)) / ((1 + T_koeff_I * (T_Current - T_amb)) * (1 + T_koeff_V * (T_Current - T_amb))))
-                    FF_r = FF_r0 * ((1 + T_koeff_P * (T_Current-T_amb)) / ((1 + T_koeff_I * (T_Current - T_amb)) * (1 + T_koeff_V * (T_Current - T_amb))))
+                    T_Current = df.loc[index,'temperature']
                     
-                    I_sc_b = (row_qabs_front / q_stc_front) * I_sc_f + (row_qabs_back / q_stc_rear) * I_sc_r
-                    R_I_sc_b = I_sc_b / I_sc_f
-                    V_oc_b = V_oc_f + ((V_oc_r - V_oc_f) * np.log(R_I_sc_b) / np.log(I_sc_r / I_sc_f))
                     
-                    pFF = ((I_sc_r0/I_sc_f0) * FF_f0 - (FF_r0 * (V_oc_r0 / V_oc_f0))) / ((I_sc_r0/I_sc_f0) - (V_oc_r0 / V_oc_f0))
-                    FF_b = pFF - (R_I_sc_b * (V_oc_f0 / V_oc_b) * (pFF - FF_f0))
+                    #print("front: " + str(row_qabs_front))
+                    #print("back: " + str(row_qabs_back))
+                    
+                    if math.isnan(row_qabs_front) or row_qabs_front < 0.0:
+                        row_qabs_front = 0
+                        
+                    if math.isnan(row_qabs_back) or row_qabs_back < 0.0:
+                        row_qabs_back = 0
+
+                    
+                    if row_qabs_back + row_qabs_front > 0.0:
+                        
+                        I_sc_f = I_sc_f0 * (1 + T_koeff_I * (T_Current - T_amb))     
+                        I_sc_r = I_sc_r0 * (1 + T_koeff_I * (T_Current - T_amb))
+                        
+                        V_oc_f = V_oc_f0 * (1 + T_koeff_V * (T_Current - T_amb))
+                        V_oc_r = V_oc_r0 * (1 + T_koeff_V * (T_Current - T_amb))
+                        
+                        FF_f = FF_f0 * ((1 + T_koeff_P * (T_Current-T_amb)) / ((1 + T_koeff_I * (T_Current - T_amb)) * (1 + T_koeff_V * (T_Current - T_amb))))
+                        FF_r = FF_r0 * ((1 + T_koeff_P * (T_Current-T_amb)) / ((1 + T_koeff_I * (T_Current - T_amb)) * (1 + T_koeff_V * (T_Current - T_amb))))
+                        
+                        I_sc_b = (row_qabs_front / q_stc_front) * I_sc_f + (row_qabs_back / q_stc_rear) * I_sc_r
+                        R_I_sc_b = I_sc_b / I_sc_f
+                        V_oc_b = V_oc_f + ((V_oc_r - V_oc_f) * np.log(R_I_sc_b) / np.log(I_sc_r / I_sc_f))
+                        
+                        pFF = ((I_sc_r0/I_sc_f0) * FF_f0 - (FF_r0 * (V_oc_r0 / V_oc_f0))) / ((I_sc_r0/I_sc_f0) - (V_oc_r0 / V_oc_f0))
+                        FF_b = pFF - (R_I_sc_b * (V_oc_f0 / V_oc_b) * (pFF - FF_f0))
+                    
+                        P_bi = FF_b * V_oc_b * I_sc_b
+                        #print("Power: " + str(P_bi))
                 
-                    P_bi = FF_b * V_oc_b * I_sc_b
-                    #print("Power: " + str(P_bi))
+                        sum_energy_b += P_bi # Sum up the energy of every row in every hour
+                
+                    else:
+                        P_bi=0
+                    
+                    P_bi_hourly.append(P_bi)
+                    
+                # Append P_bi_hourly array to arrays
+                P_bi_hourly_arrays.append(P_bi_hourly)
             
-                    sum_energy_b += P_bi # Sum up the energy of every row in every hour
+            #
+            else:
+                
+                for index, row in df_report.iterrows():
+                    
+                    # calculate front row power output including the soiling rate determined in GUI                               
+                    row_qabs_front = df_report.loc[index,key_front] * (1 - ((soilrate)/(24)))   
+                    # calculate back row power output including the decreased soiling for backside of PV module                                 
+                    row_qabs_back = df_report.loc[index,key_back] * (1 - ((soilrate)/(24*8.8)))
+                    
+                    T_Current = df.loc[index,'temperature']
+                    
+                    
+                    #print("front: " + str(row_qabs_front))
+                    #print("back: " + str(row_qabs_back))
+                    
+                    if math.isnan(row_qabs_front) or row_qabs_front < 0.0:
+                        row_qabs_front = 0
+                        
+                    if math.isnan(row_qabs_back) or row_qabs_back < 0.0:
+                        row_qabs_back = 0
+
+                    
+                    if row_qabs_back + row_qabs_front > 0.0:
+                        
+                        I_sc_f = I_sc_f0 * (1 + T_koeff_I * (T_Current - T_amb))     
+                        I_sc_r = I_sc_r0 * (1 + T_koeff_I * (T_Current - T_amb))
+                        
+                        V_oc_f = V_oc_f0 * (1 + T_koeff_V * (T_Current - T_amb))
+                        V_oc_r = V_oc_r0 * (1 + T_koeff_V * (T_Current - T_amb))
+                        
+                        FF_f = FF_f0 * ((1 + T_koeff_P * (T_Current-T_amb)) / ((1 + T_koeff_I * (T_Current - T_amb)) * (1 + T_koeff_V * (T_Current - T_amb))))
+                        FF_r = FF_r0 * ((1 + T_koeff_P * (T_Current-T_amb)) / ((1 + T_koeff_I * (T_Current - T_amb)) * (1 + T_koeff_V * (T_Current - T_amb))))
+                        
+                        I_sc_b = (row_qabs_front / q_stc_front) * I_sc_f + (row_qabs_back / q_stc_rear) * I_sc_r
+                        R_I_sc_b = I_sc_b / I_sc_f
+                        V_oc_b = V_oc_f + ((V_oc_r - V_oc_f) * np.log(R_I_sc_b) / np.log(I_sc_r / I_sc_f))
+                        
+                        pFF = ((I_sc_r0/I_sc_f0) * FF_f0 - (FF_r0 * (V_oc_r0 / V_oc_f0))) / ((I_sc_r0/I_sc_f0) - (V_oc_r0 / V_oc_f0))
+                        FF_b = pFF - (R_I_sc_b * (V_oc_f0 / V_oc_b) * (pFF - FF_f0))
+                    
+                        P_bi = FF_b * V_oc_b * I_sc_b
+                        #print("Power: " + str(P_bi))
+                
+                        sum_energy_b += P_bi # Sum up the energy of every row in every hour
+                
+                    else:
+                        P_bi=0
+                    
+                    P_bi_hourly.append(P_bi)
             
-                else:
-                    P_bi=0
-                
-                P_bi_hourly.append(P_bi)
-                
-            # Append P_bi_hourly array to arrays
-            P_bi_hourly_arrays.append(P_bi_hourly)
-                
-                
+                    
+                # Append P_bi_hourly array to arrays
+                P_bi_hourly_arrays.append(P_bi_hourly) 
+            
+            
+            #
+            
         P_bi_hourly_average = []
         
         for i in tqdm(range(0, len(P_bi_hourly_arrays[0]))):
@@ -333,33 +467,104 @@ class Electrical_simulation:
             
             key_front_mono = "row_" + str(i) + "_qabs_front"
             P_m_hourly = []
+            temp = 0  #couting variable in loop to calculate soilrate for consecutive hours
+            x = 0 #counting variable in loop to get current month from df_time_soiling
             
-            for index, row in df_report.iterrows():
+            if simulationDict["mathematicalSoilingrate"] == True:
+                soilrate = SimulationDict["hourlySoilrate"]
                 
-                #SG
-                row_qabs_front = df_report.loc[index,key_front_mono]
-                T_Current = df.loc[index,'temperature']
-
-                if math.isnan(row_qabs_front):
-                    row_qabs_front = 0 
-                
-                if  row_qabs_front > 0.0:
-              
-                    V_oc_f = V_oc_f0 * (1 + T_koeff_V * (T_Current - T_amb) + moduleDict['zeta'] * np.log(row_qabs_front / q_stc_front))
-                    I_sc_f = I_sc_f0 * (1 + T_koeff_I * (T_Current - T_amb)) * (row_qabs_front / q_stc_front)
-                    P_m = FF_f0 * V_oc_f * I_sc_f
-                
-                    #print("Power: " + str(P_bi))
-             
-                    sum_energy_m += P_m # Sum up the energy of every row in every hour
-                else:
-                    P_m = 0
+                for i, in enumerate(soilrate):
                     
-                P_m_hourly.append(P_m)
+                    for index, row in df_report.iterrows():
+                        
+                        #SG
+                        row_qabs_front = df_report.loc[index,key_front_mono] * (1 - soilrate[i])
+                        T_Current = df.loc[index,'temperature']
+
+                        if math.isnan(row_qabs_front):
+                            row_qabs_front = 0 
+                        
+                        if  row_qabs_front > 0.0:
+                      
+                            V_oc_f = V_oc_f0 * (1 + T_koeff_V * (T_Current - T_amb) + moduleDict['zeta'] * np.log(row_qabs_front / q_stc_front))
+                            I_sc_f = I_sc_f0 * (1 + T_koeff_I * (T_Current - T_amb)) * (row_qabs_front / q_stc_front)
+                            P_m = FF_f0 * V_oc_f * I_sc_f
+                        
+                            #print("Power: " + str(P_bi))
+                     
+                            sum_energy_m += P_m # Sum up the energy of every row in every hour
+                        else:
+                            P_m = 0
+                            
+                        P_m_hourly.append(P_m)
+                    
+                    # Append P_m_hourly array to arrays
+                    P_m_hourly_arrays.append(P_m_hourly)
+            #
+            elif simulationDict["monthlySoilingrate"] == True:
+                
+                for index, row in df_report.iterrows():
+                    
+                    if temp == days_until_clean*24:
+                        temp = 0                     
+                        temp = temp +1                 
+                    else:
+                        temp = temp +1
+                    soilrate = simulationDict["variableSoilrate"][int(df_time_soiling['month'][x])]
+                    x = x+1
+                    #SG
+                    row_qabs_front = df_report.loc[index,key_front_mono] * (1 - ((soilrate*(temp))/(24)))
+                    T_Current = df.loc[index,'temperature']
+
+                    if math.isnan(row_qabs_front):
+                        row_qabs_front = 0 
+                    
+                    if  row_qabs_front > 0.0:
+                  
+                        V_oc_f = V_oc_f0 * (1 + T_koeff_V * (T_Current - T_amb) + moduleDict['zeta'] * np.log(row_qabs_front / q_stc_front))
+                        I_sc_f = I_sc_f0 * (1 + T_koeff_I * (T_Current - T_amb)) * (row_qabs_front / q_stc_front)
+                        P_m = FF_f0 * V_oc_f * I_sc_f
+                    
+                        #print("Power: " + str(P_bi))
+                 
+                        sum_energy_m += P_m # Sum up the energy of every row in every hour
+                    else:
+                        P_m = 0
+                        
+                    P_m_hourly.append(P_m)
+                
+                # Append P_m_hourly array to arrays
+                P_m_hourly_arrays.append(P_m_hourly)
             
-            # Append P_m_hourly array to arrays
-            P_m_hourly_arrays.append(P_m_hourly)
-        
+            #
+            else:
+                
+                for index, row in df_report.iterrows():
+                    
+                    row_qabs_front = df_report.loc[index,key_front_mono] * (1 - ((soilrate)/(24)))
+                    T_Current = df.loc[index,'temperature']
+
+                    if math.isnan(row_qabs_front):
+                        row_qabs_front = 0 
+                    
+                    if  row_qabs_front > 0.0:
+                  
+                        V_oc_f = V_oc_f0 * (1 + T_koeff_V * (T_Current - T_amb) + moduleDict['zeta'] * np.log(row_qabs_front / q_stc_front))
+                        I_sc_f = I_sc_f0 * (1 + T_koeff_I * (T_Current - T_amb)) * (row_qabs_front / q_stc_front)
+                        P_m = FF_f0 * V_oc_f * I_sc_f
+                    
+                        #print("Power: " + str(P_bi))
+                 
+                        sum_energy_m += P_m # Sum up the energy of every row in every hour
+                    else:
+                        P_m = 0
+                        
+                    P_m_hourly.append(P_m)
+                
+                # Append P_m_hourly array to arrays
+                P_m_hourly_arrays.append(P_m_hourly)
+                
+            #        
         
         P_m_hourly_average = []
         
@@ -493,6 +698,9 @@ class Electrical_simulation:
         
         bi_factor = moduleDict['bi_factor']
         
+        soilrate = simulationDict['fixSoilrate']
+        days_until_clean = simulationDict['days_until_clean']
+        
         #module = moduleParameter['module']
         #inverter = moduleParameter['inverter']
         
@@ -529,6 +737,11 @@ class Electrical_simulation:
         df_report['time'] = df_report['corrected_timestamp'].dt.strftime('%m_%d_%H')
         df_report = df_report.set_index('time')
         
+        df_time_soiling = pd.DataFrame(df['corrected_timestamp'])
+        df_time_soiling['month'] = df['corrected_timestamp'].dt.strftime('%m') # Needed to choose wright soiling rate from SimulationDict                                            
+        df_time_soiling = df_time_soiling.reset_index(drop = True)
+        
+        
         if simulationDict['simulationMode'] == 3:
             df = df.reset_index()
             
@@ -549,9 +762,7 @@ class Electrical_simulation:
         df['time'] = df['corrected_timestamp'].dt.strftime('%m_%d_%H')
         df = df.set_index('time')
         print(df_report)
-        
-        
-        
+
         # Loop to calculate the Bifacial Output power for every row in every hour
         for i in tqdm(range(0, simulationDict['nRows'])):
             
@@ -559,42 +770,136 @@ class Electrical_simulation:
             key_back = "row_" + str(i) + "_qabs_back"
         
             P_bi_hourly = []
-          
-            for index, row in df_report.iterrows():
+            
+            temp = 0  #couting variable in loop to calculate soilrate for consecutive hours
+            x = 0 #counting variable in loop to get current month from df_time_soiling
+            
+            if simulationDict["mathematicalSoilingrate"] == True:
+                soilrate = SimulationDict["hourlySoilrate"]
                 
-                #row_qabs_front = row[key_front]
-                #row_qabs_back = row[key_back]
-                
-                row_qabs_front = df_report.loc[index,key_front]
-                row_qabs_back = df_report.loc[index,key_back]
-                row_qabs_combined = row_qabs_front + (row_qabs_back*bi_factor)
-                T_Current = df.loc[index,'temperature']
-                
-                
-                # calculation of frontside power output
-                if math.isnan(row_qabs_front) or row_qabs_front < 0.0:
-                    row_qabs_front = 0
-                    P_bi = 0     
+                for i, in enumerate(soilrate):
+                    
+                    for index, row in df_report.iterrows():
+                        
+                        #row_qabs_front = row[key_front]
+                        #row_qabs_back = row[key_back]
+                        
+                        row_qabs_front = df_report.loc[index,key_front] * (1 - soilrate[i])
+                        row_qabs_back = df_report.loc[index,key_back] (1 - (soilrate[i]/(8.8)))
+                        row_qabs_combined = row_qabs_front + (row_qabs_back*bi_factor)
+                        T_Current = df.loc[index,'temperature']
+                        
+                        
+                        # calculation of frontside power output
+                        if math.isnan(row_qabs_front) or row_qabs_front < 0.0:
+                            row_qabs_front = 0
+                            P_bi = 0     
 
-                # calculation of backside power output
-                elif math.isnan(row_qabs_back) or row_qabs_back < 0.0:
-                    row_qabs_back = 0
-                    P_bi = 0
-               
-                else:
-                    V_oc_f = V_oc_f0 * (1 + T_koeff_V * (T_Current - T_amb) + moduleDict['zeta'] * np.log(row_qabs_combined / q_stc_front))
-                    I_sc_f = I_sc_f0 * (1 + T_koeff_I * (T_Current - T_amb)) * (row_qabs_combined / q_stc_front)
-                    P_bi = FF_f0 * V_oc_f * I_sc_f
+                        # calculation of backside power output
+                        elif math.isnan(row_qabs_back) or row_qabs_back < 0.0:
+                            row_qabs_back = 0
+                            P_bi = 0
+                       
+                        else:
+                            V_oc_f = V_oc_f0 * (1 + T_koeff_V * (T_Current - T_amb) + moduleDict['zeta'] * np.log(row_qabs_combined / q_stc_front))
+                            I_sc_f = I_sc_f0 * (1 + T_koeff_I * (T_Current - T_amb)) * (row_qabs_combined / q_stc_front)
+                            P_bi = FF_f0 * V_oc_f * I_sc_f
+                        
+
+                        sum_energy_b += P_bi # Sum up the energy of every row in every hour
+
+                        P_bi_hourly.append(P_bi)
+                        
+                    # Append P_bi_hourly array to arrays
+                    P_bi_hourly_arrays.append(P_bi_hourly)
+
+                    print(sum_energy_b)
+                        
+            #            
+            elif simulationDict["monthlySoilingrate"] == True:
                 
+                for index, row in df_report.iterrows():
+                    
+                    if temp == days_until_clean*24:
+                        temp = 0                     
+                        temp = temp +1                 
+                    else:
+                        temp = temp +1
+                    soilrate = simulationDict["variableSoilrate"][int(df_time_soiling['month'][x])]
+                    x = x+1
+                    
+                    row_qabs_front = df_report.loc[index,key_front] * (1 - (soilrate*(temp)/(24)))
+                    row_qabs_back = df_report.loc[index,key_back] * (1 - (soilrate*(temp)/(24*8.8)))
+                    row_qabs_combined = row_qabs_front + (row_qabs_back*bi_factor)
+                    T_Current = df.loc[index,'temperature']
+                    
+                    
+                    # calculation of frontside power output
+                    if math.isnan(row_qabs_front) or row_qabs_front < 0.0:
+                        row_qabs_front = 0
+                        P_bi = 0     
 
-                sum_energy_b += P_bi # Sum up the energy of every row in every hour
+                    # calculation of backside power output
+                    elif math.isnan(row_qabs_back) or row_qabs_back < 0.0:
+                        row_qabs_back = 0
+                        P_bi = 0
+                   
+                    else:
+                        V_oc_f = V_oc_f0 * (1 + T_koeff_V * (T_Current - T_amb) + moduleDict['zeta'] * np.log(row_qabs_combined / q_stc_front))
+                        I_sc_f = I_sc_f0 * (1 + T_koeff_I * (T_Current - T_amb)) * (row_qabs_combined / q_stc_front)
+                        P_bi = FF_f0 * V_oc_f * I_sc_f
+                    
 
-                P_bi_hourly.append(P_bi)
-                
-            # Append P_bi_hourly array to arrays
-            P_bi_hourly_arrays.append(P_bi_hourly)
+                    sum_energy_b += P_bi # Sum up the energy of every row in every hour
 
-            print(sum_energy_b)
+                    P_bi_hourly.append(P_bi)
+                    
+                # Append P_bi_hourly array to arrays
+                P_bi_hourly_arrays.append(P_bi_hourly)
+
+                print(sum_energy_b)
+            
+            #
+            else:
+                for index, row in df_report.iterrows():
+                    
+                    #row_qabs_front = row[key_front]
+                    #row_qabs_back = row[key_back]
+                    
+                    # calculate front row power output including the soiling rate determined in GUI                               
+                    row_qabs_front = df_report.loc[index,key_front] * (1 - ((soilrate)/(24)))   
+                    # calculate back row power output including the decreased soiling for backside of PV module                                 
+                    row_qabs_back = df_report.loc[index,key_back] * (1 - ((soilrate)/(24*8.8)))
+                    
+                    row_qabs_combined = row_qabs_front + (row_qabs_back*bi_factor)
+                    T_Current = df.loc[index,'temperature']
+                    
+                    
+                    # calculation of frontside power output
+                    if math.isnan(row_qabs_front) or row_qabs_front < 0.0:
+                        row_qabs_front = 0
+                        P_bi = 0     
+
+                    # calculation of backside power output
+                    elif math.isnan(row_qabs_back) or row_qabs_back < 0.0:
+                        row_qabs_back = 0
+                        P_bi = 0
+                   
+                    else:
+                        V_oc_f = V_oc_f0 * (1 + T_koeff_V * (T_Current - T_amb) + moduleDict['zeta'] * np.log(row_qabs_combined / q_stc_front))
+                        I_sc_f = I_sc_f0 * (1 + T_koeff_I * (T_Current - T_amb)) * (row_qabs_combined / q_stc_front)
+                        P_bi = FF_f0 * V_oc_f * I_sc_f
+                    
+
+                    sum_energy_b += P_bi # Sum up the energy of every row in every hour
+
+                    P_bi_hourly.append(P_bi)
+                    
+                # Append P_bi_hourly array to arrays
+                P_bi_hourly_arrays.append(P_bi_hourly)
+
+                print(sum_energy_b)
+            #
                 
         P_bi_hourly_average = []
         
@@ -656,28 +961,79 @@ class Electrical_simulation:
             
             key_front_mono = "row_" + str(i) + "_qabs_front"
             
-            for index, row in df_report.iterrows():
+            P_m_hourly = []
+            temp = 0  #couting variable in loop to calculate soilrate for consecutive hours
+            x = 0 #counting variable in loop to get current month from df_time_soiling
+            
+            if simulationDict["mathematicalSoilingrate"] == True:
+                soilrate = SimulationDict["hourlySoilrate"]
                 
-                #SG
-                #row_qabs_front = row[key_front_mono]
-                #T_Current = df.loc[index,'temperature']
-                row_qabs_front = df_report.loc[index,key_front_mono]
-                T_Current = df.loc[index,'temperature']
-
-                # calculation of frontside power output
-                if math.isnan(row_qabs_front) or row_qabs_front < 0.0:
-                    row_qabs_front = 0
-                    P_m = 0 
+                for i, in enumerate(soilrate):
                     
-                else:
-                    V_oc_f = V_oc_f0 * (1 + T_koeff_V * (T_Current - T_amb) + moduleDict['zeta'] * np.log(row_qabs_front / q_stc_front))
-                    I_sc_f = I_sc_f0 * (1 + T_koeff_I * (T_Current - T_amb)) * (row_qabs_front / q_stc_front)
-                    P_m = FF_f0 * V_oc_f * I_sc_f
-               
-                sum_energy_m += P_m # Sum up the energy of every row in every hour
+                    for index, row in df_report.iterrows():
+                        
+                        #SG
+                        row_qabs_front = df_report.loc[index,key_front_mono] * (1 - soilrate[i])
+                        T_Current = df.loc[index,'temperature']
+                        
+                        # calculation of frontside power output
+                        if math.isnan(row_qabs_front) or row_qabs_front < 0.0:
+                            row_qabs_front = 0
+                            P_m = 0 
+                            
+                        else:
+                            V_oc_f = V_oc_f0 * (1 + T_koeff_V * (T_Current - T_amb) + moduleDict['zeta'] * np.log(row_qabs_front / q_stc_front))
+                            I_sc_f = I_sc_f0 * (1 + T_koeff_I * (T_Current - T_amb)) * (row_qabs_front / q_stc_front)
+                            P_m = FF_f0 * V_oc_f * I_sc_f
+                       
+                        sum_energy_m += P_m # Sum up the energy of every row in every hour
+            #
+            elif simulationDict["monthlySoilingrate"] == True:
                 
-
-        
+                for index, row in df_report.iterrows():
+                    
+                    if temp == days_until_clean*24:
+                        temp = 0                     
+                        temp = temp +1                 
+                    else:
+                        temp = temp +1
+                    soilrate = simulationDict["variableSoilrate"][int(df_time_soiling['month'][x])]
+                    x = x+1
+                    #SG
+                    row_qabs_front = df_report.loc[index,key_front_mono] * (1 - ((soilrate*(temp))/(24)))
+                    T_Current = df.loc[index,'temperature']
+                    
+                    # calculation of frontside power output
+                    if math.isnan(row_qabs_front) or row_qabs_front < 0.0:
+                        row_qabs_front = 0
+                        P_m = 0 
+                        
+                    else:
+                        V_oc_f = V_oc_f0 * (1 + T_koeff_V * (T_Current - T_amb) + moduleDict['zeta'] * np.log(row_qabs_front / q_stc_front))
+                        I_sc_f = I_sc_f0 * (1 + T_koeff_I * (T_Current - T_amb)) * (row_qabs_front / q_stc_front)
+                        P_m = FF_f0 * V_oc_f * I_sc_f
+                   
+                    sum_energy_m += P_m # Sum up the energy of every row in every hour
+            #
+            else:
+                
+                for index, row in df_report.iterrows():
+                    row_qabs_front = df_report.loc[index,key_front_mono] * (1 - ((soilrate)/(24)))
+                    T_Current = df.loc[index,'temperature']
+                    
+                    # calculation of frontside power output
+                    if math.isnan(row_qabs_front) or row_qabs_front < 0.0:
+                        row_qabs_front = 0
+                        P_m = 0 
+                        
+                    else:
+                        V_oc_f = V_oc_f0 * (1 + T_koeff_V * (T_Current - T_amb) + moduleDict['zeta'] * np.log(row_qabs_front / q_stc_front))
+                        I_sc_f = I_sc_f0 * (1 + T_koeff_I * (T_Current - T_amb)) * (row_qabs_front / q_stc_front)
+                        P_m = FF_f0 * V_oc_f * I_sc_f
+                   
+                    sum_energy_m += P_m # Sum up the energy of every row in every hour
+            #
+            #
         annual_power_per_module_m = (sum_energy_m/simulationDict['nRows']) #[W] annual monofacial output power per module
         '''print("Yearly monofacial output power per module: " + str(annual_power_per_module_m) + " W/module")
         print("Yearly monofacial output energy per module: " + str(annual_power_per_module_m/1000) + " kWh/module") # Because the input data is per hour, the Energy is equivalent to the performance
@@ -762,6 +1118,10 @@ class Electrical_simulation:
         V_oc_r0 = moduleDict['V_oc_r']
         V_oc_f0 = moduleDict['V_oc_f']
         
+        Ns = moduleDict['Ns']      #Number of cells in module
+        soilrate = simulationDict['fixSoilrate'] #Michailow
+        days_until_clean = simulationDict['days_until_clean']
+        
         #module = moduleParameter['module']
         #inverter = moduleParameter['inverter']
         
@@ -832,6 +1192,11 @@ class Electrical_simulation:
         
         df['time'] = df['corrected_timestamp'].dt.strftime('%m_%d_%H')
         df = df.set_index('time')
+        
+        df_time_soiling = pd.DataFrame(df['corrected_timestamp'])
+        df_time_soiling['month'] = df['corrected_timestamp'].dt.strftime('%m') # Needed to choose wright soiling rate from SimulationDict
+        df_time_soiling = df_time_soiling.reset_index(drop = True)
+        
         
         #Diode ideality factors. a1 has to be 1 while a2 is flexible but it has to be above 1.2
         a1 = 1      
@@ -1051,160 +1416,496 @@ class Electrical_simulation:
             
             P_m_hourly = []
             P_bi_hourly = []
-          
-            for index, row in df_report.iterrows():
+            
+            temp = 0  #couting variable in loop to calculate soilrate for consecutive hours
+            x = 0 #counting variable in loop to get current month from df_time_soiling
+            #
+            if simulationDict["mathematicalSoilingrate"] == True:
+                soilrate = SimulationDict["hourlySoilrate"]
                 
-                row_qabs_front = df_report.loc[index,key_front]
-                row_qabs_back = df_report.loc[index,key_back]
-                T_Current = df.loc[index,'temperature']
-                
-                
-                #print("front: " + str(row_qabs_front))
-                #print("back: " + str(row_qabs_back))
-                if math.isnan(row_qabs_front) or row_qabs_front < 0.0:
-                    row_qabs_front = 0
+                for i, in enumerate(soilrate):
                     
-                if math.isnan(row_qabs_back) or row_qabs_back < 0.0:
-                    row_qabs_back = 0
-
-                
-                if row_qabs_back + row_qabs_front > 0.0:
-                    
-                    #Now that Rs and Rp are calculated for both sides of the module, the power calculation starts.
-                    #Values are now adjusted for temperature and later also irradiation
-                    
-                    I_sc_f = I_sc_f0 * (1 + T_koeff_I * (T_Current - T_amb))     
-                    I_sc_r = I_sc_r0 * (1 + T_koeff_I * (T_Current - T_amb))
-                    
-                    V_oc_f = V_oc_f0 * (1 + T_koeff_V * (T_Current - T_amb))
-                    V_oc_r = V_oc_r0 * (1 + T_koeff_V * (T_Current - T_amb))
-                    
-                    #setting starting parameters for the loop
-                    I = 0
-                    V = 0
-                    P = 0
-                    P1 = 0
-                    P_mpp_sf = 0
-                    
-                    
-                    #Modified version of the Rs, Rp calculation loop. Since Rs and Rp are now given, the loop needs only a fraction of iterations
-                    #to calculate the power from a given irradiance and temperature
-                    #The way this works is that the algorythm searches for the Mpp of the module with the given irradiance and temperature
-                    #Just like a real PV system would do
-                    #It 'draws' the P-V curve and finds the Mpp which is then the power output of the module
-                    for yf in range (100000):
+                    for index, row in df_report.iterrows():
                         
-                        if row_qabs_front == 0:
-                            P_m = 0
-                            P_mpp_sf = 0
-                            break
+                        #row_qabs_front = row[key_front]
+                        #row_qabs_back = row[key_back]
                         
-                        #Calculation of the photo current + correction for irrandiance and temperature
-                        Vt_f = (Ns * k * (T_Current + 273.15)) / q_ec
-
-                        #Calculation of the saturation current
-                        I_0_f0 = (I_sc_f) / (np.exp((V_oc_f) / (Vt_f))-1)
-
-                        #adjustment ot the photo current for irradiation
-                        I_ph_f0 = I_sc_f                                             
-                        I_ph_f = I_ph_f0 * (row_qabs_front / q_stc_front) 
-              
-                        #newthons method to find the matching current for a given voltage
-                        f_I = I_ph_f - I_0_f0 * (np.exp((V+ I * Rs_f0) / Vt_f) + np.exp((V + I * Rs_f0) / (Vt_f * a2)) - 2) - ((V + I * Rs_f0) / Rp_f0) - I
-                        f_dI = (-1) * ((I_0_f0 * Rs_f0) / Vt_f) * np.exp((V + I * Rs_f0) / Vt_f) - ((I_0_f0 * Rs_f0) / (Vt_f * a2)) * np.exp((V+ I * Rs_f0) / (Vt_f * a2)) - (Rs_f0 / Rp_f0) - 1
-       
-                        I2 = I - (f_I/f_dI)
-              
-       
-                        if I + tol_I >= I2 and I2 >= I - tol_I:         #Once I is found, the Power check starts just like in xf loop
-                            P2 = V * I2
-
-                            if P2 > P1:                 #Check if the new power is higher than the last
-                                P1 = P2                 #If this is true, it becomes the new reference value
-               
-                            else:
-                                P_mpp_sf = P1           #The highest calculated power gets added to P_mpp_sf
-                                
-                            if V >= V_oc_f:             # If V reached V_oc, the P-V curve is complete and the Mpp can be searched
-                                P_f = P_mpp_sf          #P_mpp_sf is the calculated Mpp for the Module for the given irradiance and and temperature
-                                P_m = P_f
-                                sum_energy_m += P_m     #The value gets added to a list for Bifacial gain calculation
-                                yf = 0                  #Iterations get reset after successful Mpp calculation
-                                break                   #The Mpp was found, the script quits the loop
-                          
-               
-                            I = 0                       #Since there is only one P-V curve to calculate, V does not have to be reset
-                            V = V + 0.1
-                        else:
-                            I = I2
+                        row_qabs_front = df_report.loc[index,key_front] * (1 - soilrate[i])
+                        row_qabs_back = df_report.loc[index,key_back] (1 - (soilrate[i]/(8.8)))
                         
+                        T_Current = df.loc[index,'temperature']
+                        
+                        #print("front: " + str(row_qabs_front))
+                        #print("back: " + str(row_qabs_back))
+                        if math.isnan(row_qabs_front) or row_qabs_front < 0.0:
+                            row_qabs_front = 0
                             
-                    ##################################
-                    ###Same procedure for rear side###
-                    ##################################
-                    I = 0
-                    V = 0
-                    P = 0
-                    P1 = 0
-                    
-                    
-                    
-                    for yr in range (100000):
-                        
-                        if row_qabs_front == 0:
-                            P_mpp_sr = 0
-                            break
-                  
-                        #Calculation of the photo current + correction for irrandiance and temperature
-                        Vt_r = (Ns * k * (T_Current + 273.15)) / q_ec
- 
-                        I_0_r0 = (I_sc_r) / (np.exp((V_oc_r) / (Vt_r))-1)
-       
-                        I_ph_r0 = I_sc_r                                             
-                        I_ph_r = I_ph_r0 * (row_qabs_back / q_stc_rear) 
-              
-                        f_I = I_ph_r - I_0_r0 * (np.exp((V+ I * Rs_r0) / Vt_r) + np.exp((V + I * Rs_r0) / (Vt_r * a2)) - 2) - ((V + I * Rs_r0) / Rp_r0) - I
-                        f_dI = (-1) * ((I_0_r0 * Rs_r0) / Vt_r) * np.exp((V + I * Rs_r0) / Vt_r) - ((I_0_r0 * Rs_r0) / (Vt_r * a2)) * np.exp((V+ I * Rs_r0) / (Vt_r * a2)) - (Rs_r0 / Rp_r0) - 1
-       
-                        I2 = I - (f_I/f_dI)
-              
-       
-                        if I + tol_I >= I2 and I2 >= I - tol_I:
-                            P2 = V * I2
+                        if math.isnan(row_qabs_back) or row_qabs_back < 0.0:
+                            row_qabs_back = 0
 
-                            if P2 > P1:
-                                P1 = P2
-               
-                            else:
-                                P_mpp_sr = P1
-                          
-                            if V >= V_oc_r:
-                                P_r = P_mpp_sr 
-                                yr = 0
-                                break
-                          
-               
+                        
+                        if row_qabs_back + row_qabs_front > 0.0:
+                            
+                            #Now that Rs and Rp are calculated for both sides of the module, the power calculation starts.
+                            #Values are now adjusted for temperature and later also irradiation
+                            
+                            I_sc_f = I_sc_f0 * (1 + T_koeff_I * (T_Current - T_amb))     
+                            I_sc_r = I_sc_r0 * (1 + T_koeff_I * (T_Current - T_amb))
+                            
+                            V_oc_f = V_oc_f0 * (1 + T_koeff_V * (T_Current - T_amb))
+                            V_oc_r = V_oc_r0 * (1 + T_koeff_V * (T_Current - T_amb))
+                            
+                            #setting starting parameters for the loop
                             I = 0
-                            V = V + 0.1
-                        else:
-                            I = I2                    
+                            V = 0
+                            P = 0
+                            P1 = 0
+                            P_mpp_sf = 0
+                            
+                            
+                            #Modified version of the Rs, Rp calculation loop. Since Rs and Rp are now given, the loop needs only a fraction of iterations
+                            #to calculate the power from a given irradiance and temperature
+                            #The way this works is that the algorythm searches for the Mpp of the module with the given irradiance and temperature
+                            #Just like a real PV system would do
+                            #It 'draws' the P-V curve and finds the Mpp which is then the power output of the module
+                            for yf in range (100000):
+                                
+                                if row_qabs_front == 0:
+                                    P_m = 0
+                                    P_mpp_sf = 0
+                                    break
+                                
+                                #Calculation of the photo current + correction for irrandiance and temperature
+                                Vt_f = (Ns * k * (T_Current + 273.15)) / q_ec
+
+                                #Calculation of the saturation current
+                                I_0_f0 = (I_sc_f) / (np.exp((V_oc_f) / (Vt_f))-1)
+
+                                #adjustment ot the photo current for irradiation
+                                I_ph_f0 = I_sc_f                                             
+                                I_ph_f = I_ph_f0 * (row_qabs_front / q_stc_front) 
+                      
+                                #newthons method to find the matching current for a given voltage
+                                f_I = I_ph_f - I_0_f0 * (np.exp((V+ I * Rs_f0) / Vt_f) + np.exp((V + I * Rs_f0) / (Vt_f * a2)) - 2) - ((V + I * Rs_f0) / Rp_f0) - I
+                                f_dI = (-1) * ((I_0_f0 * Rs_f0) / Vt_f) * np.exp((V + I * Rs_f0) / Vt_f) - ((I_0_f0 * Rs_f0) / (Vt_f * a2)) * np.exp((V+ I * Rs_f0) / (Vt_f * a2)) - (Rs_f0 / Rp_f0) - 1
+               
+                                I2 = I - (f_I/f_dI)
+                      
+               
+                                if I + tol_I >= I2 and I2 >= I - tol_I:         #Once I is found, the Power check starts just like in xf loop
+                                    P2 = V * I2
+
+                                    if P2 > P1:                 #Check if the new power is higher than the last
+                                        P1 = P2                 #If this is true, it becomes the new reference value
+                       
+                                    else:
+                                        P_mpp_sf = P1           #The highest calculated power gets added to P_mpp_sf
+                                        
+                                    if V >= V_oc_f:             # If V reached V_oc, the P-V curve is complete and the Mpp can be searched
+                                        P_f = P_mpp_sf          #P_mpp_sf is the calculated Mpp for the Module for the given irradiance and and temperature
+                                        P_m = P_f
+                                        sum_energy_m += P_m     #The value gets added to a list for Bifacial gain calculation
+                                        yf = 0                  #Iterations get reset after successful Mpp calculation
+                                        break                   #The Mpp was found, the script quits the loop
+                                  
+                       
+                                    I = 0                       #Since there is only one P-V curve to calculate, V does not have to be reset
+                                    V = V + 0.1
+                                else:
+                                    I = I2
+                                
+                                    
+                            ##################################
+                            ###Same procedure for rear side###
+                            ##################################
+                            I = 0
+                            V = 0
+                            P = 0
+                            P1 = 0
+                            
+                            
+                            
+                            for yr in range (100000):
+                                
+                                if row_qabs_front == 0:
+                                    P_mpp_sr = 0
+                                    break
+                          
+                                #Calculation of the photo current + correction for irrandiance and temperature
+                                Vt_r = (Ns * k * (T_Current + 273.15)) / q_ec
+         
+                                I_0_r0 = (I_sc_r) / (np.exp((V_oc_r) / (Vt_r))-1)
+               
+                                I_ph_r0 = I_sc_r                                             
+                                I_ph_r = I_ph_r0 * (row_qabs_back / q_stc_rear) 
+                      
+                                f_I = I_ph_r - I_0_r0 * (np.exp((V+ I * Rs_r0) / Vt_r) + np.exp((V + I * Rs_r0) / (Vt_r * a2)) - 2) - ((V + I * Rs_r0) / Rp_r0) - I
+                                f_dI = (-1) * ((I_0_r0 * Rs_r0) / Vt_r) * np.exp((V + I * Rs_r0) / Vt_r) - ((I_0_r0 * Rs_r0) / (Vt_r * a2)) * np.exp((V+ I * Rs_r0) / (Vt_r * a2)) - (Rs_r0 / Rp_r0) - 1
+               
+                                I2 = I - (f_I/f_dI)
+                      
+               
+                                if I + tol_I >= I2 and I2 >= I - tol_I:
+                                    P2 = V * I2
+
+                                    if P2 > P1:
+                                        P1 = P2
+                       
+                                    else:
+                                        P_mpp_sr = P1
+                                  
+                                    if V >= V_oc_r:
+                                        P_r = P_mpp_sr 
+                                        yr = 0
+                                        break
+                                  
+                       
+                                    I = 0
+                                    V = V + 0.1
+                                else:
+                                    I = I2                    
+                            
+                        
+                            P_bi = P_mpp_sf + P_mpp_sr
+                            #print("Power: " + str(P_bi))
                     
+                            sum_energy_b += P_bi # Sum up the energy of every row in every hour
+                    
+                        else:
+                            P_m=0
+                            P_bi=0
+                        
+                        P_m_hourly.append(P_m)
+                        P_bi_hourly.append(P_bi)
+                    
+                    # Append P_bi_hourly array to arrays
+                    P_m_hourly_arrays.append(P_m_hourly)
+                    P_bi_hourly_arrays.append(P_bi_hourly)
+            #
+            elif simulationDict["monthlySoilingrate"] == True:
                 
-                    P_bi = P_mpp_sf + P_mpp_sr
-                    #print("Power: " + str(P_bi))
-            
-                    sum_energy_b += P_bi # Sum up the energy of every row in every hour
-            
-                else:
-                    P_m=0
-                    P_bi=0
+                for index, row in df_report.iterrows():
+                    
+                    if temp == days_until_clean*24:
+                        temp = 0                     
+                        temp = temp +1                 
+                    else:
+                        temp = temp +1
+                    soilrate = simulationDict["variableSoilrate"][int(df_time_soiling['month'][x])]
+                    x = x+1
+                    
+                    row_qabs_front = df_report.loc[index,key_front] * (1 - (soilrate*(temp)/(24)))
+                    row_qabs_back = df_report.loc[index,key_back] * (1 - (soilrate*(temp)/(24*8.8)))
+                   
+                    T_Current = df.loc[index,'temperature']
+                    
+                    #print("front: " + str(row_qabs_front))
+                    #print("back: " + str(row_qabs_back))
+                    if math.isnan(row_qabs_front) or row_qabs_front < 0.0:
+                        row_qabs_front = 0
+                        
+                    if math.isnan(row_qabs_back) or row_qabs_back < 0.0:
+                        row_qabs_back = 0
+
+                    
+                    if row_qabs_back + row_qabs_front > 0.0:
+                        
+                        #Now that Rs and Rp are calculated for both sides of the module, the power calculation starts.
+                        #Values are now adjusted for temperature and later also irradiation
+                        
+                        I_sc_f = I_sc_f0 * (1 + T_koeff_I * (T_Current - T_amb))     
+                        I_sc_r = I_sc_r0 * (1 + T_koeff_I * (T_Current - T_amb))
+                        
+                        V_oc_f = V_oc_f0 * (1 + T_koeff_V * (T_Current - T_amb))
+                        V_oc_r = V_oc_r0 * (1 + T_koeff_V * (T_Current - T_amb))
+                        
+                        #setting starting parameters for the loop
+                        I = 0
+                        V = 0
+                        P = 0
+                        P1 = 0
+                        P_mpp_sf = 0
+                        
+                        
+                        #Modified version of the Rs, Rp calculation loop. Since Rs and Rp are now given, the loop needs only a fraction of iterations
+                        #to calculate the power from a given irradiance and temperature
+                        #The way this works is that the algorythm searches for the Mpp of the module with the given irradiance and temperature
+                        #Just like a real PV system would do
+                        #It 'draws' the P-V curve and finds the Mpp which is then the power output of the module
+                        for yf in range (100000):
+                            
+                            if row_qabs_front == 0:
+                                P_m = 0
+                                P_mpp_sf = 0
+                                break
+                            
+                            #Calculation of the photo current + correction for irrandiance and temperature
+                            Vt_f = (Ns * k * (T_Current + 273.15)) / q_ec
+
+                            #Calculation of the saturation current
+                            I_0_f0 = (I_sc_f) / (np.exp((V_oc_f) / (Vt_f))-1)
+
+                            #adjustment ot the photo current for irradiation
+                            I_ph_f0 = I_sc_f                                             
+                            I_ph_f = I_ph_f0 * (row_qabs_front / q_stc_front) 
+                  
+                            #newthons method to find the matching current for a given voltage
+                            f_I = I_ph_f - I_0_f0 * (np.exp((V+ I * Rs_f0) / Vt_f) + np.exp((V + I * Rs_f0) / (Vt_f * a2)) - 2) - ((V + I * Rs_f0) / Rp_f0) - I
+                            f_dI = (-1) * ((I_0_f0 * Rs_f0) / Vt_f) * np.exp((V + I * Rs_f0) / Vt_f) - ((I_0_f0 * Rs_f0) / (Vt_f * a2)) * np.exp((V+ I * Rs_f0) / (Vt_f * a2)) - (Rs_f0 / Rp_f0) - 1
+           
+                            I2 = I - (f_I/f_dI)
+                  
+           
+                            if I + tol_I >= I2 and I2 >= I - tol_I:         #Once I is found, the Power check starts just like in xf loop
+                                P2 = V * I2
+
+                                if P2 > P1:                 #Check if the new power is higher than the last
+                                    P1 = P2                 #If this is true, it becomes the new reference value
+                   
+                                else:
+                                    P_mpp_sf = P1           #The highest calculated power gets added to P_mpp_sf
+                                    
+                                if V >= V_oc_f:             # If V reached V_oc, the P-V curve is complete and the Mpp can be searched
+                                    P_f = P_mpp_sf          #P_mpp_sf is the calculated Mpp for the Module for the given irradiance and and temperature
+                                    P_m = P_f
+                                    sum_energy_m += P_m     #The value gets added to a list for Bifacial gain calculation
+                                    yf = 0                  #Iterations get reset after successful Mpp calculation
+                                    break                   #The Mpp was found, the script quits the loop
+                              
+                   
+                                I = 0                       #Since there is only one P-V curve to calculate, V does not have to be reset
+                                V = V + 0.1
+                            else:
+                                I = I2
+                            
+                                
+                        ##################################
+                        ###Same procedure for rear side###
+                        ##################################
+                        I = 0
+                        V = 0
+                        P = 0
+                        P1 = 0
+                        
+                        
+                        
+                        for yr in range (100000):
+                            
+                            if row_qabs_front == 0:
+                                P_mpp_sr = 0
+                                break
+                      
+                            #Calculation of the photo current + correction for irrandiance and temperature
+                            Vt_r = (Ns * k * (T_Current + 273.15)) / q_ec
+     
+                            I_0_r0 = (I_sc_r) / (np.exp((V_oc_r) / (Vt_r))-1)
+           
+                            I_ph_r0 = I_sc_r                                             
+                            I_ph_r = I_ph_r0 * (row_qabs_back / q_stc_rear) 
+                  
+                            f_I = I_ph_r - I_0_r0 * (np.exp((V+ I * Rs_r0) / Vt_r) + np.exp((V + I * Rs_r0) / (Vt_r * a2)) - 2) - ((V + I * Rs_r0) / Rp_r0) - I
+                            f_dI = (-1) * ((I_0_r0 * Rs_r0) / Vt_r) * np.exp((V + I * Rs_r0) / Vt_r) - ((I_0_r0 * Rs_r0) / (Vt_r * a2)) * np.exp((V+ I * Rs_r0) / (Vt_r * a2)) - (Rs_r0 / Rp_r0) - 1
+           
+                            I2 = I - (f_I/f_dI)
+                  
+           
+                            if I + tol_I >= I2 and I2 >= I - tol_I:
+                                P2 = V * I2
+
+                                if P2 > P1:
+                                    P1 = P2
+                   
+                                else:
+                                    P_mpp_sr = P1
+                              
+                                if V >= V_oc_r:
+                                    P_r = P_mpp_sr 
+                                    yr = 0
+                                    break
+                              
+                   
+                                I = 0
+                                V = V + 0.1
+                            else:
+                                I = I2                    
+                        
+                    
+                        P_bi = P_mpp_sf + P_mpp_sr
+                        #print("Power: " + str(P_bi))
                 
-                P_m_hourly.append(P_m)
-                P_bi_hourly.append(P_bi)
+                        sum_energy_b += P_bi # Sum up the energy of every row in every hour
                 
-            # Append P_bi_hourly array to arrays
-            P_m_hourly_arrays.append(P_m_hourly)
-            P_bi_hourly_arrays.append(P_bi_hourly)
+                    else:
+                        P_m=0
+                        P_bi=0
+                    
+                    P_m_hourly.append(P_m)
+                    P_bi_hourly.append(P_bi)
+                
+                # Append P_bi_hourly array to arrays
+                P_m_hourly_arrays.append(P_m_hourly)
+                P_bi_hourly_arrays.append(P_bi_hourly)
+            #
+            else:
+                for index, row in df_report.iterrows():
+                    
+                    #row_qabs_front = row[key_front]
+                    #row_qabs_back = row[key_back]
+                    
+                    # calculate front row power output including the soiling rate determined in GUI                               
+                    row_qabs_front = df_report.loc[index,key_front] * (1 - ((soilrate)/(24)))   
+                    # calculate back row power output including the decreased soiling for backside of PV module                                 
+                    row_qabs_back = df_report.loc[index,key_back] * (1 - ((soilrate)/(24*8.8)))
+                                       
+                    T_Current = df.loc[index,'temperature']
+                    
+                    #print("front: " + str(row_qabs_front))
+                    #print("back: " + str(row_qabs_back))
+                    if math.isnan(row_qabs_front) or row_qabs_front < 0.0:
+                        row_qabs_front = 0
+                        
+                    if math.isnan(row_qabs_back) or row_qabs_back < 0.0:
+                        row_qabs_back = 0
+
+                    
+                    if row_qabs_back + row_qabs_front > 0.0:
+                        
+                        #Now that Rs and Rp are calculated for both sides of the module, the power calculation starts.
+                        #Values are now adjusted for temperature and later also irradiation
+                        
+                        I_sc_f = I_sc_f0 * (1 + T_koeff_I * (T_Current - T_amb))     
+                        I_sc_r = I_sc_r0 * (1 + T_koeff_I * (T_Current - T_amb))
+                        
+                        V_oc_f = V_oc_f0 * (1 + T_koeff_V * (T_Current - T_amb))
+                        V_oc_r = V_oc_r0 * (1 + T_koeff_V * (T_Current - T_amb))
+                        
+                        #setting starting parameters for the loop
+                        I = 0
+                        V = 0
+                        P = 0
+                        P1 = 0
+                        P_mpp_sf = 0
+                        
+                        
+                        #Modified version of the Rs, Rp calculation loop. Since Rs and Rp are now given, the loop needs only a fraction of iterations
+                        #to calculate the power from a given irradiance and temperature
+                        #The way this works is that the algorythm searches for the Mpp of the module with the given irradiance and temperature
+                        #Just like a real PV system would do
+                        #It 'draws' the P-V curve and finds the Mpp which is then the power output of the module
+                        for yf in range (100000):
+                            
+                            if row_qabs_front == 0:
+                                P_m = 0
+                                P_mpp_sf = 0
+                                break
+                            
+                            #Calculation of the photo current + correction for irrandiance and temperature
+                            Vt_f = (Ns * k * (T_Current + 273.15)) / q_ec
+
+                            #Calculation of the saturation current
+                            I_0_f0 = (I_sc_f) / (np.exp((V_oc_f) / (Vt_f))-1)
+
+                            #adjustment ot the photo current for irradiation
+                            I_ph_f0 = I_sc_f                                             
+                            I_ph_f = I_ph_f0 * (row_qabs_front / q_stc_front) 
+                  
+                            #newthons method to find the matching current for a given voltage
+                            f_I = I_ph_f - I_0_f0 * (np.exp((V+ I * Rs_f0) / Vt_f) + np.exp((V + I * Rs_f0) / (Vt_f * a2)) - 2) - ((V + I * Rs_f0) / Rp_f0) - I
+                            f_dI = (-1) * ((I_0_f0 * Rs_f0) / Vt_f) * np.exp((V + I * Rs_f0) / Vt_f) - ((I_0_f0 * Rs_f0) / (Vt_f * a2)) * np.exp((V+ I * Rs_f0) / (Vt_f * a2)) - (Rs_f0 / Rp_f0) - 1
+           
+                            I2 = I - (f_I/f_dI)
+                  
+           
+                            if I + tol_I >= I2 and I2 >= I - tol_I:         #Once I is found, the Power check starts just like in xf loop
+                                P2 = V * I2
+
+                                if P2 > P1:                 #Check if the new power is higher than the last
+                                    P1 = P2                 #If this is true, it becomes the new reference value
+                   
+                                else:
+                                    P_mpp_sf = P1           #The highest calculated power gets added to P_mpp_sf
+                                    
+                                if V >= V_oc_f:             # If V reached V_oc, the P-V curve is complete and the Mpp can be searched
+                                    P_f = P_mpp_sf          #P_mpp_sf is the calculated Mpp for the Module for the given irradiance and and temperature
+                                    P_m = P_f
+                                    sum_energy_m += P_m     #The value gets added to a list for Bifacial gain calculation
+                                    yf = 0                  #Iterations get reset after successful Mpp calculation
+                                    break                   #The Mpp was found, the script quits the loop
+                              
+                   
+                                I = 0                       #Since there is only one P-V curve to calculate, V does not have to be reset
+                                V = V + 0.1
+                            else:
+                                I = I2
+                            
+                                
+                        ##################################
+                        ###Same procedure for rear side###
+                        ##################################
+                        I = 0
+                        V = 0
+                        P = 0
+                        P1 = 0
+                        
+                        
+                        
+                        for yr in range (100000):
+                            
+                            if row_qabs_front == 0:
+                                P_mpp_sr = 0
+                                break
+                      
+                            #Calculation of the photo current + correction for irrandiance and temperature
+                            Vt_r = (Ns * k * (T_Current + 273.15)) / q_ec
+     
+                            I_0_r0 = (I_sc_r) / (np.exp((V_oc_r) / (Vt_r))-1)
+           
+                            I_ph_r0 = I_sc_r                                             
+                            I_ph_r = I_ph_r0 * (row_qabs_back / q_stc_rear) 
+                  
+                            f_I = I_ph_r - I_0_r0 * (np.exp((V+ I * Rs_r0) / Vt_r) + np.exp((V + I * Rs_r0) / (Vt_r * a2)) - 2) - ((V + I * Rs_r0) / Rp_r0) - I
+                            f_dI = (-1) * ((I_0_r0 * Rs_r0) / Vt_r) * np.exp((V + I * Rs_r0) / Vt_r) - ((I_0_r0 * Rs_r0) / (Vt_r * a2)) * np.exp((V+ I * Rs_r0) / (Vt_r * a2)) - (Rs_r0 / Rp_r0) - 1
+           
+                            I2 = I - (f_I/f_dI)
+                  
+           
+                            if I + tol_I >= I2 and I2 >= I - tol_I:
+                                P2 = V * I2
+
+                                if P2 > P1:
+                                    P1 = P2
+                   
+                                else:
+                                    P_mpp_sr = P1
+                              
+                                if V >= V_oc_r:
+                                    P_r = P_mpp_sr 
+                                    yr = 0
+                                    break
+                              
+                   
+                                I = 0
+                                V = V + 0.1
+                            else:
+                                I = I2                    
+                        
+                    
+                        P_bi = P_mpp_sf + P_mpp_sr
+                        #print("Power: " + str(P_bi))
+                
+                        sum_energy_b += P_bi # Sum up the energy of every row in every hour
+                
+                    else:
+                        P_m=0
+                        P_bi=0
+                    
+                    P_m_hourly.append(P_m)
+                    P_bi_hourly.append(P_bi)
+                
+                # Append P_bi_hourly array to arrays
+                P_m_hourly_arrays.append(P_m_hourly)
+                P_bi_hourly_arrays.append(P_bi_hourly)
+            #
             
         P_bi_hourly_average = []
         
@@ -1259,42 +1960,111 @@ class Electrical_simulation:
         ####################################################
         # Monofacial performance Calculation
         
-        # Set Energy to Zero       
-        #sum_energy_m = 0
-        #sum_power_m = 0
+      # Set Energy to Zero       
+        sum_energy_m = 0
+        sum_power_m = 0
         
         # Loop to calculate the Monofacial Output power for every row in every hour
-        #for i in tqdm(range(0, simulationDict['nRows'])):
+        for i in tqdm(range(0, simulationDict['nRows'])):
             
-        #    key_front_mono = "row_" + str(i) + "_qabs_front"
-        #    P_m_hourly = []
+            key_front_mono = "row_" + str(i) + "_qabs_front"
+            P_m_hourly = []
+            temp = 0  #couting variable in loop to calculate soilrate for consecutive hours
+            x = 0 #counting variable in loop to get current month from df_time_soiling
             
-        #    for index, row in df_report.iterrows():
+            if simulationDict["mathematicalSoilingrate"] == True:
+                soilrate = SimulationDict["hourlySoilrate"]
                 
-        #        #SG
-        #        row_qabs_front = df_report.loc[index,key_front_mono]
-        #        T_Current = df.loc[index,'temperature']
-
-        #        if math.isnan(row_qabs_front):
-        #            row_qabs_front = 0 
-                
-        #        if  row_qabs_front > 0.0:
-              
-        #            V_oc_f = V_oc_f0 * (1 + T_koeff_V * (T_Current - T_amb) + moduleDict['zeta'] * np.log(row_qabs_front / q_stc_front))
-        #            I_sc_f = I_sc_f0 * (1 + T_koeff_I * (T_Current - T_amb)) * (row_qabs_front / q_stc_front)
-        #            P_m = FF_f0 * V_oc_f * I_sc_f
-                
-                    #print("Power: " + str(P_bi))
-             
-        #            sum_energy_m += P_m # Sum up the energy of every row in every hour
-        #        else:
-        #            P_m = 0
+                for i, in enumerate(soilrate):
                     
-        #        P_m_hourly.append(P_m)
+                    for index, row in df_report.iterrows():
+                        
+                        #SG
+                        row_qabs_front = df_report.loc[index,key_front_mono] * (1 - soilrate[i])
+                        T_Current = df.loc[index,'temperature']
+
+                        if math.isnan(row_qabs_front):
+                            row_qabs_front = 0 
+                        
+                        if  row_qabs_front > 0.0:
+                      
+                            V_oc_f = V_oc_f0 * (1 + T_koeff_V * (T_Current - T_amb) + moduleDict['zeta'] * np.log(row_qabs_front / q_stc_front))
+                            I_sc_f = I_sc_f0 * (1 + T_koeff_I * (T_Current - T_amb)) * (row_qabs_front / q_stc_front)
+                            P_m = FF_f0 * V_oc_f * I_sc_f
+                        
+                            #print("Power: " + str(P_bi))
+                     
+                            sum_energy_m += P_m # Sum up the energy of every row in every hour
+                        else:
+                            P_m = 0
+                            
+                        P_m_hourly.append(P_m)
+                    
+                    # Append P_m_hourly array to arrays
+                    P_m_hourly_arrays.append(P_m_hourly)
+            #
+            elif simulationDict["monthlySoilingrate"] == True:
+                
+                for index, row in df_report.iterrows():
+                    
+                    if temp == days_until_clean*24:
+                        temp = 0                     
+                        temp = temp +1                 
+                    else:
+                        temp = temp +1
+                    soilrate = simulationDict["variableSoilrate"][int(df_time_soiling['month'][x])]
+                    x = x+1
+                    #SG
+                    row_qabs_front = df_report.loc[index,key_front_mono] * (1 - ((soilrate*(temp))/(24)))
+                    T_Current = df.loc[index,'temperature']
+
+                    if math.isnan(row_qabs_front):
+                        row_qabs_front = 0 
+                    
+                    if  row_qabs_front > 0.0:
+                  
+                        V_oc_f = V_oc_f0 * (1 + T_koeff_V * (T_Current - T_amb) + moduleDict['zeta'] * np.log(row_qabs_front / q_stc_front))
+                        I_sc_f = I_sc_f0 * (1 + T_koeff_I * (T_Current - T_amb)) * (row_qabs_front / q_stc_front)
+                        P_m = FF_f0 * V_oc_f * I_sc_f
+                    
+                        #print("Power: " + str(P_bi))
+                 
+                        sum_energy_m += P_m # Sum up the energy of every row in every hour
+                    else:
+                        P_m = 0
+                        
+                    P_m_hourly.append(P_m)
+                
+                # Append P_m_hourly array to arrays
+                P_m_hourly_arrays.append(P_m_hourly)
             
-            # Append P_m_hourly array to arrays
-        #    P_m_hourly_arrays.append(P_m_hourly)
-        
+            #
+            else:
+                
+                for index, row in df_report.iterrows():
+                    row_qabs_front = df_report.loc[index,key_front_mono] * (1 - ((soilrate)/(24)))
+                    T_Current = df.loc[index,'temperature']
+
+                    if math.isnan(row_qabs_front):
+                        row_qabs_front = 0 
+                    
+                    if  row_qabs_front > 0.0:
+                  
+                        V_oc_f = V_oc_f0 * (1 + T_koeff_V * (T_Current - T_amb) + moduleDict['zeta'] * np.log(row_qabs_front / q_stc_front))
+                        I_sc_f = I_sc_f0 * (1 + T_koeff_I * (T_Current - T_amb)) * (row_qabs_front / q_stc_front)
+                        P_m = FF_f0 * V_oc_f * I_sc_f
+                    
+                        #print("Power: " + str(P_bi))
+                 
+                        sum_energy_m += P_m # Sum up the energy of every row in every hour
+                    else:
+                        P_m = 0
+                        
+                    P_m_hourly.append(P_m)
+                
+                # Append P_m_hourly array to arrays
+                P_m_hourly_arrays.append(P_m_hourly)
+                
         
         P_m_hourly_average = []
         
@@ -1413,7 +2183,10 @@ class Electrical_simulation:
         
         # Note for later!:
         # moduleDict['Ns'] is not defined in moduleDict! (This can gave an error) 
-        # Ns = moduleDict['Ns']      #Number of cells in module
+        Ns = moduleDict['Ns']      #Number of cells in module
+        
+        soilrate = simulationDict['fixSoilrate'] #Michailow
+        days_until_clean = simulationDict['days_until_clean']
         
         k = 1.3806503 * 10**(-23)       #Boltzmann constant [J/K]
         q_ec = 1.60217646 * 10**(-19)   #electron charge [C]
@@ -1474,6 +2247,10 @@ class Electrical_simulation:
         
         df['time'] = df['corrected_timestamp'].dt.strftime('%m_%d_%H')
         df = df.set_index('time')
+        
+        df_time_soiling = pd.DataFrame(df['corrected_timestamp'])
+        df_time_soiling['month'] = df['corrected_timestamp'].dt.strftime('%m') # Needed to choose wright soiling rate from SimulationDict
+        df_time_soiling = df_time_soiling.reset_index(drop = True)
         
         #Diode ideality factors. a1 has to be 1 while a2 is flexible but it has to be above 1.2
         a1 = 1      
@@ -1600,171 +2377,534 @@ class Electrical_simulation:
             
             P_m_hourly = []
             P_bi_hourly = []
-          
-            for index, row in df_report.iterrows():
+            
+            temp = 0  #couting variable in loop to calculate soilrate for consecutive hours
+            x = 0 #counting variable in loop to get current month from df_time_soiling
+            
+            if simulationDict["mathematicalSoilingrate"] == True:
+                soilrate = SimulationDict["hourlySoilrate"]
                 
-                row_qabs_front = df_report.loc[index,key_front]
-                row_qabs_back = df_report.loc[index,key_back]
-                T_Current = df.loc[index,'temperature']
-                
-                
-                #print("front: " + str(row_qabs_front))
-                #print("back: " + str(row_qabs_back))
-                if math.isnan(row_qabs_front) or row_qabs_front < 0.0:
-                    row_qabs_front = 0
+                for i, in enumerate(soilrate):
                     
-                if math.isnan(row_qabs_back) or row_qabs_back < 0.0:
-                    row_qabs_back = 0
-
-                
-                if row_qabs_back + row_qabs_front > 0.0:
-                    
-                    #Now that Rs and Rp are calculated for both sides of the module, the power calculation starts.
-                    #Values are now adjusted for temperature and later also irradiation
-                    
-                    I_sc_f = I_sc_f0 * (1 + T_koeff_I * (T_Current - T_amb))     
-                    I_sc_r = I_sc_r0 * (1 + T_koeff_I * (T_Current - T_amb))
-                    
-                    V_oc_f = V_oc_f0 * (1 + T_koeff_V * (T_Current - T_amb))
-                    V_oc_r = V_oc_r0 * (1 + T_koeff_V * (T_Current - T_amb))
-                    
-                    #setting starting parameters for the loop
-                    I = 0
-                    V = 0
-                    P = 0
-                    P1 = 0
-                    P_mpp_sf = 0
-                    
-                    
-                    #Modified version of the Rs, Rp calculation loop. Since Rs and Rp are now given, the loop needs only a fraction of iterations
-                    #to calculate the power from a given irradiance and temperature
-                    #The way this works is that the algorythm searches for the Mpp of the module with the given irradiance and temperature
-                    #Just like a real PV system would do
-                    #It 'draws' the P-V curve and finds the Mpp which is then the power output of the module
-                    for yf in range (100000):
+                    for index, row in df_report.iterrows():
                         
-                        if row_qabs_front == 0:
-                            P_m = 0
-                            P_mpp_sf = 0
-                            break
+                        #row_qabs_front = row[key_front]
+                        #row_qabs_back = row[key_back]
                         
-                        #Calculation of the photo current + correction for irrandiance and temperature
-                        Vt_f = (Ns * k * (T_Current + 273.15)) / q_ec
-
-                        #Calculation of the saturation current
-                        I_0_f0 = (I_sc_f) / (np.exp((V_oc_f) / (Vt_f))-1)
-
-                        #adjustment ot the photo current for irradiation
-                        I_ph_f0 = I_sc_f                                             
-                        I_ph_f = I_ph_f0 * (row_qabs_front / q_stc_front) 
-              
-                        #newthons method to find the matching current for a given voltage
-                        f_I = I_ph_f - I_0_f0 * (np.exp((V+ I * Rs_f0) / Vt_f) + np.exp((V + I * Rs_f0) / (Vt_f * a2)) - 2) - ((V + I * Rs_f0) / Rp_f0) - I
-                        f_dI = (-1) * ((I_0_f0 * Rs_f0) / Vt_f) * np.exp((V + I * Rs_f0) / Vt_f) - ((I_0_f0 * Rs_f0) / (Vt_f * a2)) * np.exp((V+ I * Rs_f0) / (Vt_f * a2)) - (Rs_f0 / Rp_f0) - 1
-       
-                        I2 = I - (f_I/f_dI)
-              
-       
-                        if I + tol_I >= I2 and I2 >= I - tol_I:         #Once I is found, the Power check starts just like in xf loop
-                            P2 = V * I2
-
-                            if P2 > P1:                 #Check if the new power is higher than the last
-                                P1 = P2                 #If this is true, it becomes the new reference value
-               
-                            else:
-                                P_mpp_sf = P1           #The highest calculated power gets added to P_mpp_sf
-                                
-                            if V >= V_oc_f:             # If V reached V_oc, the P-V curve is complete and the Mpp can be searched
-                                P_f = P_mpp_sf          #P_mpp_sf is the calculated Mpp for the Module for the given irradiance and and temperature
-                                P_m = P_f
-                                sum_energy_m += P_m     #The value gets added to a list for Bifacial gain calculation
-                                yf = 0                  #Iterations get reset after successful Mpp calculation
-                                break                   #The Mpp was found, the script quits the loop
-                          
-               
-                            I = 0                       #Since there is only one P-V curve to calculate, V does not have to be reset
-                            V = V + 0.1
-                        else:
-                            I = I2
+                        row_qabs_front = df_report.loc[index,key_front] * (1 - soilrate[i])
+                        row_qabs_back = df_report.loc[index,key_back] (1 - (soilrate[i]/(8.8)))
+#                       row_qabs_combined = row_qabs_front + (row_qabs_back*bi_factor)
+                        T_Current = df.loc[index,'temperature']
+                        #
                         
+                        #print("front: " + str(row_qabs_front))
+                        #print("back: " + str(row_qabs_back))
+                        if math.isnan(row_qabs_front) or row_qabs_front < 0.0:
+                            row_qabs_front = 0
                             
-                    ##################################
-                    ###Same procedure for back side###
-                    ##################################
-                    I = 0
-                    V = 0
-                    P = 0
-                    P1 = 0
-                    
-                    
-                    
-                    for yr in range (100000):
+                        if math.isnan(row_qabs_back) or row_qabs_back < 0.0:
+                            row_qabs_back = 0
+
                         
-                        if row_qabs_front == 0:
-                            P_mpp_sr = 0
-                            break
-                  
-                        #Calculation of the photo current + correction for irrandiance and temperature
-                        Vt_f = (Ns * k * (T_Current + 273.15)) / q_ec
-                        
-                        #Calculating the bifacial gain factor
-                        BG = row_qabs_back / row_qabs_front
-                        
+                        if row_qabs_back + row_qabs_front > 0.0:
+                            
+                            #Now that Rs and Rp are calculated for both sides of the module, the power calculation starts.
+                            #Values are now adjusted for temperature and later also irradiation
+                            
+                            I_sc_f = I_sc_f0 * (1 + T_koeff_I * (T_Current - T_amb))     
+                            I_sc_r = I_sc_r0 * (1 + T_koeff_I * (T_Current - T_amb))
+                            
+                            V_oc_f = V_oc_f0 * (1 + T_koeff_V * (T_Current - T_amb))
+                            V_oc_r = V_oc_r0 * (1 + T_koeff_V * (T_Current - T_amb))
+                            
+                            #setting starting parameters for the loop
+                            I = 0
+                            V = 0
+                            P = 0
+                            P1 = 0
+                            P_mpp_sf = 0
+                            
+                            
+                            #Modified version of the Rs, Rp calculation loop. Since Rs and Rp are now given, the loop needs only a fraction of iterations
+                            #to calculate the power from a given irradiance and temperature
+                            #The way this works is that the algorythm searches for the Mpp of the module with the given irradiance and temperature
+                            #Just like a real PV system would do
+                            #It 'draws' the P-V curve and finds the Mpp which is then the power output of the module
+                            for yf in range (100000):
+                                
+                                if row_qabs_front == 0:
+                                    P_m = 0
+                                    P_mpp_sf = 0
+                                    break
+                                
+                                #Calculation of the photo current + correction for irrandiance and temperature
+                                Vt_f = (Ns * k * (T_Current + 273.15)) / q_ec
+
+                                #Calculation of the saturation current
+                                I_0_f0 = (I_sc_f) / (np.exp((V_oc_f) / (Vt_f))-1)
+
+                                #adjustment ot the photo current for irradiation
+                                I_ph_f0 = I_sc_f                                             
+                                I_ph_f = I_ph_f0 * (row_qabs_front / q_stc_front) 
+                      
+                                #newthons method to find the matching current for a given voltage
+                                f_I = I_ph_f - I_0_f0 * (np.exp((V+ I * Rs_f0) / Vt_f) + np.exp((V + I * Rs_f0) / (Vt_f * a2)) - 2) - ((V + I * Rs_f0) / Rp_f0) - I
+                                f_dI = (-1) * ((I_0_f0 * Rs_f0) / Vt_f) * np.exp((V + I * Rs_f0) / Vt_f) - ((I_0_f0 * Rs_f0) / (Vt_f * a2)) * np.exp((V+ I * Rs_f0) / (Vt_f * a2)) - (Rs_f0 / Rp_f0) - 1
+               
+                                I2 = I - (f_I/f_dI)
+                      
+               
+                                if I + tol_I >= I2 and I2 >= I - tol_I:         #Once I is found, the Power check starts just like in xf loop
+                                    P2 = V * I2
+
+                                    if P2 > P1:                 #Check if the new power is higher than the last
+                                        P1 = P2                 #If this is true, it becomes the new reference value
+                       
+                                    else:
+                                        P_mpp_sf = P1           #The highest calculated power gets added to P_mpp_sf
+                                        
+                                    if V >= V_oc_f:             # If V reached V_oc, the P-V curve is complete and the Mpp can be searched
+                                        P_f = P_mpp_sf          #P_mpp_sf is the calculated Mpp for the Module for the given irradiance and and temperature
+                                        P_m = P_f
+                                        sum_energy_m += P_m     #The value gets added to a list for Bifacial gain calculation
+                                        yf = 0                  #Iterations get reset after successful Mpp calculation
+                                        break                   #The Mpp was found, the script quits the loop
+                                  
+                       
+                                    I = 0                       #Since there is only one P-V curve to calculate, V does not have to be reset
+                                    V = V + 0.1
+                                else:
+                                    I = I2
+                                
+                                    
+                            ##################################
+                            ###Same procedure for back side###
+                            ##################################
+                            I = 0
+                            V = 0
+                            P = 0
+                            P1 = 0
+                            
+                            
+                            
+                            for yr in range (100000):
+                                
+                                if row_qabs_front == 0:
+                                    P_mpp_sr = 0
+                                    break
+                          
+                                #Calculation of the photo current + correction for irrandiance and temperature
+                                Vt_f = (Ns * k * (T_Current + 273.15)) / q_ec
+                                
+                                #Calculating the bifacial gain factor
+                                BG = row_qabs_back / row_qabs_front
+                                
+                               
+
+                                
+                                #Calculation of the saturation current
+                                I_0_f0 = (I_sc_f) / (np.exp((V_oc_f) / (Vt_f))-1)
+
                        
 
+                                #adjustment ot the photo current for irradiation and bifacial gain factor
+                                I_ph_f0 = I_sc_f *BG                                             
+                                I_ph_f = I_ph_f0 * (row_qabs_front / q_stc_front) 
+                      
+                                #newthons method to find the matching current for a given voltage
+                                f_I = I_ph_f - I_0_f0 * (np.exp((V+ I * Rs_f0) / Vt_f) + np.exp((V + I * Rs_f0) / (Vt_f * a2)) - 2) - ((V + I * Rs_f0) / Rp_f0) - I
+                                f_dI = (-1) * ((I_0_f0 * Rs_f0) / Vt_f) * np.exp((V + I * Rs_f0) / Vt_f) - ((I_0_f0 * Rs_f0) / (Vt_f * a2)) * np.exp((V+ I * Rs_f0) / (Vt_f * a2)) - (Rs_f0 / Rp_f0) - 1
+               
+                                I2 = I - (f_I/f_dI)
+                      
+               
+                                if I + tol_I >= I2 and I2 >= I - tol_I:         #Once I is found, the Power check starts just like in xf loop
+                                    P2 = V * I2
+
+                                    if P2 > P1:                 #Check if the new power is higher than the last
+                                        P1 = P2                 #If this is true, it becomes the new reference value
+                       
+                                    else:
+                                        P_mpp_sr = P1           #The highest calculated power gets added to P_mpp_sr
+                                        
+                                    if V >= V_oc_f:             # If V reached V_oc, the P-V curve is complete and the Mpp can be searched
+                                        P_r = P_mpp_sr          #P_mpp_sr is the calculated Mpp for the Module for the given irradiance and and temperature
+                                        yr = 0                  #Iterations get reset after successful Mpp calculation
+                                        break                   #The Mpp was found, the script quits the loop
+                                  
+                       
+                                    I = 0                       #Since there is only one P-V curve to calculate, V does not have to be reset
+                                    V = V + 0.1
+                                else:
+                                    I = I2
+                            
                         
-                        #Calculation of the saturation current
-                        I_0_f0 = (I_sc_f) / (np.exp((V_oc_f) / (Vt_f))-1)
-
-               
-
-                        #adjustment ot the photo current for irradiation and bifacial gain factor
-                        I_ph_f0 = I_sc_f *BG                                             
-                        I_ph_f = I_ph_f0 * (row_qabs_front / q_stc_front) 
-              
-                        #newthons method to find the matching current for a given voltage
-                        f_I = I_ph_f - I_0_f0 * (np.exp((V+ I * Rs_f0) / Vt_f) + np.exp((V + I * Rs_f0) / (Vt_f * a2)) - 2) - ((V + I * Rs_f0) / Rp_f0) - I
-                        f_dI = (-1) * ((I_0_f0 * Rs_f0) / Vt_f) * np.exp((V + I * Rs_f0) / Vt_f) - ((I_0_f0 * Rs_f0) / (Vt_f * a2)) * np.exp((V+ I * Rs_f0) / (Vt_f * a2)) - (Rs_f0 / Rp_f0) - 1
-       
-                        I2 = I - (f_I/f_dI)
-              
-       
-                        if I + tol_I >= I2 and I2 >= I - tol_I:         #Once I is found, the Power check starts just like in xf loop
-                            P2 = V * I2
-
-                            if P2 > P1:                 #Check if the new power is higher than the last
-                                P1 = P2                 #If this is true, it becomes the new reference value
-               
-                            else:
-                                P_mpp_sr = P1           #The highest calculated power gets added to P_mpp_sr
-                                
-                            if V >= V_oc_f:             # If V reached V_oc, the P-V curve is complete and the Mpp can be searched
-                                P_r = P_mpp_sr          #P_mpp_sr is the calculated Mpp for the Module for the given irradiance and and temperature
-                                yr = 0                  #Iterations get reset after successful Mpp calculation
-                                break                   #The Mpp was found, the script quits the loop
-                          
-               
-                            I = 0                       #Since there is only one P-V curve to calculate, V does not have to be reset
-                            V = V + 0.1
-                        else:
-                            I = I2
+                            P_bi = P_mpp_sf + P_mpp_sr
+                            #print("Power: " + str(P_bi))
                     
+                            sum_energy_b += P_bi # Sum up the energy of every row in every hour
+                    
+                        else:
+                            P_m=0
+                            P_bi=0
+                        
+                        P_m_hourly.append(P_m)
+                        P_bi_hourly.append(P_bi)
+                        
+                    # Append P_bi_hourly array to arrays
+                    P_m_hourly_arrays.append(P_m_hourly)
+                    P_bi_hourly_arrays.append(P_bi_hourly)
+          
+            #
+            elif simulationDict["monthlySoilingrate"] == True:
                 
-                    P_bi = P_mpp_sf + P_mpp_sr
-                    #print("Power: " + str(P_bi))
-            
-                    sum_energy_b += P_bi # Sum up the energy of every row in every hour
-            
-                else:
-                    P_m=0
-                    P_bi=0
+                for index, row in df_report.iterrows():
+                    
+                    if temp == days_until_clean*24:
+                        temp = 0                     
+                        temp = temp +1                 
+                    else:
+                        temp = temp +1
+                    soilrate = simulationDict["variableSoilrate"][int(df_time_soiling['month'][x])]
+                    x = x+1
+                    
+                    row_qabs_front = df_report.loc[index,key_front] * (1 - (soilrate*(temp)/(24)))
+                    row_qabs_back = df_report.loc[index,key_back] * (1 - (soilrate*(temp)/(24*8.8)))
+#                   row_qabs_combined = row_qabs_front + (row_qabs_back*bi_factor)
+                    T_Current = df.loc[index,'temperature']
+                    
+                    #
+                    #print("front: " + str(row_qabs_front))
+                    #print("back: " + str(row_qabs_back))
+                    if math.isnan(row_qabs_front) or row_qabs_front < 0.0:
+                        row_qabs_front = 0
+                        
+                    if math.isnan(row_qabs_back) or row_qabs_back < 0.0:
+                        row_qabs_back = 0
+
+                    
+                    if row_qabs_back + row_qabs_front > 0.0:
+                        
+                        #Now that Rs and Rp are calculated for both sides of the module, the power calculation starts.
+                        #Values are now adjusted for temperature and later also irradiation
+                        
+                        I_sc_f = I_sc_f0 * (1 + T_koeff_I * (T_Current - T_amb))     
+                        I_sc_r = I_sc_r0 * (1 + T_koeff_I * (T_Current - T_amb))
+                        
+                        V_oc_f = V_oc_f0 * (1 + T_koeff_V * (T_Current - T_amb))
+                        V_oc_r = V_oc_r0 * (1 + T_koeff_V * (T_Current - T_amb))
+                        
+                        #setting starting parameters for the loop
+                        I = 0
+                        V = 0
+                        P = 0
+                        P1 = 0
+                        P_mpp_sf = 0
+                        
+                        
+                        #Modified version of the Rs, Rp calculation loop. Since Rs and Rp are now given, the loop needs only a fraction of iterations
+                        #to calculate the power from a given irradiance and temperature
+                        #The way this works is that the algorythm searches for the Mpp of the module with the given irradiance and temperature
+                        #Just like a real PV system would do
+                        #It 'draws' the P-V curve and finds the Mpp which is then the power output of the module
+                        for yf in range (100000):
+                            
+                            if row_qabs_front == 0:
+                                P_m = 0
+                                P_mpp_sf = 0
+                                break
+                            
+                            #Calculation of the photo current + correction for irrandiance and temperature
+                            Vt_f = (Ns * k * (T_Current + 273.15)) / q_ec
+
+                            #Calculation of the saturation current
+                            I_0_f0 = (I_sc_f) / (np.exp((V_oc_f) / (Vt_f))-1)
+
+                            #adjustment ot the photo current for irradiation
+                            I_ph_f0 = I_sc_f                                             
+                            I_ph_f = I_ph_f0 * (row_qabs_front / q_stc_front) 
+                  
+                            #newthons method to find the matching current for a given voltage
+                            f_I = I_ph_f - I_0_f0 * (np.exp((V+ I * Rs_f0) / Vt_f) + np.exp((V + I * Rs_f0) / (Vt_f * a2)) - 2) - ((V + I * Rs_f0) / Rp_f0) - I
+                            f_dI = (-1) * ((I_0_f0 * Rs_f0) / Vt_f) * np.exp((V + I * Rs_f0) / Vt_f) - ((I_0_f0 * Rs_f0) / (Vt_f * a2)) * np.exp((V+ I * Rs_f0) / (Vt_f * a2)) - (Rs_f0 / Rp_f0) - 1
+           
+                            I2 = I - (f_I/f_dI)
+                  
+           
+                            if I + tol_I >= I2 and I2 >= I - tol_I:         #Once I is found, the Power check starts just like in xf loop
+                                P2 = V * I2
+
+                                if P2 > P1:                 #Check if the new power is higher than the last
+                                    P1 = P2                 #If this is true, it becomes the new reference value
+                   
+                                else:
+                                    P_mpp_sf = P1           #The highest calculated power gets added to P_mpp_sf
+                                    
+                                if V >= V_oc_f:             # If V reached V_oc, the P-V curve is complete and the Mpp can be searched
+                                    P_f = P_mpp_sf          #P_mpp_sf is the calculated Mpp for the Module for the given irradiance and and temperature
+                                    P_m = P_f
+                                    sum_energy_m += P_m     #The value gets added to a list for Bifacial gain calculation
+                                    yf = 0                  #Iterations get reset after successful Mpp calculation
+                                    break                   #The Mpp was found, the script quits the loop
+                              
+                   
+                                I = 0                       #Since there is only one P-V curve to calculate, V does not have to be reset
+                                V = V + 0.1
+                            else:
+                                I = I2
+                            
+                                
+                        ##################################
+                        ###Same procedure for back side###
+                        ##################################
+                        I = 0
+                        V = 0
+                        P = 0
+                        P1 = 0
+                        
+                        
+                        
+                        for yr in range (100000):
+                            
+                            if row_qabs_front == 0:
+                                P_mpp_sr = 0
+                                break
+                      
+                            #Calculation of the photo current + correction for irrandiance and temperature
+                            Vt_f = (Ns * k * (T_Current + 273.15)) / q_ec
+                            
+                            #Calculating the bifacial gain factor
+                            BG = row_qabs_back / row_qabs_front
+                            
+                           
+
+                            
+                            #Calculation of the saturation current
+                            I_0_f0 = (I_sc_f) / (np.exp((V_oc_f) / (Vt_f))-1)
+
+                   
+
+                            #adjustment ot the photo current for irradiation and bifacial gain factor
+                            I_ph_f0 = I_sc_f *BG                                             
+                            I_ph_f = I_ph_f0 * (row_qabs_front / q_stc_front) 
+                  
+                            #newthons method to find the matching current for a given voltage
+                            f_I = I_ph_f - I_0_f0 * (np.exp((V+ I * Rs_f0) / Vt_f) + np.exp((V + I * Rs_f0) / (Vt_f * a2)) - 2) - ((V + I * Rs_f0) / Rp_f0) - I
+                            f_dI = (-1) * ((I_0_f0 * Rs_f0) / Vt_f) * np.exp((V + I * Rs_f0) / Vt_f) - ((I_0_f0 * Rs_f0) / (Vt_f * a2)) * np.exp((V+ I * Rs_f0) / (Vt_f * a2)) - (Rs_f0 / Rp_f0) - 1
+           
+                            I2 = I - (f_I/f_dI)
+                  
+           
+                            if I + tol_I >= I2 and I2 >= I - tol_I:         #Once I is found, the Power check starts just like in xf loop
+                                P2 = V * I2
+
+                                if P2 > P1:                 #Check if the new power is higher than the last
+                                    P1 = P2                 #If this is true, it becomes the new reference value
+                   
+                                else:
+                                    P_mpp_sr = P1           #The highest calculated power gets added to P_mpp_sr
+                                    
+                                if V >= V_oc_f:             # If V reached V_oc, the P-V curve is complete and the Mpp can be searched
+                                    P_r = P_mpp_sr          #P_mpp_sr is the calculated Mpp for the Module for the given irradiance and and temperature
+                                    yr = 0                  #Iterations get reset after successful Mpp calculation
+                                    break                   #The Mpp was found, the script quits the loop
+                              
+                   
+                                I = 0                       #Since there is only one P-V curve to calculate, V does not have to be reset
+                                V = V + 0.1
+                            else:
+                                I = I2
+                        
+                    
+                        P_bi = P_mpp_sf + P_mpp_sr
+                        #print("Power: " + str(P_bi))
                 
-                P_m_hourly.append(P_m)
-                P_bi_hourly.append(P_bi)
+                        sum_energy_b += P_bi # Sum up the energy of every row in every hour
                 
-            # Append P_bi_hourly array to arrays
-            P_m_hourly_arrays.append(P_m_hourly)
-            P_bi_hourly_arrays.append(P_bi_hourly)
+                    else:
+                        P_m=0
+                        P_bi=0
+                    
+                    P_m_hourly.append(P_m)
+                    P_bi_hourly.append(P_bi)
+                    
+                # Append P_bi_hourly array to arrays
+                P_m_hourly_arrays.append(P_m_hourly)
+                P_bi_hourly_arrays.append(P_bi_hourly)
+                #
+                
+                
+            else:
+                for index, row in df_report.iterrows():
+                    
+                    #row_qabs_front = row[key_front]
+                    #row_qabs_back = row[key_back]
+                    
+                    # calculate front row power output including the soiling rate determined in GUI                               
+                    row_qabs_front = df_report.loc[index,key_front] * (1 - ((soilrate)/(24)))   
+                    # calculate back row power output including the decreased soiling for backside of PV module                                 
+                    row_qabs_back = df_report.loc[index,key_back] * (1 - ((soilrate)/(24*8.8)))
+                    
+                    T_Current = df.loc[index,'temperature']
+                    
+                    #print("front: " + str(row_qabs_front))
+                    #print("back: " + str(row_qabs_back))
+                    if math.isnan(row_qabs_front) or row_qabs_front < 0.0:
+                        row_qabs_front = 0
+                        
+                    if math.isnan(row_qabs_back) or row_qabs_back < 0.0:
+                        row_qabs_back = 0
+
+                    
+                    if row_qabs_back + row_qabs_front > 0.0:
+                        
+                        #Now that Rs and Rp are calculated for both sides of the module, the power calculation starts.
+                        #Values are now adjusted for temperature and later also irradiation
+                        
+                        I_sc_f = I_sc_f0 * (1 + T_koeff_I * (T_Current - T_amb))     
+                        I_sc_r = I_sc_r0 * (1 + T_koeff_I * (T_Current - T_amb))
+                        
+                        V_oc_f = V_oc_f0 * (1 + T_koeff_V * (T_Current - T_amb))
+                        V_oc_r = V_oc_r0 * (1 + T_koeff_V * (T_Current - T_amb))
+                        
+                        #setting starting parameters for the loop
+                        I = 0
+                        V = 0
+                        P = 0
+                        P1 = 0
+                        P_mpp_sf = 0
+                        
+                        
+                        #Modified version of the Rs, Rp calculation loop. Since Rs and Rp are now given, the loop needs only a fraction of iterations
+                        #to calculate the power from a given irradiance and temperature
+                        #The way this works is that the algorythm searches for the Mpp of the module with the given irradiance and temperature
+                        #Just like a real PV system would do
+                        #It 'draws' the P-V curve and finds the Mpp which is then the power output of the module
+                        for yf in range (100000):
+                            
+                            if row_qabs_front == 0:
+                                P_m = 0
+                                P_mpp_sf = 0
+                                break
+                            
+                            #Calculation of the photo current + correction for irrandiance and temperature
+                            Vt_f = (Ns * k * (T_Current + 273.15)) / q_ec
+
+                            #Calculation of the saturation current
+                            I_0_f0 = (I_sc_f) / (np.exp((V_oc_f) / (Vt_f))-1)
+
+                            #adjustment ot the photo current for irradiation
+                            I_ph_f0 = I_sc_f                                             
+                            I_ph_f = I_ph_f0 * (row_qabs_front / q_stc_front) 
+                  
+                            #newthons method to find the matching current for a given voltage
+                            f_I = I_ph_f - I_0_f0 * (np.exp((V+ I * Rs_f0) / Vt_f) + np.exp((V + I * Rs_f0) / (Vt_f * a2)) - 2) - ((V + I * Rs_f0) / Rp_f0) - I
+                            f_dI = (-1) * ((I_0_f0 * Rs_f0) / Vt_f) * np.exp((V + I * Rs_f0) / Vt_f) - ((I_0_f0 * Rs_f0) / (Vt_f * a2)) * np.exp((V+ I * Rs_f0) / (Vt_f * a2)) - (Rs_f0 / Rp_f0) - 1
+           
+                            I2 = I - (f_I/f_dI)
+                  
+           
+                            if I + tol_I >= I2 and I2 >= I - tol_I:         #Once I is found, the Power check starts just like in xf loop
+                                P2 = V * I2
+
+                                if P2 > P1:                 #Check if the new power is higher than the last
+                                    P1 = P2                 #If this is true, it becomes the new reference value
+                   
+                                else:
+                                    P_mpp_sf = P1           #The highest calculated power gets added to P_mpp_sf
+                                    
+                                if V >= V_oc_f:             # If V reached V_oc, the P-V curve is complete and the Mpp can be searched
+                                    P_f = P_mpp_sf          #P_mpp_sf is the calculated Mpp for the Module for the given irradiance and and temperature
+                                    P_m = P_f
+                                    sum_energy_m += P_m     #The value gets added to a list for Bifacial gain calculation
+                                    yf = 0                  #Iterations get reset after successful Mpp calculation
+                                    break                   #The Mpp was found, the script quits the loop
+                              
+                   
+                                I = 0                       #Since there is only one P-V curve to calculate, V does not have to be reset
+                                V = V + 0.1
+                            else:
+                                I = I2
+                            
+                                
+                        ##################################
+                        ###Same procedure for back side###
+                        ##################################
+                        I = 0
+                        V = 0
+                        P = 0
+                        P1 = 0
+                        
+                        
+                        
+                        for yr in range (100000):
+                            
+                            if row_qabs_front == 0:
+                                P_mpp_sr = 0
+                                break
+                      
+                            #Calculation of the photo current + correction for irrandiance and temperature
+                            Vt_f = (Ns * k * (T_Current + 273.15)) / q_ec
+                            
+                            #Calculating the bifacial gain factor
+                            BG = row_qabs_back / row_qabs_front
+                            
+                           
+
+                            
+                            #Calculation of the saturation current
+                            I_0_f0 = (I_sc_f) / (np.exp((V_oc_f) / (Vt_f))-1)
+
+                   
+
+                            #adjustment ot the photo current for irradiation and bifacial gain factor
+                            I_ph_f0 = I_sc_f *BG                                             
+                            I_ph_f = I_ph_f0 * (row_qabs_front / q_stc_front) 
+                  
+                            #newthons method to find the matching current for a given voltage
+                            f_I = I_ph_f - I_0_f0 * (np.exp((V+ I * Rs_f0) / Vt_f) + np.exp((V + I * Rs_f0) / (Vt_f * a2)) - 2) - ((V + I * Rs_f0) / Rp_f0) - I
+                            f_dI = (-1) * ((I_0_f0 * Rs_f0) / Vt_f) * np.exp((V + I * Rs_f0) / Vt_f) - ((I_0_f0 * Rs_f0) / (Vt_f * a2)) * np.exp((V+ I * Rs_f0) / (Vt_f * a2)) - (Rs_f0 / Rp_f0) - 1
+           
+                            I2 = I - (f_I/f_dI)
+                  
+           
+                            if I + tol_I >= I2 and I2 >= I - tol_I:         #Once I is found, the Power check starts just like in xf loop
+                                P2 = V * I2
+
+                                if P2 > P1:                 #Check if the new power is higher than the last
+                                    P1 = P2                 #If this is true, it becomes the new reference value
+                   
+                                else:
+                                    P_mpp_sr = P1           #The highest calculated power gets added to P_mpp_sr
+                                    
+                                if V >= V_oc_f:             # If V reached V_oc, the P-V curve is complete and the Mpp can be searched
+                                    P_r = P_mpp_sr          #P_mpp_sr is the calculated Mpp for the Module for the given irradiance and and temperature
+                                    yr = 0                  #Iterations get reset after successful Mpp calculation
+                                    break                   #The Mpp was found, the script quits the loop
+                              
+                   
+                                I = 0                       #Since there is only one P-V curve to calculate, V does not have to be reset
+                                V = V + 0.1
+                            else:
+                                I = I2
+                        
+                    
+                        P_bi = P_mpp_sf + P_mpp_sr
+                        #print("Power: " + str(P_bi))
+                
+                        sum_energy_b += P_bi # Sum up the energy of every row in every hour
+                
+                    else:
+                        P_m=0
+                        P_bi=0
+                    
+                    P_m_hourly.append(P_m)
+                    P_bi_hourly.append(P_bi)
+                    
+                # Append P_bi_hourly array to arrays
+                P_m_hourly_arrays.append(P_m_hourly)
+                P_bi_hourly_arrays.append(P_bi_hourly)
+            #       
             
         P_bi_hourly_average = []
         
@@ -1821,41 +2961,111 @@ class Electrical_simulation:
         # Monofacial performance Calculation
         
         # Set Energy to Zero       
-        #sum_energy_m = 0
-        #sum_power_m = 0
+        sum_energy_m = 0
+        sum_power_m = 0
         
         # Loop to calculate the Monofacial Output power for every row in every hour
-        #for i in tqdm(range(0, simulationDict['nRows'])):
+        for i in tqdm(range(0, simulationDict['nRows'])):
             
-        #    key_front_mono = "row_" + str(i) + "_qabs_front"
-        #    P_m_hourly = []
+            key_front_mono = "row_" + str(i) + "_qabs_front"
+            P_m_hourly = []
+            temp = 0  #couting variable in loop to calculate soilrate for consecutive hours
+            x = 0 #counting variable in loop to get current month from df_time_soiling
             
-        #    for index, row in df_report.iterrows():
+            if simulationDict["mathematicalSoilingrate"] == True:
+                soilrate = SimulationDict["hourlySoilrate"]
                 
-        #        #SG
-        #        row_qabs_front = df_report.loc[index,key_front_mono]
-        #        T_Current = df.loc[index,'temperature']
-
-        #        if math.isnan(row_qabs_front):
-        #            row_qabs_front = 0 
-                
-        #        if  row_qabs_front > 0.0:
-              
-        #            V_oc_f = V_oc_f0 * (1 + T_koeff_V * (T_Current - T_amb) + moduleDict['zeta'] * np.log(row_qabs_front / q_stc_front))
-        #            I_sc_f = I_sc_f0 * (1 + T_koeff_I * (T_Current - T_amb)) * (row_qabs_front / q_stc_front)
-        #            P_m = FF_f0 * V_oc_f * I_sc_f
-                
-                    #print("Power: " + str(P_bi))
-             
-        #            sum_energy_m += P_m # Sum up the energy of every row in every hour
-        #        else:
-        #            P_m = 0
+                for i, in enumerate(soilrate):
                     
-        #        P_m_hourly.append(P_m)
+                    for index, row in df_report.iterrows():
+                        
+                        #SG
+                        row_qabs_front = df_report.loc[index,key_front_mono] * (1 - soilrate[i])
+                        T_Current = df.loc[index,'temperature']
+
+                        if math.isnan(row_qabs_front):
+                            row_qabs_front = 0 
+                        
+                        if  row_qabs_front > 0.0:
+                      
+                            V_oc_f = V_oc_f0 * (1 + T_koeff_V * (T_Current - T_amb) + moduleDict['zeta'] * np.log(row_qabs_front / q_stc_front))
+                            I_sc_f = I_sc_f0 * (1 + T_koeff_I * (T_Current - T_amb)) * (row_qabs_front / q_stc_front)
+                            P_m = FF_f0 * V_oc_f * I_sc_f
+                        
+                            #print("Power: " + str(P_bi))
+                     
+                            sum_energy_m += P_m # Sum up the energy of every row in every hour
+                        else:
+                            P_m = 0
+                            
+                        P_m_hourly.append(P_m)
+                    
+                    # Append P_m_hourly array to arrays
+                    P_m_hourly_arrays.append(P_m_hourly)
+            #
+            elif simulationDict["monthlySoilingrate"] == True:
+                
+                for index, row in df_report.iterrows():
+                    
+                    if temp == days_until_clean*24:
+                        temp = 0                     
+                        temp = temp +1                 
+                    else:
+                        temp = temp +1
+                    soilrate = simulationDict["variableSoilrate"][int(df_time_soiling['month'][x])]
+                    x = x+1
+                    #SG
+                    row_qabs_front = df_report.loc[index,key_front_mono] * (1 - ((soilrate*(temp))/(24)))
+                    T_Current = df.loc[index,'temperature']
+
+                    if math.isnan(row_qabs_front):
+                        row_qabs_front = 0 
+                    
+                    if  row_qabs_front > 0.0:
+                  
+                        V_oc_f = V_oc_f0 * (1 + T_koeff_V * (T_Current - T_amb) + moduleDict['zeta'] * np.log(row_qabs_front / q_stc_front))
+                        I_sc_f = I_sc_f0 * (1 + T_koeff_I * (T_Current - T_amb)) * (row_qabs_front / q_stc_front)
+                        P_m = FF_f0 * V_oc_f * I_sc_f
+                    
+                        #print("Power: " + str(P_bi))
+                 
+                        sum_energy_m += P_m # Sum up the energy of every row in every hour
+                    else:
+                        P_m = 0
+                        
+                    P_m_hourly.append(P_m)
+                
+                # Append P_m_hourly array to arrays
+                P_m_hourly_arrays.append(P_m_hourly)
             
-            # Append P_m_hourly array to arrays
-        #    P_m_hourly_arrays.append(P_m_hourly)
-        
+            #
+            else:
+                
+                for index, row in df_report.iterrows():
+                    row_qabs_front = df_report.loc[index,key_front_mono] * (1 - ((soilrate)/(24)))
+                    T_Current = df.loc[index,'temperature']
+
+                    if math.isnan(row_qabs_front):
+                        row_qabs_front = 0 
+                    
+                    if  row_qabs_front > 0.0:
+                  
+                        V_oc_f = V_oc_f0 * (1 + T_koeff_V * (T_Current - T_amb) + moduleDict['zeta'] * np.log(row_qabs_front / q_stc_front))
+                        I_sc_f = I_sc_f0 * (1 + T_koeff_I * (T_Current - T_amb)) * (row_qabs_front / q_stc_front)
+                        P_m = FF_f0 * V_oc_f * I_sc_f
+                    
+                        #print("Power: " + str(P_bi))
+                 
+                        sum_energy_m += P_m # Sum up the energy of every row in every hour
+                    else:
+                        P_m = 0
+                        
+                    P_m_hourly.append(P_m)
+                
+                # Append P_m_hourly array to arrays
+                P_m_hourly_arrays.append(P_m_hourly)
+                
+            #
         
         P_m_hourly_average = []
         
@@ -1957,6 +3167,9 @@ class Electrical_simulation:
             
             V_oc_f0 = moduleDict['V_oc_f']
             
+            soilrate = simulationDict['fixSoilrate'] #Michailow
+            days_until_clean = simulationDict['days_until_clean']
+            
             #module = moduleParameter['module']
             #inverter = moduleParameter['inverter']
             
@@ -2012,6 +3225,11 @@ class Electrical_simulation:
             
             df['time'] = df['corrected_timestamp'].dt.strftime('%m_%d_%H')
             df = df.set_index('time')
+            
+            df_time_soiling = pd.DataFrame(df['corrected_timestamp'])
+            df_time_soiling['month'] = df['corrected_timestamp'].dt.strftime('%m') # Needed to choose wright soiling rate from SimulationDict
+            df_time_soiling = df_time_soiling.reset_index(drop = True)
+            
             print(df_report)
             
             
@@ -2023,50 +3241,160 @@ class Electrical_simulation:
                 key_back = "row_" + str(i) + "_qabs_back"
             
                 P_bi_hourly = []
-              
-                for index, row in df_report.iterrows():
+                
+                temp = 0  #couting variable in loop to calculate soilrate for consecutive hours
+                x = 0 #counting variable in loop to get current month from df_time_soiling
+                
+                #
+                if simulationDict["mathematicalSoilingrate"] == True:
+                    soilrate = SimulationDict["hourlySoilrate"]
                     
-                    #row_qabs_front = row[key_front]
-                    #row_qabs_back = row[key_back]
-                    
-                    row_qabs_front = df_report.loc[index,key_front]
-                    row_qabs_back = df_report.loc[index,key_back]
-                    T_Current = df.loc[index,'temperature']
-                    
-                    
-                    # calculation of frontside power output
-                    if math.isnan(row_qabs_front) or row_qabs_front < 0.0:
-                        row_qabs_front = 0
-                        P_f = 0
+                    for i, in enumerate(soilrate):
                         
-                    else:
-                        V_oc_f = V_oc_f0 * (1 + T_koeff_V * (T_Current - T_amb) + moduleDict['zeta'] * np.log(row_qabs_front / q_stc_front))
-                        I_sc_f = I_sc_f0 * (1 + T_koeff_I * (T_Current - T_amb)) * (row_qabs_front / q_stc_front)
-                        P_f = FF_f0 * V_oc_f * I_sc_f
+                        for index, row in df_report.iterrows():
+                            
+                            #row_qabs_front = row[key_front]
+                            #row_qabs_back = row[key_back]
+                            
+                            row_qabs_front = df_report.loc[index,key_front] * (1 - soilrate[i])
+                            row_qabs_back = df_report.loc[index,key_back] (1 - (soilrate[i]/(8.8)))
+    #                       row_qabs_combined = row_qabs_front + (row_qabs_back*bi_factor)
+                            T_Current = df.loc[index,'temperature']
+                            
+                            # calculation of frontside power output
+                            if math.isnan(row_qabs_front) or row_qabs_front < 0.0:
+                                row_qabs_front = 0
+                                P_f = 0
+                                
+                            else:
+                                V_oc_f = V_oc_f0 * (1 + T_koeff_V * (T_Current - T_amb) + moduleDict['zeta'] * np.log(row_qabs_front / q_stc_front))
+                                I_sc_f = I_sc_f0 * (1 + T_koeff_I * (T_Current - T_amb)) * (row_qabs_front / q_stc_front)
+                                P_f = FF_f0 * V_oc_f * I_sc_f
 
-                    # calculation of backside power output
-                    if math.isnan(row_qabs_back) or row_qabs_back < 0.0:
-                        row_qabs_back = 0
-                        P_r = 0
+                            # calculation of backside power output
+                            if math.isnan(row_qabs_back) or row_qabs_back < 0.0:
+                                row_qabs_back = 0
+                                P_r = 0
+                                
+                            else:
+                                V_oc_r = V_oc_f0 * (1 + T_koeff_V * (T_Current - T_amb) + moduleDict['zeta'] * np.log(row_qabs_back / q_stc_rear))
+                                I_sc_r = I_sc_f0 * (1 + T_koeff_I * (T_Current - T_amb)) * (row_qabs_back / q_stc_rear)
+                                P_r = FF_fr * V_oc_r * I_sc_r
+                                
+                            
+                            P_bi = P_f + P_r 
+                            
+                    
+                            
+                            sum_energy_b += P_bi # Sum up the energy of every row in every hour
+
+                            P_bi_hourly.append(P_bi)
+                            
+                        # Append P_bi_hourly array to arrays
+                        P_bi_hourly_arrays.append(P_bi_hourly)
+
+                        print(sum_energy_b)
+          
+                #
+                elif simulationDict["monthlySoilingrate"] == True:
+                    
+                    for index, row in df_report.iterrows():
                         
-                    else:
-                        V_oc_r = V_oc_f0 * (1 + T_koeff_V * (T_Current - T_amb) + moduleDict['zeta'] * np.log(row_qabs_back / q_stc_rear))
-                        I_sc_r = I_sc_f0 * (1 + T_koeff_I * (T_Current - T_amb)) * (row_qabs_back / q_stc_rear)
-                        P_r = FF_fr * V_oc_r * I_sc_r
+                        if temp == days_until_clean*24:
+                            temp = 0                     
+                            temp = temp +1                 
+                        else:
+                            temp = temp +1
+                        soilrate = simulationDict["variableSoilrate"][int(df_time_soiling['month'][x])]
+                        x = x+1
                         
-                    
-                    P_bi = P_f + P_r 
-                    
-            
-                    
-                    sum_energy_b += P_bi # Sum up the energy of every row in every hour
+                        row_qabs_front = df_report.loc[index,key_front] * (1 - (soilrate*(temp)/(24)))
+                        row_qabs_back = df_report.loc[index,key_back] * (1 - (soilrate*(temp)/(24*8.8)))
+    #                   row_qabs_combined = row_qabs_front + (row_qabs_back*bi_factor)
+                        T_Current = df.loc[index,'temperature']
+                        
+                        # calculation of frontside power output
+                        if math.isnan(row_qabs_front) or row_qabs_front < 0.0:
+                            row_qabs_front = 0
+                            P_f = 0
+                            
+                        else:
+                            V_oc_f = V_oc_f0 * (1 + T_koeff_V * (T_Current - T_amb) + moduleDict['zeta'] * np.log(row_qabs_front / q_stc_front))
+                            I_sc_f = I_sc_f0 * (1 + T_koeff_I * (T_Current - T_amb)) * (row_qabs_front / q_stc_front)
+                            P_f = FF_f0 * V_oc_f * I_sc_f
 
-                    P_bi_hourly.append(P_bi)
-                    
-                # Append P_bi_hourly array to arrays
-                P_bi_hourly_arrays.append(P_bi_hourly)
+                        # calculation of backside power output
+                        if math.isnan(row_qabs_back) or row_qabs_back < 0.0:
+                            row_qabs_back = 0
+                            P_r = 0
+                            
+                        else:
+                            V_oc_r = V_oc_f0 * (1 + T_koeff_V * (T_Current - T_amb) + moduleDict['zeta'] * np.log(row_qabs_back / q_stc_rear))
+                            I_sc_r = I_sc_f0 * (1 + T_koeff_I * (T_Current - T_amb)) * (row_qabs_back / q_stc_rear)
+                            P_r = FF_fr * V_oc_r * I_sc_r
+                            
+                        
+                        P_bi = P_f + P_r 
+                        
+                
+                        
+                        sum_energy_b += P_bi # Sum up the energy of every row in every hour
 
-                print(sum_energy_b)
+                        P_bi_hourly.append(P_bi)
+                        
+                    # Append P_bi_hourly array to arrays
+                    P_bi_hourly_arrays.append(P_bi_hourly)
+
+                    print(sum_energy_b)
+                    
+                #
+                else:
+                    for index, row in df_report.iterrows():
+                        
+                        #row_qabs_front = row[key_front]
+                        #row_qabs_back = row[key_back]
+                        
+                        # calculate front row power output including the soiling rate determined in GUI                               
+                        row_qabs_front = df_report.loc[index,key_front] * (1 - ((soilrate)/(24)))   
+                        # calculate back row power output including the decreased soiling for backside of PV module                                 
+                        row_qabs_back = df_report.loc[index,key_back] * (1 - ((soilrate)/(24*8.8)))
+                                                                                                 
+                        T_Current = df.loc[index,'temperature']
+                        
+                        # calculation of frontside power output
+                        if math.isnan(row_qabs_front) or row_qabs_front < 0.0:
+                            row_qabs_front = 0
+                            P_f = 0
+                            
+                        else:
+                            V_oc_f = V_oc_f0 * (1 + T_koeff_V * (T_Current - T_amb) + moduleDict['zeta'] * np.log(row_qabs_front / q_stc_front))
+                            I_sc_f = I_sc_f0 * (1 + T_koeff_I * (T_Current - T_amb)) * (row_qabs_front / q_stc_front)
+                            P_f = FF_f0 * V_oc_f * I_sc_f
+
+                        # calculation of backside power output
+                        if math.isnan(row_qabs_back) or row_qabs_back < 0.0:
+                            row_qabs_back = 0
+                            P_r = 0
+                            
+                        else:
+                            V_oc_r = V_oc_f0 * (1 + T_koeff_V * (T_Current - T_amb) + moduleDict['zeta'] * np.log(row_qabs_back / q_stc_rear))
+                            I_sc_r = I_sc_f0 * (1 + T_koeff_I * (T_Current - T_amb)) * (row_qabs_back / q_stc_rear)
+                            P_r = FF_fr * V_oc_r * I_sc_r
+                            
+                        
+                        P_bi = P_f + P_r 
+                        
+                
+                        
+                        sum_energy_b += P_bi # Sum up the energy of every row in every hour
+
+                        P_bi_hourly.append(P_bi)
+                        
+                    # Append P_bi_hourly array to arrays
+                    P_bi_hourly_arrays.append(P_bi_hourly)
+
+                    print(sum_energy_b)
+                    
                     
             P_bi_hourly_average = []
             
@@ -2122,7 +3450,7 @@ class Electrical_simulation:
             ####################################################
             # Monofacial performance Calculation
             
-            # Set Energy to Zero       
+            # Set Energy to Zero
             sum_energy_m = 0
             sum_power_m = 0
             
@@ -2130,28 +3458,116 @@ class Electrical_simulation:
             for i in tqdm(range(0, simulationDict['nRows'])):
                 
                 key_front_mono = "row_" + str(i) + "_qabs_front"
+                P_m_hourly = []
+                temp = 0  #couting variable in loop to calculate soilrate for consecutive hours
+                x = 0 #counting variable in loop to get current month from df_time_soiling
                 
-                for index, row in df_report.iterrows():
+                if simulationDict["mathematicalSoilingrate"] == True:
+                    soilrate = SimulationDict["hourlySoilrate"]
                     
-                    #SG
-                    #row_qabs_front = row[key_front_mono]
-                    #T_Current = df.loc[index,'temperature']
-                    row_qabs_front = df_report.loc[index,key_front_mono]
-                    T_Current = df.loc[index,'temperature']
+                    for i, in enumerate(soilrate):
+                        
+                        for index, row in df_report.iterrows():
+                            
+                            #SG
+                            row_qabs_front = df_report.loc[index,key_front_mono] * (1 - soilrate[i])
+                            T_Current = df.loc[index,'temperature']
 
-                    if math.isnan(row_qabs_front):
-                        row_qabs_front = 0     
+                            if math.isnan(row_qabs_front):
+                                row_qabs_front = 0 
+                            
+                            if  row_qabs_front > 0.0:
+                          
+                                V_oc_f = V_oc_f0 * (1 + T_koeff_V * (T_Current - T_amb) + moduleDict['zeta'] * np.log(row_qabs_front / q_stc_front))
+                                I_sc_f = I_sc_f0 * (1 + T_koeff_I * (T_Current - T_amb)) * (row_qabs_front / q_stc_front)
+                                P_m = FF_f0 * V_oc_f * I_sc_f
+                            
+                                #print("Power: " + str(P_bi))
+                         
+                                sum_energy_m += P_m # Sum up the energy of every row in every hour
+                            else:
+                                P_m = 0
+                                
+                            P_m_hourly.append(P_m)
+                        
+                        # Append P_m_hourly array to arrays
+                        P_m_hourly_arrays.append(P_m_hourly)
+                #
+                elif simulationDict["monthlySoilingrate"] == True:
                     
-                    if  row_qabs_front > 0.0:
-                  
-                        V_oc_f = V_oc_f0 * (1 + T_koeff_V * (T_Current - T_amb) + moduleDict['zeta'] * np.log(row_qabs_front / q_stc_front))
-                        I_sc_f = I_sc_f0 * (1 + T_koeff_I * (T_Current - T_amb)) * (row_qabs_front / q_stc_front)
-                        P_m = FF_f0 * V_oc_f * I_sc_f
-                    
-                 
-                        sum_energy_m += P_m # Sum up the energy of every row in every hour
-                    
+                    for index, row in df_report.iterrows():
+                        
+                        if temp == days_until_clean*24:
+                            temp = 0                     
+                            temp = temp +1                 
+                        else:
+                            temp = temp +1
+                        soilrate = simulationDict["variableSoilrate"][int(df_time_soiling['month'][x])]
+                        x = x+1
+                        #SG
+                        row_qabs_front = df_report.loc[index,key_front_mono] * (1 - ((soilrate*(temp))/(24)))
+                        T_Current = df.loc[index,'temperature']
 
+                        if math.isnan(row_qabs_front):
+                            row_qabs_front = 0 
+                        
+                        if  row_qabs_front > 0.0:
+                      
+                            V_oc_f = V_oc_f0 * (1 + T_koeff_V * (T_Current - T_amb) + moduleDict['zeta'] * np.log(row_qabs_front / q_stc_front))
+                            I_sc_f = I_sc_f0 * (1 + T_koeff_I * (T_Current - T_amb)) * (row_qabs_front / q_stc_front)
+                            P_m = FF_f0 * V_oc_f * I_sc_f
+                        
+                            #print("Power: " + str(P_bi))
+                     
+                            sum_energy_m += P_m # Sum up the energy of every row in every hour
+                        else:
+                            P_m = 0
+                            
+                        P_m_hourly.append(P_m)
+                    
+                    # Append P_m_hourly array to arrays
+                    P_m_hourly_arrays.append(P_m_hourly)
+                
+                #
+                else:
+                    
+                    for index, row in df_report.iterrows():
+                        row_qabs_front = df_report.loc[index,key_front_mono] * (1 - ((soilrate)/(24)))
+                        T_Current = df.loc[index,'temperature']
+
+                        if math.isnan(row_qabs_front):
+                            row_qabs_front = 0 
+                        
+                        if  row_qabs_front > 0.0:
+                      
+                            V_oc_f = V_oc_f0 * (1 + T_koeff_V * (T_Current - T_amb) + moduleDict['zeta'] * np.log(row_qabs_front / q_stc_front))
+                            I_sc_f = I_sc_f0 * (1 + T_koeff_I * (T_Current - T_amb)) * (row_qabs_front / q_stc_front)
+                            P_m = FF_f0 * V_oc_f * I_sc_f
+                        
+                            #print("Power: " + str(P_bi))
+                     
+                            sum_energy_m += P_m # Sum up the energy of every row in every hour
+                        else:
+                            P_m = 0
+                            
+                        P_m_hourly.append(P_m)
+                    
+                    # Append P_m_hourly array to arrays
+                    P_m_hourly_arrays.append(P_m_hourly)
+                    
+            P_m_hourly_average = []
+            
+            for i in tqdm(range(0, len(P_m_hourly_arrays[0]))):
+                sum = 0
+              
+                for j in range(0, len(P_m_hourly_arrays)):
+                    sum += P_m_hourly_arrays[j][i]
+                    
+                average_m = sum / float(len(P_m_hourly_arrays))
+                
+                P_m_hourly_average.append(average_m)
+                     #else:
+                        #print("Power: 0.0")
             
             annual_power_per_module_m = (sum_energy_m/simulationDict['nRows']) #[W] annual monofacial output power per module
             '''print("Yearly monofacial output power per module: " + str(annual_power_per_module_m) + " W/module")
