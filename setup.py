@@ -1,7 +1,6 @@
 from setuptools import setup,find_packages,Extension
 from setuptools import find_packages
 from pathlib import Path
-import versioneer 
 
 
 
@@ -21,15 +20,14 @@ setup(
     author='Eva-Maria Grommes',
 
     # Define the Author's email, so people know who to reach out to.
-    author_email='Eva-Maria.Grommes@th-koeln.de',
+    author_email='mail@evagrommes.de',
 
     # Define the version of this library.
     # Read this as
     #   - MAJOR VERSION 1
     #   - MINOR VERSION 0
     #   - MAINTENANCE VERSION 0
-    version= versioneer.get_version() ,
-    cmdclass=versioneer.get_cmdclass(),
+    version='1.2.0',
 
     # Here is a small description of the library. This appears
     # when someone searches for the library on https://pypi.org/search.
@@ -68,6 +66,8 @@ setup(
         'clyent==1.2.1',
         'nbformat==5.4.0',
         'ruamel.yaml==0.17.21',
+        'timezonefinder==6.2.0',
+        'black==22.3.0'
     ],
 
     # Here are the keywords of my library.
@@ -87,7 +87,10 @@ setup(
           'Programming Language :: Python :: 3.9',
           
           # I can say what phase of development my library is in.
-          'Development Status :: 1 - Alpha',
+         'Development Status :: 3 - Alpha',
+
+         # Here I'll add the audience this library is intended for.
+         'Intended Audience :: Science/Research',
           ]
 # ==================== ADDTIONAL PACKAGE INFO =================================
 # 

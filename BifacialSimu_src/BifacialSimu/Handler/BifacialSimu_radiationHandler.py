@@ -629,8 +629,8 @@ class ViewFactors:
             
             df['time'] = df['corrected_timestamp'].dt.strftime('%Y %m_%d_%H')
             df = df.set_index('time')
-            df['timestamp'] = df['corrected_timestamp'].dt.strftime('%Y %m-%d %H:%M%')
-            df['timestamp'] = pd.to_datetime(df['timestamp'])  
+            df['timestamp'] = df['corrected_timestamp'].dt.strftime('%Y %m-%d %H:%M')
+            df['timestamp'] = pd.to_datetime(df['timestamp'], utc=True)
             #df['timestamp'] = df['timestamp'].dt.tz_localize(None)
             df = df.set_index('timestamp')
             
@@ -646,13 +646,11 @@ class ViewFactors:
         #beginning_of_year = datetime.datetime(dtEnd.year, 1, 1, tzinfo=dtEnd.tzinfo)
         #endHour = int((dtEnd - beginning_of_year).total_seconds() // 3600)
 
-
-
         
         ######### Cutting the dataframe to the required input timeframe
         if simulationDict['cumulativeSky'] == False:
             #df = df.iloc[startHour:endHour]
-            mask = (df.index >= dtStart) & (df.index <= dtEnd) 
+            mask = (df.corrected_timestamp >= dtStart) & (df.corrected_timestamp <= dtEnd)
             df = df.loc[mask]
             
         
