@@ -376,7 +376,7 @@ class Electrical_simulation:
                     #print("Power: 0.0")
              
                     
-        mismatch_array=Electrical_simulation.calculate_mismatch(P_m_hourly_average, P_mpp0)
+        mismatch_array=Electrical_simulation.calculate_mismatch(P_bi_hourly_average, P_mpp0)
         
              
 
@@ -567,7 +567,7 @@ class Electrical_simulation:
                 
                 row_qabs_front = df_report.loc[index,key_front]
                 row_qabs_back = df_report.loc[index,key_back]
-                row_qabs_combined = row_qabs_front + (row_qabs_back*bi_factor)
+                row_qabs_combined = row_qabs_front + (row_qabs_back*bi_factor) #This value is used in lines 585 & 586
                 T_Current = df.loc[index,'temperature']
                 
                 
@@ -586,7 +586,7 @@ class Electrical_simulation:
                     I_sc_f = I_sc_f0 * (1 + T_koeff_I * (T_Current - T_amb)) * (row_qabs_combined / q_stc_front)
                     P_bi = FF_f0 * V_oc_f * I_sc_f
                 
-
+                
                 sum_energy_b += P_bi # Sum up the energy of every row in every hour
 
                 P_bi_hourly.append(P_bi)
@@ -608,9 +608,11 @@ class Electrical_simulation:
             
             P_bi_hourly_average.append(average)
             
-                
+            
+        mismatch_array=Electrical_simulation.calculate_mismatch(P_bi_hourly_average, P_mpp0)
+
         # Create dataframe with average data
-        p_bi_df = pd.DataFrame({"timestamps":df_report.index, "P_bi ": P_bi_hourly_average})
+        p_bi_df = pd.DataFrame({"timestamps":df_report.index, "P_bi ": P_bi_hourly_average, "Mismatch":mismatch_array})
         p_bi_df.set_index("timestamps")
         p_bi_df.to_csv(resultsPath + "electrical_simulation" + datetime.datetime.now().strftime("%Y-%m-%d-%H-%M") + ".csv")
         
@@ -633,14 +635,14 @@ class Electrical_simulation:
         print ("\n")'''
         
         # Plot total qinc front and back for every row
-        f = plt.Figure(figsize=(12, 3))
-        ax1 = f.subplots(1)
-        ax1.locator_params(tight=True, nbins=6)
-        #f.plot(P_bi_hourly)
-        ax1.set_title('Bifacial output Power hourly')
-        ax1.set_xlabel('Hour')
-        ax1.set_ylabel('W')
-        f.savefig("P_bi_hourly" + datetime.datetime.now().strftime("%Y-%m-%d-%H-%M") + ".png", dpi = dpi)
+        # f = plt.Figure(figsize=(12, 3))
+        # ax1 = f.subplots(1)
+        # ax1.locator_params(tight=True, nbins=6)
+        # #f.plot(P_bi_hourly)
+        # ax1.set_title('Bifacial output Power hourly')
+        # ax1.set_xlabel('Hour')
+        # ax1.set_ylabel('W')
+        # f.savefig("P_bi_hourly" + datetime.datetime.now().strftime("%Y-%m-%d-%H-%M") + ".png", dpi = dpi)
         #plt.show()()
         ##plt.show()(sns)
          
@@ -703,7 +705,7 @@ class Electrical_simulation:
         print("Bifacial Gain: " + str(Bifacial_gain*100) + " %")
         
         #Plot for Bifacial Power Output + Bifacial Gain
-        GUI.Window.makePlotBifacialRadiance(resultsPath,Bifacial_gain)     
+        # GUI.Window.makePlotBifacialRadiance(resultsPath,Bifacial_gain)     
         
         return Bifacial_gain*100
         
