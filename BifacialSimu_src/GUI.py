@@ -1442,7 +1442,7 @@ class Window(tk.Tk):
                Label_weatherstation.config(state="normal")
                Entry_distance.config(state="normal")                 
                Entry_weatherstation.config(state="normal")                 
-               messagebox.showwarning("Main Control", "Confirm Main Control inputs when done!")# Input has to be confirmed with Button to update soiling rate
+               #messagebox.showwarning("Main Control", "Confirm Main Control inputs when done!")# Input has to be confirmed with Button to update soiling rate
                
             elif (rb_Soiling.get() == 3):
               SimulationDict["monthlySoilingrate"] = False
@@ -1453,7 +1453,7 @@ class Window(tk.Tk):
               Label_weatherstation.config(state="normal")
               Entry_distance.config(state="normal")                 
               Entry_weatherstation.config(state="normal")                 
-              messagebox.showwarning("Main Control", "Confirm Main Control inputs when done!")# Input has to be confirmed with Button to update soiling rate
+              #messagebox.showwarning("Main Control", "Confirm Main Control inputs when done!")# Input has to be confirmed with Button to update soiling rate
            
             else:
                SimulationDict["monthlySoilingrate"] = False
@@ -1595,7 +1595,7 @@ class Window(tk.Tk):
             #delta_t_sec = delta_t * 30 * 24 * 60 * 60 # en secondes
 
             # Import the CSV file and add an index column
-            new_soilingrate = pd.read_csv('new_soilingrate_coordinates_data_2022.csv', encoding='utf-8' )
+            new_soilingrate = pd.read_csv(rootPath + '\Lib\input_soiling\new_soilingrate_coordinates_data_2022.csv', encoding='utf-8' )
             new_soilingrate.insert(0, 'index', range(0, len(new_soilingrate)))        
             
             #Function to calculate the distance between two coordinates
@@ -1671,15 +1671,15 @@ class Window(tk.Tk):
                         delta_t = 0 
                         
                     # Calculate new value of S
-                    S = ((PM2_5 + PM10)*(10**(-6))) * wind_speed * delta_t * cos(radians(angle))  * (10**(-3))  # Coello & You *(10**(-6)).
+                    S = ((PM2_5 + PM10)*(10**(-6))) * wind_speed * delta_t * cos(radians(angle))  # Coello 
                     
-                    rs_hegazy = 1 - ((34.37 * math.erf(0.17*(S**0.8473))) / 100) #hegazy
+                    rs_hegazy = ((34.37 * math.erf(0.17*(S**0.8473))) / 100) #hegazy
                     #rs_hegazy_neu = 1 - rs_hegazy
 
-                    rs_you_saiz = (1 - (0.0385 * S)) #“You/Saiz”.
+                    rs_you_saiz = ((0.0385 * S)) #“You/Saiz”.
                     #rs_you_saiz_neu = 1 - (rs_you_saiz)
 
-                    rs_conceicao = (1 - (0.2545 * S)) 
+                    rs_conceicao = ((0.2545 * S)) 
 
                     # add the value of S to the list of values_soiling_accumulation
                     values_soiling_accumulation.append(S)
@@ -2330,6 +2330,8 @@ class Window(tk.Tk):
             #breaking flag must be rest before starting a new Simulation, otherwise it won't function if someone pressed the stop button before.
             globals.thread_break = False 
             
+            messagebox.showwarning("Main Control", "Confirm Main Control inputs when done!")# Input has to be confirmed with Button to update soiling rate
+
             threading.Thread(target=StartSimulation).start()
        
         #break Simulation in Thread
