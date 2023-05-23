@@ -66,7 +66,7 @@ PM10 = data.loc[Index_location, 'PM10']
 wind_speed = data.loc[Index_location, 'wind_speed']
 
 Startdate = '2022 01 01 00'
-Enddate = '2023 01 01 00'
+Enddate = '2022 01 02 00'
 start_date = datetime.strptime(Startdate, '%Y %m %d %H')
 end_date = datetime.strptime(Enddate, '%Y %m %d %H')
 print(start_date)
@@ -81,7 +81,7 @@ print("Number of seconds between the two dates:", seconds, 's')
 #print("Number of day between the two dates:", day, 'd')
 print("Number of hours between the two dates:", hours, 'd')
 # Define X as the time until the next cleaning (in seconds)
-day_until_clean = 73 #cleaning occurs every 15 days
+day_until_clean = 5 #cleaning occurs every 15 days
 X = 86400 * day_until_clean  # in seconds; Assume cleaning occurs every 15 days
 
 # Initialize variables
@@ -112,7 +112,7 @@ for t in range(int(hours)):
         delta_t = 0 
         
     # Calculate new value of Soiling_accumulation
-    S = ((PM2_5 + PM10)*(10**(-6))) * wind_speed * delta_t * cos(radians(angle))  * (10**(-4))  # Coello & Arsene *(10**(-4)).
+    S = ((PM2_5 + PM10)*(10**(-6))) * wind_speed * delta_t * cos(radians(angle))   # Coello.
     
     rs_hegazy =((34.37 * math.erf(0.17*(S**0.8473))) / 100) #hegazy
     #rs_hegazy_neu = 1 - rs_hegazy
@@ -155,7 +155,7 @@ for t in range(int(hours)):
 
 #print(values_soiling_accumulation)
 print(values_soiling_hegazy)
-print (times)
+#print (times)
 
 # Creating the csv table with Soiling data of the Location with the Index(Index_location)
 with open('Soiling{}.csv'.format(Index_location), mode='w', newline='') as file:
@@ -174,7 +174,6 @@ plt.show()
 
 #  plot the soiling_hegazy graph
 plt.plot(times, values_soiling_hegazy)
-#plt.xlabel('Day [d]')
 plt.xlabel('Hours [h]')
 plt.ylabel('Soiling')
 plt.title('Evolution of the values_soiling_hegazy during la simulation')
@@ -182,7 +181,6 @@ plt.show()
 
 #  plot the values_soiling_you_saiz graph
 plt.plot(times, values_soiling_you_saiz)
-#plt.xlabel('Day [d]')
 plt.xlabel('Hours [h]')
 plt.ylabel('Soiling')
 plt.title('Evolution of the values_soiling_you_saiz during la simulation')
@@ -190,7 +188,6 @@ plt.show()
 
 #  plot the values_soiling_conceicao graph
 plt.plot(times, values_soiling_conceicao)
-#plt.xlabel('Day [d]')
 plt.xlabel('Hours [h]')
 plt.ylabel('Soiling')
 plt.title('Evolution of the values_soiling_conceicao during la simulation')
