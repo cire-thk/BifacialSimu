@@ -13,7 +13,6 @@ from datetime import datetime
 import matplotlib.pyplot as plt
 import csv
 
-
 #39.73845291,-104.98485565 - Denver, US
 
 #Dust accumulation effects on efficiency of solar PV modules for off grid
