@@ -232,7 +232,7 @@ class Electrical_simulation:
             if simulationDict["mathematicalSoilingrate"] == True:
                 soilrate = SimulationDict["hourlySoilrate"]
                 
-                for i, in enumerate(soilrate):
+                for i in range(len(soilrate)):
                     
                     for index, row in df_report.iterrows():
                         
@@ -473,7 +473,7 @@ class Electrical_simulation:
             if simulationDict["mathematicalSoilingrate"] == True:
                 soilrate = SimulationDict["hourlySoilrate"]
                 
-                for i, in enumerate(soilrate):
+                for i in range(len(soilrate)):
                     
                     for index, row in df_report.iterrows():
                         
@@ -777,7 +777,7 @@ class Electrical_simulation:
             if simulationDict["mathematicalSoilingrate"] == True:
                 soilrate = SimulationDict["hourlySoilrate"]
                 
-                for i, in enumerate(soilrate):
+                for i in range(len(soilrate)):
                     
                     for index, row in df_report.iterrows():
                         
@@ -968,7 +968,7 @@ class Electrical_simulation:
             if simulationDict["mathematicalSoilingrate"] == True:
                 soilrate = SimulationDict["hourlySoilrate"]
                 
-                for i, in enumerate(soilrate):
+                for i in range(len(soilrate)):
                     
                     for index, row in df_report.iterrows():
                         
@@ -1423,7 +1423,7 @@ class Electrical_simulation:
             if simulationDict["mathematicalSoilingrate"] == True:
                 soilrate = SimulationDict["hourlySoilrate"]
                 
-                for i, in enumerate(soilrate):
+                for i in range(len(soilrate)):
                     
                     for index, row in df_report.iterrows():
                         
@@ -1975,7 +1975,7 @@ class Electrical_simulation:
             if simulationDict["mathematicalSoilingrate"] == True:
                 soilrate = SimulationDict["hourlySoilrate"]
                 
-                for i, in enumerate(soilrate):
+                for i in range(len(soilrate)):
                     
                     for index, row in df_report.iterrows():
                         
@@ -2384,7 +2384,7 @@ class Electrical_simulation:
             if simulationDict["mathematicalSoilingrate"] == True:
                 soilrate = SimulationDict["hourlySoilrate"]
                 
-                for i, in enumerate(soilrate):
+                for i in range(len(soilrate)):
                     
                     for index, row in df_report.iterrows():
                         
@@ -2975,7 +2975,7 @@ class Electrical_simulation:
             if simulationDict["mathematicalSoilingrate"] == True:
                 soilrate = SimulationDict["hourlySoilrate"]
                 
-                for i, in enumerate(soilrate):
+                for i in range(len(soilrate)):
                     
                     for index, row in df_report.iterrows():
                         
@@ -3249,7 +3249,7 @@ class Electrical_simulation:
                 if simulationDict["mathematicalSoilingrate"] == True:
                     soilrate = SimulationDict["hourlySoilrate"]
                     
-                    for i, in enumerate(soilrate):
+                    for i in range(len(soilrate)):
                         
                         for index, row in df_report.iterrows():
                             
@@ -3465,7 +3465,7 @@ class Electrical_simulation:
                 if simulationDict["mathematicalSoilingrate"] == True:
                     soilrate = SimulationDict["hourlySoilrate"]
                     
-                    for i, in enumerate(soilrate):
+                    for i in range(len(soilrate)):
                         
                         for index, row in df_report.iterrows():
                             

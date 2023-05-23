@@ -1571,192 +1571,210 @@ class Window(tk.Tk):
                 SimulationDict["monthlySoilingrate"] = True 
                 #soiling value
                 
-                if len(Entry_month_start.get()) != 0:
-                    Entry_Soilrate.insert(0, soilingrate_Weatherdata['Soiling_Rate'].values[indexout*12 + int(Entry_month_start.get())-1])
-                else:
-                    Entry_Soilrate.insert(0, soilingrate_Weatherdata['Soiling_Rate'].values[indexout*12])
                 #soilingrate_Weatherdata = soilingrate_Weatherdata.set_index('City, Country')
                 SimulationDict["variableSoilrate"] = soilingrate_Weatherdata['Soiling_Rate'].iloc[indexout*12:(indexout*12 + 12)].values.tolist()
+                SimulationDict["fixSoilrate"] = SimulationDict["variableSoilrate"]
+                
                 print("Monthly Soiling Rates:", SimulationDict["variableSoilrate"])
                 
+                # Start month of the simulation
+                start_month = Entry_month_start.get
                 
-        #for experimental Soiling   
-        # When radiobutton 'Soiling Rate from theorical Model' active, set new soilingrate   
-        if (rb_Soiling.get() == 3):
-            Entry_Soilrate.delete(0, END)
-            SimulationDict["mathematicalSoilingrate"] = True 
+                #to calculate the Duration of the simulation 
+                Startdate = datetime.datetime(int(Entry_year_start.get()), int(Entry_month_start.get()), int(Entry_day_start.get()), int(Entry_hour_start.get())) #defining as Date
+                Enddate = datetime.datetime(int(Entry_year_end.get()), int(Entry_month_end.get()), int(Entry_day_end.get()), int(Entry_hour_end.get()))
+                
+                # Duration of the simulation (in months)
+                duree_simulation = Startdate - Enddate
+                
+                # Parcourir la liste SimulationDict["variableSoilrate"] et attribuer une valeur à X pour chaque months de la simulation
+                for months in range(duree_simulation):
+                    current_month = (months + list(SimulationDict["variableSoilrate"][0].keys()).index(start_month)) % 12
+                    for city_data in SimulationDict["variableSoilrate"]:
+                        Entry_Soilrate.insert(0, city_data[list(city_data.keys())[current_month + 1]])
+                
+                #if len(Entry_month_start.get()) != 0:
+                   # Entry_Soilrate.insert(0, soilingrate_Weatherdata['Soiling_Rate'].values[indexout*12 + int(Entry_month_start.get())-1])
+                #else:
+                 #   Entry_Soilrate.insert(0, soilingrate_Weatherdata['Soiling_Rate'].values[indexout*12])
+                
+        
+                
+        #Function to calculate the distance between two coordinates
+        def haversine(lon1, lat1, lon2, lat2):
             
+            """
+            Calculate the great circle distance between two points 
+            on the earth (specified in decimal degrees)
+            """
             # Coordinates of the given location
             #X = SimulationDict["latitude"] #lat
             #Y = SimulationDict["longitude"] #lng
-            angle = SimulationDict["tilt"] # tilt angle
-
-            #delta_t = 2 # nombre de mois
-            #delta_t_sec = delta_t * 30 * 24 * 60 * 60 # en secondes
-
+            
             # Import the CSV file and add an index column
             new_soilingrate = pd.read_csv(rootPath + '\Lib\input_soiling\new_soilingrate_coordinates_data_2022.csv', encoding='utf-8' )
             new_soilingrate.insert(0, 'index', range(0, len(new_soilingrate)))        
             
-            #Function to calculate the distance between two coordinates
-            def haversine(lon1, lat1, lon2, lat2):
-                
-                """
-                Calculate the great circle distance between two points 
-                on the earth (specified in decimal degrees)
-                """
-                # convert decimal degrees to radians 
-                lon1, lat1, lon2, lat2 = map(radians, [lon1, lat1, lon2, lat2])
+            # convert decimal degrees to radians 
+            lon1, lat1, lon2, lat2 = map(radians, [lon1, lat1, lon2, lat2])
 
-                # haversine formula 
-                dlon = lon2 - lon1 
-                dlat = lat2 - lat1 
-                a = sin(dlat/2)**2 + cos(lat1) * cos(lat2) * sin(dlon/2)**2
-                c = 2 * asin(sqrt(a)) 
-                r = 6371 # Radius of earth in kilometers. Use 3956 for miles
-                return c * r
+            # haversine formula 
+            dlon = lon2 - lon1 
+            dlat = lat2 - lat1 
+            a = sin(dlat/2)**2 + cos(lat1) * cos(lat2) * sin(dlon/2)**2
+            c = 2 * asin(sqrt(a)) 
+            r = 6371 # Radius of earth in kilometers. Use 3956 for miles
+            return c * r
+        
+            # Find the closest location to the given "SimulationDict["latitude"]" and "SimulationDict["longitude"]" coordinates
+            distances = []
+            for i, row in new_soilingrate.iterrows():
+                dist = haversine(SimulationDict["longitude"], SimulationDict["latitude"], row['lng'], row['lat'])
+                distances.append(dist)
+            Index_location = np.argmin(distances)
+
+            #Calculate the dirt accumullation  value for the location found
+            PM2_5 = new_soilingrate.loc[Index_location, 'PM2_5']
+            PM10 = new_soilingrate.loc[Index_location, 'PM10']
+            wind_speed = new_soilingrate.loc[Index_location, 'wind_speed'] 
             
-                # Find the closest location to the given "SimulationDict["latitude"]" and "SimulationDict["longitude"]" coordinates
-                distances = []
-                for i, row in new_soilingrate.iterrows():
-                    dist = haversine(SimulationDict["longitude"], SimulationDict["latitude"], row['lng'], row['lat'])
-                    distances.append(dist)
-                Index_location = np.argmin(distances)
+            Startdate = datetime.datetime(int(Entry_year_start.get()), int(Entry_month_start.get()), int(Entry_day_start.get()), int(Entry_hour_start.get())) #defining as Date
+            Enddate = datetime.datetime(int(Entry_year_end.get()), int(Entry_month_end.get()), int(Entry_day_end.get()), int(Entry_hour_end.get()))
+            
+            start_date = datetime.strptime(Startdate, '%Y %m %d %H')
+            end_date = datetime.strptime(Enddate, '%Y %m %d %H')
+            
+            print('Start of The simulation', start_date)
+            print('End of The simulation',end_date)
+            
+            delta = Startdate - Enddate # to calculate the duration of the simulation
+            #delta = end_date - start_date
+            
+            seconds = delta.total_seconds()
+            #day = seconds / 86400 #accumulation per day
+            hours = seconds / 3600 #accumulation per hour
 
-                #Calculate the dirt accumullation  value for the location found
-                PM2_5 = new_soilingrate.loc[Index_location, 'PM2_5']
-                PM10 = new_soilingrate.loc[Index_location, 'PM10']
-                wind_speed = new_soilingrate.loc[Index_location, 'wind_speed'] 
-                
-                Startdate = datetime.datetime(int(Entry_year_start.get()), int(Entry_month_start.get()), int(Entry_day_start.get()), int(Entry_hour_start.get())) #defining as Date
-                Enddate = datetime.datetime(int(Entry_year_end.get()), int(Entry_month_end.get()), int(Entry_day_end.get()), int(Entry_hour_end.get()))
-                
-                start_date = datetime.strptime(Startdate, '%Y %m %d %H')
-                end_date = datetime.strptime(Enddate, '%Y %m %d %H')
-                
-                print('Start of The simulation', start_date)
-                print('End of The simulation',end_date)
+            # Define day_until_clean_second as the time until the next cleaning (in seconds)
+            day_until_clean = SimulationDict["days_until_clean"] #cleaning occurs every 15 days
+            day_until_clean_second = 86400 * day_until_clean  # in seconds; Assume cleaning occurs every 15 days
 
-                delta = Startdate - Enddate
-                #delta = end_date - start_date
-                print(delta)
-                seconds = delta.total_seconds()
-                #day = seconds / 86400 #accumulation per day
-                hours = seconds / 3600 #accumulation per hour
+            # Initialize variables
+            delta_t = 0 #timessteps
+            soiling_accumulation = 0 #soiling_accumulation
+            times = []
+            values_soiling_accumulation = []
+            values_soiling_hegazy = []
+            values_soiling_you_saiz = []
+            values_soiling_conceicao = []
+            
+            angle = SimulationDict["tilt"] # tilt angle
+            
+            #simulation loop
+            for t in range(int(hours)):
+            #for t in range(int(day)):
                 
+                # if the period day_until_clean_second is reached, reset soiling_accumulation and delta_t
+                if delta_t == day_until_clean_second:
+                    soiling_accumulation = 0
+                    delta_t = 0 
+                    
+                # Calculate new value of soiling_accumulation
+                soiling_accumulation = ((PM2_5 + PM10)*(10**(-6))) * wind_speed * delta_t * cos(radians(angle))  # Coello 
+                
+                rs_hegazy = ((34.37 * math.erf(0.17*(soiling_accumulation**0.8473))) / 100) #hegazy
+                #rs_hegazy_neu = 1 - rs_hegazy
+
+                rs_you_saiz = ((0.0385 * soiling_accumulation)) #“You/Saiz”.
+                #rs_you_saiz_neu = 1 - (rs_you_saiz)
+
+                rs_conceicao = ((0.2545 * soiling_accumulation)) 
+
+                # add the value of soiling_accumulation to the list of values_soiling_accumulation
+                values_soiling_accumulation.append(soiling_accumulation)
+                
+                # add the value of Soiling to the list of values_soiling_hegazy
+                values_soiling_hegazy.append(rs_hegazy)
+                
+                # add the value of Soiling_rs_you_saiz to the list of values_soiling_you_saiz
+                values_soiling_you_saiz.append(rs_you_saiz)
+                
+                # add the value of Soiling_rs_conceicao to the list of values_soiling_conceicao
+                values_soiling_conceicao.append(rs_conceicao)
+                
+                # add the current hour to the time list in hours
+                times.append(t)
+                
+                # Print current values of A and delta_t
+                print('Index_location:', Index_location)
+                print('S:', soiling_accumulation, 'g/m²')
+                print('rs_hegazy:', rs_hegazy)
+                #print('rs_hegazy_neu:', rs_hegazy_neu)
+                print('rs_you_saiz:', rs_you_saiz)
+                #print('rs_you_saiz_neu:', rs_you_saiz_neu)
+                print('rs_conceicao:', rs_conceicao)
+                
+                print("delta_t:", delta_t)
+                
+                print("Number of days between the two dates:", delta)
                 print("Number of seconds between the two dates:", seconds, 's')
                 #print("Number of day between the two dates:", day, 'd')
-                print("Number of hours between the two dates:", hours, 'd')
-
-                # Define X as the time until the next cleaning (in seconds)
-                day_until_clean = SimulationDict["days_until_clean"] #cleaning occurs every 15 days
-                X = 86400 * day_until_clean  # in seconds; Assume cleaning occurs every 15 days
-
-                # Initialize variables
-                delta_t = 0 #timessteps
-                S = 0 #soiling_accumulation
-                times = []
-                values_soiling_accumulation = []
-                values_soiling_hegazy = []
-                values_soiling_you_saiz = []
-                values_soiling_conceicao = []
+                print("Number of hours between the two dates:", hours, 'h')
                 
-                #simulation loop
-                for t in range(int(hours)):
-                #for t in range(int(day)):
-                    
-                    # if the period X is reached, reset S and delta_t
-                    if delta_t == X:
-                        S = 0
-                        delta_t = 0 
-                        
-                    # Calculate new value of S
-                    S = ((PM2_5 + PM10)*(10**(-6))) * wind_speed * delta_t * cos(radians(angle))  # Coello 
-                    
-                    rs_hegazy = ((34.37 * math.erf(0.17*(S**0.8473))) / 100) #hegazy
-                    #rs_hegazy_neu = 1 - rs_hegazy
-
-                    rs_you_saiz = ((0.0385 * S)) #“You/Saiz”.
-                    #rs_you_saiz_neu = 1 - (rs_you_saiz)
-
-                    rs_conceicao = ((0.2545 * S)) 
-
-                    # add the value of S to the list of values_soiling_accumulation
-                    values_soiling_accumulation.append(S)
-                    
-                    # add the value of Soiling to the list of values_soiling_hegazy
-                    values_soiling_hegazy.append(rs_hegazy)
-                    
-                    # add the value of Soiling_rs_you_saiz to the list of values_soiling_you_saiz
-                    values_soiling_you_saiz.append(rs_you_saiz)
-                    
-                    # add the value of Soiling_rs_conceicao to the list of values_soiling_conceicao
-                    values_soiling_conceicao.append(rs_conceicao)
-                    
-                    # add the current Day to the time list in hours
-                    times.append(t)
-                    
-                    # Print current values of A and delta_t
-                    print('Index_location:', Index_location)
-                    print('S:', S, 'g/m²')
-                    print('rs_hegazy:', rs_hegazy)
-                    #print('rs_hegazy_neu:', rs_hegazy_neu)
-                    print('rs_you_saiz:', rs_you_saiz)
-                    #print('rs_you_saiz_neu:', rs_you_saiz_neu)
-                    print('rs_conceicao:', rs_conceicao)
-                    
-                    print("delta_t:", delta_t)
-                    
-                    #increment the  hourly / daily time interval
-                    delta_t += 3600 #hourly
-                    #delta_t += 86400 #daily
+                #increment the  hourly / daily time interval
+                delta_t += 3600 #hourly
+                #delta_t += 86400 #daily
 
 
-                # Creating the csv table with Soiling data of the Location with the Index(Index_location)
-                with open('Soiling{}.csv'.format(Index_location), mode='w', newline='') as file:
-                    writer = csv.writer(file)
-                    writer.writerow(['Hours', 'Soiling_accumulation', 'rs_hegazy', 'rs_you_saiz', 'rs_conceicao' ])  # Column headings
-                    for i in range(len(times)):
-                        writer.writerow([times[i], values_soiling_accumulation[i], values_soiling_hegazy[i], values_soiling_you_saiz[i], values_soiling_conceicao[i] ])  # Adding data to the table
+            # Creating the csv table with Soiling data of the Location with the Index(Index_location)
+            with open('Soiling{}.csv'.format(Index_location), mode='w', newline='') as file:
+                writer = csv.writer(file)
+                writer.writerow(['Hours', 'soiling_accumulation', 'rs_hegazy', 'rs_you_saiz', 'rs_conceicao' ])  # Column headings
+                for i in range(len(times)):
+                    writer.writerow([times[i], values_soiling_accumulation[i], values_soiling_hegazy[i], values_soiling_you_saiz[i], values_soiling_conceicao[i] ])  # Adding data to the table
+            
+            #  plot the soiling_accumulation graph
+            plt.plot(times, values_soiling_accumulation)
+            #plt.xlabel('Day [d]')
+            plt.xlabel('Hours [h]')
+            plt.ylabel('Soiling Accumulation [g/m²]')
+            plt.title('Evolution of the Soiling Accumulation during la simulation')
+            plt.show()
+
+            #  plot the soiling_hegazy graph
+            plt.plot(times, values_soiling_hegazy)
+            #plt.xlabel('Day [d]')
+            plt.xlabel('Hours [h]')
+            plt.ylabel('Soiling')
+            plt.title('Evolution of the values_soiling_hegazy during la simulation')
+            plt.show()
+
+            #  plot the values_soiling_you_saiz graph
+            plt.plot(times, values_soiling_you_saiz)
+            #plt.xlabel('Day [d]')
+            plt.xlabel('Hours [h]')
+            plt.ylabel('Soiling')
+            plt.title('Evolution of the values_soiling_you_saiz during la simulation')
+            plt.show()
+
+            #  plot the values_soiling_conceicao graph
+            plt.plot(times, values_soiling_conceicao)
+            #plt.xlabel('Day [d]')
+            plt.xlabel('Hours [h]')
+            plt.ylabel('Soiling')
+            plt.title('Evolution of the values_soiling_conceicao during la simulation')
+            plt.show()   
+            
+            #for experimental Soiling   
+            # When radiobutton 'Soiling Rate from theorical Model' active, set new soilingrate   
+            if (rb_Soiling.get() == 3):
+                Entry_Soilrate.delete(0, END)
+                SimulationDict["mathematicalSoilingrate"] = True
                 
                 #insert the new soiling value to the variable in simulation dictionary. 
                 SimulationDict["hourlySoilrate"] = values_soiling_hegazy
+                SimulationDict["fixSoilrate"] = SimulationDict["hourlySoilrate"]
                 
-                #  plot the soiling_accumulation graph
-                plt.plot(times, values_soiling_accumulation)
-                #plt.xlabel('Day [d]')
-                plt.xlabel('Hours [h]')
-                plt.ylabel('Soiling Accumulation [g/m²]')
-                plt.title('Evolution of the Soiling Accumulation during la simulation')
-                plt.show()
-
-                #  plot the soiling_hegazy graph
-                plt.plot(times, values_soiling_hegazy)
-                #plt.xlabel('Day [d]')
-                plt.xlabel('Hours [h]')
-                plt.ylabel('Soiling')
-                plt.title('Evolution of the values_soiling_hegazy during la simulation')
-                plt.show()
-
-                #  plot the values_soiling_you_saiz graph
-                plt.plot(times, values_soiling_you_saiz)
-                #plt.xlabel('Day [d]')
-                plt.xlabel('Hours [h]')
-                plt.ylabel('Soiling')
-                plt.title('Evolution of the values_soiling_you_saiz during la simulation')
-                plt.show()
-
-                #  plot the values_soiling_conceicao graph
-                plt.plot(times, values_soiling_conceicao)
-                #plt.xlabel('Day [d]')
-                plt.xlabel('Hours [h]')
-                plt.ylabel('Soiling')
-                plt.title('Evolution of the values_soiling_conceicao during la simulation')
-                plt.show()
-                
-            
-            
-
+            #
             
         # Defining the electrical Mode with or without Values of rear side
         def Electricalmode():
