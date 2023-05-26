@@ -103,9 +103,9 @@ for t in range(int(hours)):
         delta_t = 0 
         
     # Calculate new value of Soiling_accumulation
-    S = ((PM2_5 + PM10)*(10**(-9))) * wind_speed * delta_t * cos(radians(angle))   # Coello.
+    S = round ((((PM2_5 + PM10)*(10**(-9))) * wind_speed * delta_t * cos(radians(angle))), 8)   # Coello.
     
-    rs_hegazy =((34.37 * math.erf(0.17*(S**0.8473))) / 100) #hegazy
+    rs_hegazy = round ((((34.37 * math.erf(0.17*(S**0.8473))) / 100)), 6) #hegazy
     #rs_hegazy_neu = 1 - rs_hegazy
 
     rs_you_saiz = ( (0.0385 * S)) #“You/Saiz”.
