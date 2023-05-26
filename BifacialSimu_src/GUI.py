@@ -1638,8 +1638,11 @@ class Window(tk.Tk):
             PM10 = new_soilingrate.loc[Index_location, 'PM10']
             wind_speed = new_soilingrate.loc[Index_location, 'wind_speed'] 
             
-            Startdate = datetime.datetime(int(Entry_year_start.get()), int(Entry_month_start.get()), int(Entry_day_start.get()), int(Entry_hour_start.get())) #defining as Date
-            Enddate = datetime.datetime(int(Entry_year_end.get()), int(Entry_month_end.get()), int(Entry_day_end.get()), int(Entry_hour_end.get()))
+            #Startdate = datetime.datetime(int(Entry_year_start.get()), int(Entry_month_start.get()), int(Entry_day_start.get()), int(Entry_hour_start.get())) #defining as Date
+            #Enddate = datetime.datetime(int(Entry_year_end.get()), int(Entry_month_end.get()), int(Entry_day_end.get()), int(Entry_hour_end.get()))
+            
+            Startdate = datetime.datetime(SimulationDict['startHour'])
+            Enddate = datetime.datetime(SimulationDict['endHour'])
             
             start_date = datetime.strptime(Startdate, '%Y %m %d %H')
             end_date = datetime.strptime(Enddate, '%Y %m %d %H')
@@ -1766,6 +1769,8 @@ class Window(tk.Tk):
             
             #for experimental Soiling   
             # When radiobutton 'Soiling Rate from theorical Model' active, set new soilingrate   
+            
+            
             if (rb_Soiling.get() == 3):
                 Entry_Soilrate.delete(0, END)
                 SimulationDict["mathematicalSoilingrate"] = True
@@ -1773,6 +1778,11 @@ class Window(tk.Tk):
                 #insert the new soiling value to the variable in simulation dictionary. 
                 SimulationDict["hourlySoilrate"] = values_soiling_hegazy
                 SimulationDict["fixSoilrate"] = SimulationDict["hourlySoilrate"]
+                
+                
+                #Soiling_hegazy_new = round((sum(values_soiling_hegazy) / len (values_soiling_hegazy)), 6)
+                #print('moyenne pour le lieu indiquer en fonction de la longueuer de la simulation:',Soiling_hegazy_new)
+                #SimulationDict["fixSoilrate"] = Soiling_hegazy_new
                 
             #
             

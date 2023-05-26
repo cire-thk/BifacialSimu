@@ -92,16 +92,8 @@ values_soiling_hegazy = []
 values_soiling_you_saiz = []
 values_soiling_conceicao = []
 
-
-# Loop over time intervals
-#while delta_t < seconds:
-    # Check if it's time for a cleaning
-#    if delta_t + day_until_clean_second >= seconds:
-#        delta_t = seconds
-#    else:
-#        delta_t += seconds
-
-#simulation loop
+#loop to determine the soiling value per hour
+ 
 for t in range(int(hours)):
 #for t in range(int(day)):
     
@@ -155,6 +147,10 @@ for t in range(int(hours)):
 #print(values_soiling_accumulation)
 print(values_soiling_hegazy)
 #print (times)
+
+Soiling_hegazy_new = round((sum(values_soiling_hegazy) / len (values_soiling_hegazy)), 6)
+print('average for the location indicated as a function of the length of the simulation:',Soiling_hegazy_new)
+
 
 # Creating the csv table with Soiling data of the Location with the Index(Index_location)
 with open('Soiling{}.csv'.format(Index_location), mode='w', newline='') as file:
