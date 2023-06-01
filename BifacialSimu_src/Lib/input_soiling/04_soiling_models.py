@@ -32,7 +32,7 @@ angle = 22 # tilt angle
 #delta_t_sec = delta_t * 30 * 24 * 60 * 60 # en secondes
 
 # Importer le fichier CSV et ajouter une colonne index
-data = pd.read_csv('new_soilingrate_coordinates_data_2022.csv')
+data = pd.read_csv('new_soilingrate_coordinates_data_2022.csv', encoding ='utf-8')
 data.insert(0, 'index', range(0, len(data)))
 
 # Fonction pour calculer la distance entre deux coordonnées
