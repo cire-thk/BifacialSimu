@@ -1612,7 +1612,7 @@ class Window(tk.Tk):
             #Y = SimulationDict["longitude"] #lng
             
             # Import the CSV file and add an index column
-            new_soilingrate = pd.read_csv(rootPath + '\Lib\input_soiling\new_soilingrate_coordinates_data_2022.csv', encoding='utf-8' )
+            new_soilingrate = pd.read_csv(rootPath + '\Lib\input_soiling\new_soilingrate_coordinates_data_2022.csv', encoding ='utf-8' )
             new_soilingrate.insert(0, 'index', range(0, len(new_soilingrate)))        
             
             # convert decimal degrees to radians 
@@ -1687,10 +1687,10 @@ class Window(tk.Tk):
                 rs_hegazy = ((34.37 * math.erf(0.17*(soiling_accumulation**0.8473))) / 100) #hegazy
                 #rs_hegazy_neu = 1 - rs_hegazy
 
-                rs_you_saiz = ((0.0385 * soiling_accumulation)) #“You/Saiz”.
+                #rs_you_saiz = ((0.0385 * soiling_accumulation)) #“You/Saiz”.
                 #rs_you_saiz_neu = 1 - (rs_you_saiz)
 
-                rs_conceicao = ((0.2545 * soiling_accumulation)) 
+                #rs_conceicao = ((0.2545 * soiling_accumulation)) 
 
                 # add the value of soiling_accumulation to the list of values_soiling_accumulation
                 values_soiling_accumulation.append(soiling_accumulation)
@@ -1699,26 +1699,25 @@ class Window(tk.Tk):
                 values_soiling_hegazy.append(rs_hegazy)
                 
                 # add the value of Soiling_rs_you_saiz to the list of values_soiling_you_saiz
-                values_soiling_you_saiz.append(rs_you_saiz)
+                #values_soiling_you_saiz.append(rs_you_saiz)
                 
                 # add the value of Soiling_rs_conceicao to the list of values_soiling_conceicao
-                values_soiling_conceicao.append(rs_conceicao)
+                #values_soiling_conceicao.append(rs_conceicao)
                 
                 # add the current hour to the time list in hours
                 times.append(t)
                 
-                # Print current values of A and delta_t
+                # Print current values of soiling_accumulation and delta_t
                 print('Index_location:', Index_location)
+                print("delta_t:", delta_t)
                 print('S:', soiling_accumulation, 'g/m²')
                 print('rs_hegazy:', rs_hegazy)
                 #print('rs_hegazy_neu:', rs_hegazy_neu)
-                print('rs_you_saiz:', rs_you_saiz)
+                #print('rs_you_saiz:', rs_you_saiz)
                 #print('rs_you_saiz_neu:', rs_you_saiz_neu)
-                print('rs_conceicao:', rs_conceicao)
-                
-                print("delta_t:", delta_t)
-                
-                print("Number of days between the two dates:", delta)
+                #print('rs_conceicao:', rs_conceicao)
+                                
+                print("duration of the simulation:", delta)
                 print("Number of seconds between the two dates:", seconds, 's')
                 #print("Number of day between the two dates:", day, 'd')
                 print("Number of hours between the two dates:", hours, 'h')
@@ -1752,20 +1751,20 @@ class Window(tk.Tk):
             plt.show()
 
             #  plot the values_soiling_you_saiz graph
-            plt.plot(times, values_soiling_you_saiz)
+            #plt.plot(times, values_soiling_you_saiz)
             #plt.xlabel('Day [d]')
-            plt.xlabel('Hours [h]')
-            plt.ylabel('Soiling')
-            plt.title('Evolution of the values_soiling_you_saiz during la simulation')
-            plt.show()
+            #plt.xlabel('Hours [h]')
+            #plt.ylabel('Soiling')
+            #plt.title('Evolution of the values_soiling_you_saiz during la simulation')
+            #plt.show()
 
             #  plot the values_soiling_conceicao graph
-            plt.plot(times, values_soiling_conceicao)
+            #plt.plot(times, values_soiling_conceicao)
             #plt.xlabel('Day [d]')
-            plt.xlabel('Hours [h]')
-            plt.ylabel('Soiling')
-            plt.title('Evolution of the values_soiling_conceicao during la simulation')
-            plt.show()   
+            #plt.xlabel('Hours [h]')
+            #plt.ylabel('Soiling')
+            #plt.title('Evolution of the values_soiling_conceicao during la simulation')
+            #plt.show()   
             
             #for experimental Soiling   
             # When radiobutton 'Soiling Rate from theorical Model' active, set new soilingrate   
@@ -1781,7 +1780,7 @@ class Window(tk.Tk):
                 
                 
                 #Soiling_hegazy_new = round((sum(values_soiling_hegazy) / len (values_soiling_hegazy)), 6)
-                #print('moyenne pour le lieu indiquer en fonction de la longueuer de la simulation:',Soiling_hegazy_new)
+                #print('average for the location indicated as a function of the length of the simulation:',Soiling_hegazy_new)
                 #SimulationDict["fixSoilrate"] = Soiling_hegazy_new
                 
             #
