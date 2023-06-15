@@ -23,8 +23,8 @@ import csv
 #-22.4623909,-68.92721558 - Calama, CL
 
 # Coordonnées du lieu donné
-X = -22.4623909 #lat
-Y = -68.92721558 #lng
+X = 39.73845291 #lat
+Y = -104.98485565 #lng
 
 angle = 22 # tilt angle
 
@@ -32,7 +32,7 @@ angle = 22 # tilt angle
 #delta_t_sec = delta_t * 30 * 24 * 60 * 60 # en secondes
 
 # Importer le fichier CSV et ajouter une colonne index
-data = pd.read_csv('new_soilingrate_coordinates_data_2022.csv', encoding ='utf-8')
+data = pd.read_csv('soiling_data.csv', encoding ='utf-8')
 data.insert(0, 'index', range(0, len(data)))
 
 # Fonction pour calculer la distance entre deux coordonnées
@@ -72,7 +72,7 @@ print(start_date)
 print(end_date)
 
 delta = end_date - start_date
-print(delta)
+#print(delta)
 seconds = delta.total_seconds()
 #day = seconds / 86400 #per day
 hours = seconds / 3600 #per hour
@@ -153,7 +153,7 @@ print('average for the location indicated as a function of the length of the sim
 
 
 # Creating the csv table with Soiling data of the Location with the Index(Index_location)
-with open('Soiling{}.csv'.format(Index_location), mode='w', newline='') as file:
+with open('soiling_data{}.csv'.format(Index_location), mode='w', newline='') as file:
     writer = csv.writer(file)
     writer.writerow(['Hours', 'Soiling_accumulation', 'rs_hegazy', 'rs_you_saiz', 'rs_conceicao' ])  # Column headings
     for i in range(len(times)):
@@ -188,3 +188,4 @@ plt.ylabel('Soiling')
 plt.title('Evolution of the values_soiling_conceicao during la simulation')
 plt.show()
 
+print(delta)
