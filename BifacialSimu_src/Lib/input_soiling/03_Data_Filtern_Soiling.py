@@ -49,7 +49,7 @@ new_table_X["wind_speed"] = new_table_X["wind_speed"].fillna(0)
 new_table_X = new_table_X[['City, Country', 'AQI_PM2_5', 'PM2_5', 'PM10', 'wind_speed', 'Soiling_Rate', 'lat', 'lng']]
 
 # Enregistrer le nouveau DataFrame en format CSV
-new_table_X.to_csv("new_soilingrate_coordinates_data_2022.csv", index=False)
+new_table_X.to_csv("soiling_data.csv", index=False)
 
 print(new_table_X)
 
