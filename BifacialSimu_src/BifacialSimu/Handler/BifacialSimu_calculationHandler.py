@@ -244,7 +244,7 @@ class Electrical_simulation:
                     temp = temp +1
 
                 if simulationDict["mathematicalSoilingrate"] == True:
-                    soilrate = SimulationDict["hourlySoilrate"]
+                    soilrate = simulationDict["hourlySoilrate"]
 
                     for i in range(len(soilrate)):
 
@@ -429,7 +429,7 @@ class Electrical_simulation:
                     temp = temp +1
 
                 if simulationDict["mathematicalSoilingrate"] == True:
-                    soilrate = SimulationDict["hourlySoilrate"]
+                    soilrate = simulationDict["hourlySoilrate"]
 
                     for i in range(len(soilrate)):
                         #                        
@@ -701,7 +701,7 @@ class Electrical_simulation:
                     temp = temp +1
 
                 if simulationDict["mathematicalSoilingrate"] == True:
-                    soilrate = SimulationDict["hourlySoilrate"]
+                    soilrate = simulationDict["hourlySoilrate"]
 
                     for i in range(len(soilrate)):
                         
@@ -850,7 +850,7 @@ class Electrical_simulation:
                     temp = temp +1
 
                 if simulationDict["mathematicalSoilingrate"] == True:
-                    soilrate = SimulationDict["hourlySoilrate"]
+                    soilrate = simulationDict["hourlySoilrate"]
 
                     for i in range(len(soilrate)):
 
@@ -1291,7 +1291,7 @@ class Electrical_simulation:
                     temp = temp +1
 
                 if simulationDict["mathematicalSoilingrate"] == True:
-                    soilrate = SimulationDict["hourlySoilrate"]
+                    soilrate = simulationDict["hourlySoilrate"]
 
                     for i in range(len(soilrate)):
 
@@ -1681,7 +1681,7 @@ class Electrical_simulation:
                     temp = temp +1
 
                 if simulationDict["mathematicalSoilingrate"] == True:
-                    soilrate = SimulationDict["hourlySoilrate"]
+                    soilrate = simulationDict["hourlySoilrate"]
 
                     for i in range(len(soilrate)):
                         #SG
@@ -2059,7 +2059,7 @@ class Electrical_simulation:
                     temp = temp +1
 
                 if simulationDict["mathematicalSoilingrate"] == True:
-                    soilrate = SimulationDict["hourlySoilrate"]
+                    soilrate = simulationDict["hourlySoilrate"]
 
                     for i in range(len(soilrate)):
                         
@@ -2475,7 +2475,7 @@ class Electrical_simulation:
                     temp = temp +1
 
                 if simulationDict["mathematicalSoilingrate"] == True:
-                    soilrate = SimulationDict["hourlySoilrate"]
+                    soilrate = simulationDict["hourlySoilrate"]
 
                     for i in range(len(soilrate)):
                     
@@ -2722,7 +2722,7 @@ class Electrical_simulation:
                         temp = temp +1
 
                     if simulationDict["mathematicalSoilingrate"] == True:
-                        soilrate = SimulationDict["hourlySoilrate"]
+                        soilrate = simulationDict["hourlySoilrate"]
 
                         for i in range(len(soilrate)):
 
@@ -2888,7 +2888,7 @@ class Electrical_simulation:
                         temp = temp +1
 
                     if simulationDict["mathematicalSoilingrate"] == True:
-                        soilrate = SimulationDict["hourlySoilrate"]
+                        soilrate = simulationDict["hourlySoilrate"]
 
                         for i in range(len(soilrate)):
 
