@@ -23,11 +23,21 @@ overview:
 #matplotlib.use("TkAgg")
 import sys
 import math
+#<<<<<<< HEAD
 import csv
 import os
 import webbrowser
 from tkinter import *
 from math import radians, cos, sin, asin, sqrt
+#=======
+import os
+import webbrowser
+from tkinter import *
+import time
+from datetime import datetime
+from timezonefinder import TimezoneFinder as tf
+import pytz
+#>>>>>>> master
 
 try:
     import tkinter as tk
@@ -228,12 +238,7 @@ class Window(tk.Tk):
 # =============================================================================
         # Main Control tab:
         def button_MC():
-            # f_MC= open(rootPath+"\Lib\Info_Messages\Main_Control.txt")
-            # text_MC= f_MC.read()
-            # f_MC.close()
-            # response=messagebox.askokcancel("Functions Info!", text_MC)
-            # if response == 1:
-            #     webbrowser.open("https://github.com/cire-thk/BifacialSimu#readme",new=1)
+            
             pop = Toplevel()
             pop.title("Main Control Info!")
             pop.geometry("1000x400")
@@ -259,13 +264,7 @@ class Window(tk.Tk):
                                   
         # Simulation Control tab
         def button_SC():
-            # f_SC= open(rootPath+"\Lib\Info_Messages\Simulation_Control.txt")
-            # text_SC= f_SC.read()
-            # f_SC.close()
-            # response=messagebox.askokcancel("Functions Info!", text_SC)
-            # if response == 1:
-            #     webbrowser.open("https://github.com/cire-thk/BifacialSimu#readme",new=1)
-               
+                           
             pop = Toplevel()
             pop.title("Simulation Control Info!")
             pop.geometry("1400x700")
@@ -288,12 +287,7 @@ class Window(tk.Tk):
             
         # Module Parameter tab
         def button_MP():
-            # f_MP= open(rootPath+"\Lib\Info_Messages\Module_Parameter.txt")
-            # text_MP= f_MP.read()
-            # f_MP.close()
-            # response=messagebox.askokcancel("Functions Info!", text_MP) 
-            # if response == 1:
-            #     webbrowser.open("https://github.com/cire-thk/BifacialSimu#readme",new=1)
+            
              pop= Toplevel()
              pop.title("Module Parameter Info!")
              pop.geometry("1300x760")
@@ -386,23 +380,48 @@ class Window(tk.Tk):
         simulationMode_label = ttk.Label(simulationMode_frame, text='Simulation Control', font=("Arial Bold", 15))
         simulationParameter_label = ttk.Label(simulationParameter_frame, text='Simulation Parameter', font=("Arial Bold", 15))
         ModuleParameter_Label = ttk.Label(ModuleParameter_frame, text='Module Parameter', font=("Arial Bold", 15))
+        Results_Label=ttk.Label(simulationMode_frame, text='Displaying Results:', font=("Arial Bold",10))
         #simulationFunction_Label = ttk.Label(simulationFunction_frame, background='lavender', text='Simulation Start', font=("Arial Bold", 15))
-
+        
         namecontrol_label.grid(row = 0, column=0,padx=20, sticky="w")
         simulationMode_label.grid(row = 0, column=0,padx=20, sticky="w")
         simulationParameter_label.grid(row =0, column=0,padx=0, sticky=W)
         ModuleParameter_Label.grid(row =0, column=0,padx=20, sticky="w")
+        Results_Label.grid(column=0,row=13, sticky="W")
         #simulationFunction_Label.grid(row =0, column=0, sticky="ew")
+        
+        #Adding empty cells to indent before Plot Buttons
+        empty_cell_label_1=ttk.Label(simulationMode_frame,text=" ")
+        empty_cell_label_1.grid(column=0, row=10, sticky="W")
+        empty_cell_label_2=ttk.Label(simulationMode_frame,text=" ")
+        empty_cell_label_2.grid(column=0, row=11, sticky="W")
+        empty_cell_label_3=ttk.Label(simulationMode_frame,text=" ")
+        empty_cell_label_3.grid(column=0, row=12, sticky="W")
         
         #Adding Frame to Notebook
         my_notebook.add(namecontrol_frame, text="Main Control")
         my_notebook.add(simulationMode_frame, text="Simulation Control")
         my_notebook.add(ModuleParameter_frame, text="Module Parameter")
         
-        # Inserting Mismatch Button
-        globals.checkbutton_state=IntVar()
-        Mismatch_checkbutton = tk.Checkbutton(simulationMode_frame, text="Plot Mismatch Power Losses", variable= globals.checkbutton_state)
-        Mismatch_checkbutton.grid(column=0, row=10, sticky="W")
+        # Inserting Button for Plotting Mismatch Button
+        checkbutton_state=IntVar()
+        Mismatch_checkbutton = tk.Checkbutton(simulationMode_frame, text="Plot Mismatch Power Losses", variable= checkbutton_state)
+        Mismatch_checkbutton.grid(column=0, row=14, sticky="W")
+        
+        # Inserting  Button for Plotting Absolute Irradiance 
+        plot_AbIr_button=IntVar()
+        Absolute_Irradiance_checkbutton = tk.Checkbutton(simulationMode_frame, text="Plot Absolute Irradiance", variable= plot_AbIr_button)
+        Absolute_Irradiance_checkbutton.grid(column=1, row=14, sticky="W")
+        
+        # Inserting  Button for Plotting Irradiance 
+        plot_Irr_button=IntVar()
+        Irradiance_checkbutton = tk.Checkbutton(simulationMode_frame, text="Plot Irradiance", variable= plot_Irr_button)
+        Irradiance_checkbutton.grid(column=0, row=15, sticky="W")
+        
+        # Inserting  Button for Plotting Bifacial Radiance
+        plot_BiRadiance_button=IntVar()
+        BifacialRadiance_checkbutton = tk.Checkbutton(simulationMode_frame, text="Plot Bifacial Output Power", variable= plot_BiRadiance_button)
+        BifacialRadiance_checkbutton.grid(column=1, row=15, sticky="W")
 
         
         # Starting the simulation
@@ -612,10 +631,10 @@ class Window(tk.Tk):
 #           Functions to make the Plots
 # =============================================================================
           
-            makePlotAbsIrr(resultsPath)
-            makePlotirradiance(resultsPath)
-            makePlotBifacialRadiance(resultsPath) 
-            makePlotMismatch(resultsPath,globals.checkbutton_state)
+            makePlotAbsIrr(resultsPath,plot_AbIr_button)
+            makePlotirradiance(resultsPath,plot_Irr_button)
+            makePlotBifacialRadiance(resultsPath,plot_BiRadiance_button) 
+            makePlotMismatch(resultsPath,checkbutton_state)
 
           
 # =============================================================================
@@ -623,127 +642,128 @@ class Window(tk.Tk):
 # =============================================================================
     
 
-        def makePlotAbsIrr(resultsPath):
-            if SimulationDict["simulationMode"]==1 or SimulationDict["simulationMode"]==2:
-                plt.style.use("seaborn")
-                
-                data=pd.read_csv(resultsPath+"/radiation_qabs_results.csv")
-                date=pd.read_csv(resultsPath + "/Data.csv")
-                timestamp_start=date.timestamp [0]
-               # print (timestamp_start)
-                timestamp_end=len(date.timestamp)       #Counting the amount of timestamps
-               # timestamp_end=
-                idx=pd.date_range(timestamp_start, periods=timestamp_end, freq="1H")    #without periods last timestamp isnt used
-                
-
-                i=0
-                
-                fig1 = plt.Figure()
-                ax1= fig1.subplots()        
-                x=[]
-                y=[]
-                x2=[]
-                y2=[]
-                while i < int(Entry_nRows.get()):
+        def makePlotAbsIrr(resultsPath, plot_AbIr_button):
+            if plot_AbIr_button.get()== 1:
+                if SimulationDict["simulationMode"]==1 or SimulationDict["simulationMode"]==2:
+                    plt.style.use("seaborn")
                     
-                    #ids=data['row_'+str(i)+"_qabs_front"]
-                    y.append("row_"+str(i)+"_front")
-                    x.append(data['row_'+str(i)+"_qabs_front"])
-    
-                   # y.append(temp_y)
-                    ax1.plot(idx, x[i], label=y[i])
-    
-                    i+=1
-               
-                j=0
-                while j < int(Entry_nRows.get()):
+                    data=pd.read_csv(resultsPath+"/radiation_qabs_results.csv")
+                    date=pd.read_csv(resultsPath + "/Data.csv")
+                    timestamp_start=date.timestamp [0]
+                   # print (timestamp_start)
+                    timestamp_end=len(date.timestamp)       #Counting the amount of timestamps
+                   # timestamp_end=
+                    idx=pd.date_range(timestamp_start, periods=timestamp_end, freq="1H")    #without periods last timestamp isnt used
+                    
+
+                    i=0
+                    
+                    fig1 = plt.Figure()
+                    ax1= fig1.subplots()        
+                    x=[]
+                    y=[]
+                    x2=[]
+                    y2=[]
+                    while i < int(Entry_nRows.get()):
+                        
+                        #ids=data['row_'+str(i)+"_qabs_front"]
+                        y.append("row_"+str(i)+"_front")
+                        x.append(data['row_'+str(i)+"_qabs_front"])
+        
+                       # y.append(temp_y)
+                        ax1.plot(idx, x[i], label=y[i])
+        
+                        i+=1
+                   
+                    j=0
+                    while j < int(Entry_nRows.get()):
+
+                        
+                        x2.append(data['row_'+str(j)+'_qabs_back'])
+                        y2.append("row_"+str(j)+"_back")
+                       # y.append(temp_y)
+                        ax1.plot(idx, x2[j],label=y2[j],linestyle="--")
+        
+                        j+=1            
 
                     
-                    x2.append(data['row_'+str(j)+'_qabs_back'])
-                    y2.append("row_"+str(j)+"_back")
-                   # y.append(temp_y)
-                    ax1.plot(idx, x2[j],label=y2[j],linestyle="--")
-    
-                    j+=1            
-
-                
-                #ax1.xaxis.set_minor_locator(dates.HourLocator(interval=1))   # every hour
-                #ax1.xaxis.set_minor_formatter(dates.DateFormatter('%H:%M'))  #showing Hour and Minute on X-Axis  
-                ax1.xaxis.set_minor_locator(dates.DayLocator(interval=1))   # every day
-                ax1.xaxis.set_minor_formatter(dates.DateFormatter('%d'))  # day
-                ax1.xaxis.set_major_locator(dates.MonthLocator(interval=1))    # every Month
-                ax1.xaxis.set_major_formatter(dates.DateFormatter('\n%m-%Y'))  #show Month and Year
-                #ax1.legend()
-                ax1.legend(bbox_to_anchor=(0.7,1.02,1,.102),loc=3,ncol=2,borderaxespad=0)   #Place the Legend outside of the graph
-                ax1.set_ylabel('Radiance\n[W/m²]', size=17)
-                ax1.set_xlabel("Time", size=17)
-                ax1.set_title('Absolute Irradiance', size=18)
-                
-                #fig1.grid(True, which="minor")
-                fig1.tight_layout()
-                fig1.savefig("Absolute_Irradiance_front_back_" + datetime.datetime.now().strftime("%Y-%m-%d-%H-%M") + ".png")
-                canvas = FigureCanvasTkAgg(fig1, master=tk.Toplevel())
-                canvas.get_tk_widget().pack(side=tk.TOP, fill=tk.BOTH, expand=1.0)
-                canvas.draw()
-                
-                
-            if SimulationDict["simulationMode"]==3 or SimulationDict["simulationMode"]==5:
-                plt.style.use("seaborn")
-                
-                data=pd.read_csv(resultsPath+"/radiation_qabs_results.csv")
-                date1=pd.read_csv(resultsPath + "/Dataframe_df.csv")
-                date2=pd.read_csv(resultsPath + "/df_reportRT.csv")
-                timestamp_start=date1.corrected_timestamp [0]
-               # print (timestamp_start)
-                timestamp_end=len(date2.row_2_qinc_front)       #Counting the amount of timestamps
-               # timestamp_end=
-                idx=pd.date_range(timestamp_start, periods=timestamp_end, freq="1H")    #without periods last timestamp isnt used
-                
-
-                i=0
-                fig1 = plt.Figure()
-                ax1= fig1.subplots()        
-                x=[]
-                y=[]
-                x2=[]
-                y2=[]
-                while i < int(Entry_nRows.get()):
+                    #ax1.xaxis.set_minor_locator(dates.HourLocator(interval=1))   # every hour
+                    #ax1.xaxis.set_minor_formatter(dates.DateFormatter('%H:%M'))  #showing Hour and Minute on X-Axis  
+                    ax1.xaxis.set_minor_locator(dates.DayLocator(interval=1))   # every day
+                    ax1.xaxis.set_minor_formatter(dates.DateFormatter('%d'))  # day
+                    ax1.xaxis.set_major_locator(dates.MonthLocator(interval=1))    # every Month
+                    ax1.xaxis.set_major_formatter(dates.DateFormatter('\n%m-%Y'))  #show Month and Year
+                    #ax1.legend()
+                    ax1.legend(bbox_to_anchor=(0.7,1.02,1,.102),loc=3,ncol=2,borderaxespad=0)   #Place the Legend outside of the graph
+                    ax1.set_ylabel('Radiance\n[W/m²]', size=17)
+                    ax1.set_xlabel("Time", size=17)
+                    ax1.set_title('Absolute Irradiance', size=18)
                     
-                    #ids=data['row_'+str(i)+"_qabs_front"]
-                    y.append("row_"+str(i)+"_front")
-                    x.append(data['row_'+str(i)+"_qabs_front"])
-    
-                   # y.append(temp_y)
-                    ax1.plot(idx, x[i], label=y[i])
-    
-                    i+=1
-               
-                j=0
-                while j < int(Entry_nRows.get()):
+                    #fig1.grid(True, which="minor")
+                    fig1.tight_layout()
+                    fig1.savefig("Absolute_Irradiance_front_back_" + datetime.datetime.now().strftime("%Y-%m-%d-%H-%M") + ".png")
+                    canvas = FigureCanvasTkAgg(fig1, master=tk.Toplevel())
+                    canvas.get_tk_widget().pack(side=tk.TOP, fill=tk.BOTH, expand=1.0)
+                    canvas.draw()
                     
-                    x2.append(data['row_'+str(j)+'_qabs_back'])
-                    y2.append("row_"+str(j)+"_back")
-                   # y.append(temp_y)
-                    ax1.plot(idx, x2[j],label=y2[j],linestyle="--")
-    
-                    j+=1            
+                    
+                if SimulationDict["simulationMode"]==3 or SimulationDict["simulationMode"]==5:
+                    plt.style.use("seaborn")
+                    
+                    data=pd.read_csv(resultsPath+"/radiation_qabs_results.csv")
+                    date1=pd.read_csv(resultsPath + "/Dataframe_df.csv")
+                    date2=pd.read_csv(resultsPath + "/df_reportRT.csv")
+                    timestamp_start=date1.corrected_timestamp [0]
+                   # print (timestamp_start)
+                    timestamp_end=len(date2.row_2_qinc_front)       #Counting the amount of timestamps
+                   # timestamp_end=
+                    idx=pd.date_range(timestamp_start, periods=timestamp_end, freq="1H")    #without periods last timestamp isnt used
+                    
 
-                
-                #ax1.xaxis.set_minor_locator(dates.HourLocator(interval=1))   # every hour
-                #ax1.xaxis.set_minor_formatter(dates.DateFormatter('%H:%M'))  #showing Hour and Minute on X-Axis  
-                ax1.xaxis.set_minor_locator(dates.DayLocator(interval=1))   # every day
-                ax1.xaxis.set_minor_formatter(dates.DateFormatter('%d'))  # day
-                ax1.xaxis.set_major_locator(dates.MonthLocator(interval=1))    # every Month
-                ax1.xaxis.set_major_formatter(dates.DateFormatter('\n%m-%Y'))  #show Month and Year
-                ax1.legend()
-                ax1.set_ylabel('Radiance\n[W/m²]', size=17)
-                ax1.set_xlabel("Time", size=17)
-                ax1.set_title('Absolute Irradiance', size=18)
-                
-                #fig1.grid(True, which="minor")
-                fig1.tight_layout()
-                fig1.savefig("Absolute_Irradiance_front_back_" + datetime.datetime.now().strftime("%Y-%m-%d-%H-%M") + ".png")
-                ##plt.show()
+                    i=0
+                    fig1 = plt.Figure()
+                    ax1= fig1.subplots()        
+                    x=[]
+                    y=[]
+                    x2=[]
+                    y2=[]
+                    while i < int(Entry_nRows.get()):
+                        
+                        #ids=data['row_'+str(i)+"_qabs_front"]
+                        y.append("row_"+str(i)+"_front")
+                        x.append(data['row_'+str(i)+"_qabs_front"])
+        
+                       # y.append(temp_y)
+                        ax1.plot(idx, x[i], label=y[i])
+        
+                        i+=1
+                   
+                    j=0
+                    while j < int(Entry_nRows.get()):
+                        
+                        x2.append(data['row_'+str(j)+'_qabs_back'])
+                        y2.append("row_"+str(j)+"_back")
+                       # y.append(temp_y)
+                        ax1.plot(idx, x2[j],label=y2[j],linestyle="--")
+        
+                        j+=1            
+
+                    
+                    #ax1.xaxis.set_minor_locator(dates.HourLocator(interval=1))   # every hour
+                    #ax1.xaxis.set_minor_formatter(dates.DateFormatter('%H:%M'))  #showing Hour and Minute on X-Axis  
+                    ax1.xaxis.set_minor_locator(dates.DayLocator(interval=1))   # every day
+                    ax1.xaxis.set_minor_formatter(dates.DateFormatter('%d'))  # day
+                    ax1.xaxis.set_major_locator(dates.MonthLocator(interval=1))    # every Month
+                    ax1.xaxis.set_major_formatter(dates.DateFormatter('\n%m-%Y'))  #show Month and Year
+                    ax1.legend()
+                    ax1.set_ylabel('Radiance\n[W/m²]', size=17)
+                    ax1.set_xlabel("Time", size=17)
+                    ax1.set_title('Absolute Irradiance', size=18)
+                    
+                    #fig1.grid(True, which="minor")
+                    fig1.tight_layout()
+                    fig1.savefig("Absolute_Irradiance_front_back_" + datetime.datetime.now().strftime("%Y-%m-%d-%H-%M") + ".png")
+                    ##plt.show()
                 
 # ========================For these simulation a Timestamp has to be implemented in the csv. It needs a key for the variable=====================================================
 #             if SimulationDict["simulationMode"]==5:
@@ -828,118 +848,121 @@ class Window(tk.Tk):
             else:
                 return
             
-        def makePlotirradiance(resultsPath):
-            if SimulationDict["simulationMode"]==1 or SimulationDict["simulationMode"]==2:
-                plt.style.use("seaborn")
+        def makePlotirradiance(resultsPath,plot_Irr_button):
+            if plot_Irr_button.get()== 1:
                 
-                
-                data=pd.read_csv(resultsPath + "/Data.csv")
-    
-                timestamp_start=data.timestamp [0]
-               # print (timestamp_start)
-                timestamp_end=len(data.timestamp)
-               # timestamp_end=
-                idx=pd.date_range(timestamp_start, periods=timestamp_end, freq="1H")
-                ghi=data["ghi"]
-                dhi=data["dhi"]
-                dni=data["dni"]
-               
-                fig2 = plt.Figure()
-                ax2= fig2.subplots()
-                
-                ax2.plot(idx,ghi, label="GHI")
-                ax2.plot(idx,dhi, label="DHI")
-                ax2.plot(idx,dni, label="DNI")
-                 
-                ax2.xaxis.set_minor_locator(dates.DayLocator(interval=1))   # every hour
-                ax2.xaxis.set_minor_formatter(dates.DateFormatter('%d'))  # hours and minutes
-                ax2.xaxis.set_major_locator(dates.MonthLocator(interval=1))    # every day
-                ax2.xaxis.set_major_formatter(dates.DateFormatter('\n%m-%Y')) 
-                ax2.legend()
-                ax2.set_ylabel('Radiance\n[W/m²]', size=17)
-                ax2.set_xlabel("Time", size=17)
-                ax2.set_title('Irradiance', size=18)
-                
-                #fig2.grid(True, which="minor")
-                fig2.tight_layout()
-                fig2.savefig("Irradiance_" + datetime.datetime.now().strftime("%Y-%m-%d-%H-%M") + ".png")
-                ###plt.show()
+                if SimulationDict["simulationMode"]==1 or SimulationDict["simulationMode"]==2:
+                    plt.style.use("seaborn")
+                    
+                    
+                    data=pd.read_csv(resultsPath + "/Data.csv")
+        
+                    timestamp_start=data.timestamp [0]
+                   # print (timestamp_start)
+                    timestamp_end=len(data.timestamp)
+                   # timestamp_end=
+                    idx=pd.date_range(timestamp_start, periods=timestamp_end, freq="1H")
+                    ghi=data["ghi"]
+                    dhi=data["dhi"]
+                    dni=data["dni"]
+                   
+                    fig2 = plt.Figure()
+                    ax2= fig2.subplots()
+                    
+                    ax2.plot(idx,ghi, label="GHI")
+                    ax2.plot(idx,dhi, label="DHI")
+                    ax2.plot(idx,dni, label="DNI")
+                     
+                    ax2.xaxis.set_minor_locator(dates.DayLocator(interval=1))   # every hour
+                    ax2.xaxis.set_minor_formatter(dates.DateFormatter('%d'))  # hours and minutes
+                    ax2.xaxis.set_major_locator(dates.MonthLocator(interval=1))    # every day
+                    ax2.xaxis.set_major_formatter(dates.DateFormatter('\n%m-%Y')) 
+                    ax2.legend()
+                    ax2.set_ylabel('Radiance\n[W/m²]', size=17)
+                    ax2.set_xlabel("Time", size=17)
+                    ax2.set_title('Irradiance', size=18)
+                    
+                    #fig2.grid(True, which="minor")
+                    fig2.tight_layout()
+                    fig2.savefig("Irradiance_" + datetime.datetime.now().strftime("%Y-%m-%d-%H-%M") + ".png")
+                    ###plt.show()
             
 # =============================================================================
-        def makePlotBifacialRadiance(resultsPath):
-        
-          if SimulationDict["simulationMode"]==1 or SimulationDict["simulationMode"]==2: 
-            plt.style.use("seaborn")
-            
-            
-            data=pd.read_csv(resultsPath + "electrical_simulation" + datetime.datetime.now().strftime("%Y-%m-%d-%H-%M") + ".csv")
-            date=pd.read_csv(resultsPath + "/Data.csv")
-            timestamp_start=date.timestamp [0]
-           # print (timestamp_start)
-            timestamp_end=len(date.timestamp)
-           # timestamp_end=
-            idx=pd.date_range(timestamp_start, periods=timestamp_end, freq="1H")
-            
-            P_bi=data["P_bi "]
-            
-           
-            fig3 = plt.Figure()
-            ax3= fig3.subplots()
-            
-            ax3.plot(idx,P_bi, label="P_bi ")
-            
-            ax3.xaxis.set_minor_locator(dates.DayLocator(interval=1))   # every Day
-            ax3.xaxis.set_minor_formatter(dates.DateFormatter('%d'))  # day and hours
-            ax3.xaxis.set_major_locator(dates.MonthLocator(interval=1))    # every Month
-            ax3.xaxis.set_major_formatter(dates.DateFormatter('\n%m-%Y'))             
-            ax3.legend()
-            ax3.set_ylabel('Power Output\n[W/m²]', size=17)
-            ax3.set_xlabel("Time", size=17)
-            ax3.set_title('Bifacial Output Power', size=18)
-            
-            #fig3.grid(True, which="minor")
-            fig3.tight_layout()
-            fig3.savefig("Bifacial_output_Power_" + datetime.datetime.now().strftime("%Y-%m-%d-%H-%M") + ".png")
-            #os.rename(resultsPath + "/electrical_simulation.csv", resultsPath + "electrical_simulation_" + datetime.datetime.now().strftime("%Y-%m-%d-%H-%M") + ".csv")
-            
-            canvas = FigureCanvasTkAgg(fig3, master=tk.Toplevel())
-            canvas.get_tk_widget().pack(side=tk.TOP, fill=tk.BOTH, expand=1.0)
-            canvas.draw()
+        def makePlotBifacialRadiance(resultsPath,plot_BiRadiance_button):
+            if plot_BiRadiance_button.get()==1:
                 
-          if SimulationDict["simulationMode"]==3  or SimulationDict["simulationMode"]==5:
-            plt.style.use("seaborn")
-            
-            
-            data=pd.read_csv(resultsPath + "electrical_simulation" + datetime.datetime.now().strftime("%Y-%m-%d-%H-%M") + ".csv")
-            date1=pd.read_csv(resultsPath + "/Dataframe_df.csv")
-            date2=pd.read_csv(resultsPath + "/df_reportRT.csv")
-            timestamp_start=date1.corrected_timestamp [0]
-           # print (timestamp_start)
-            timestamp_end=len(date2.row_2_qinc_front)       #
-     
-            idx=pd.date_range(timestamp_start, periods=timestamp_end, freq="1H")
-            
-            P_bi=data["P_bi "]
-            
+                if SimulationDict["simulationMode"]==1 or SimulationDict["simulationMode"]==2: 
+                  plt.style.use("seaborn")
+                  
+                  
+                  data=pd.read_csv(resultsPath + "electrical_simulation" + datetime.datetime.now().strftime("%Y-%m-%d-%H-%M") + ".csv")
+                  date=pd.read_csv(resultsPath + "/Data.csv")
+                  timestamp_start=date.timestamp [0]
+                 # print (timestamp_start)
+                  timestamp_end=len(date.timestamp)
+                 # timestamp_end=
+                  idx=pd.date_range(timestamp_start, periods=timestamp_end, freq="1H")
+                  
+                  P_bi=data["P_bi "]
+                  
+                 
+                  fig3 = plt.Figure()
+                  ax3= fig3.subplots()
+                  
+                  ax3.plot(idx,P_bi, label="P_bi ")
+                  
+                  ax3.xaxis.set_minor_locator(dates.DayLocator(interval=1))   # every Day
+                  ax3.xaxis.set_minor_formatter(dates.DateFormatter('%d'))  # day and hours
+                  ax3.xaxis.set_major_locator(dates.MonthLocator(interval=1))    # every Month
+                  ax3.xaxis.set_major_formatter(dates.DateFormatter('\n%m-%Y'))             
+                  ax3.legend()
+                  ax3.set_ylabel('Power Output\n[W/m²]', size=17)
+                  ax3.set_xlabel("Time", size=17)
+                  ax3.set_title('Bifacial Output Power', size=18)
+                  
+                  #fig3.grid(True, which="minor")
+                  fig3.tight_layout()
+                  fig3.savefig("Bifacial_output_Power_" + datetime.datetime.now().strftime("%Y-%m-%d-%H-%M") + ".png")
+                  #os.rename(resultsPath + "/electrical_simulation.csv", resultsPath + "electrical_simulation_" + datetime.datetime.now().strftime("%Y-%m-%d-%H-%M") + ".csv")
+                  
+                  canvas = FigureCanvasTkAgg(fig3, master=tk.Toplevel())
+                  canvas.get_tk_widget().pack(side=tk.TOP, fill=tk.BOTH, expand=1.0)
+                  canvas.draw()
+                      
+                if SimulationDict["simulationMode"]==3  or SimulationDict["simulationMode"]==5:
+                  plt.style.use("seaborn")
+                  
+                  
+                  data=pd.read_csv(resultsPath + "electrical_simulation" + datetime.datetime.now().strftime("%Y-%m-%d-%H-%M") + ".csv")
+                  date1=pd.read_csv(resultsPath + "/Dataframe_df.csv")
+                  date2=pd.read_csv(resultsPath + "/df_reportRT.csv")
+                  timestamp_start=date1.corrected_timestamp [0]
+                 # print (timestamp_start)
+                  timestamp_end=len(date2.row_2_qinc_front)       #
            
-            fig3 = plt.Figure()
-            ax3= fig3.subplots()
-            
-            ax3.plot(idx,P_bi, label="P_bi ")
-            
-            ax3.xaxis.set_minor_locator(dates.DayLocator(interval=1))   # every Day
-            ax3.xaxis.set_minor_formatter(dates.DateFormatter('%d'))  # day and hours
-            ax3.xaxis.set_major_locator(dates.MonthLocator(interval=1))    # every Month
-            ax3.xaxis.set_major_formatter(dates.DateFormatter('\n%m-%Y'))             
-            ax3.legend()
-            ax3.set_ylabel('Power Output\n[W/m²]', size=17)
-            ax3.set_xlabel("Time", size=17)
-            ax3.set_title('Bifacial Output Power', size=17)
-            
-            #fig3.grid(True, which="minor")
-            fig3.tight_layout()
-            fig3.savefig("Bifacial_output_Power_" + datetime.datetime.now().strftime("%Y-%m-%d-%H-%M") + ".png")
-            #os.rename(resultsPath + "/electrical_simulation.csv", resultsPath + "electrical_simulation_" + datetime.datetime.now().strftime("%Y-%m-%d-%H-%M") + ".csv") 
+                  idx=pd.date_range(timestamp_start, periods=timestamp_end, freq="1H")
+                  
+                  P_bi=data["P_bi "]
+                  
+                 
+                  fig3 = plt.Figure()
+                  ax3= fig3.subplots()
+                  
+                  ax3.plot(idx,P_bi, label="P_bi ")
+                  
+                  ax3.xaxis.set_minor_locator(dates.DayLocator(interval=1))   # every Day
+                  ax3.xaxis.set_minor_formatter(dates.DateFormatter('%d'))  # day and hours
+                  ax3.xaxis.set_major_locator(dates.MonthLocator(interval=1))    # every Month
+                  ax3.xaxis.set_major_formatter(dates.DateFormatter('\n%m-%Y'))             
+                  ax3.legend()
+                  ax3.set_ylabel('Power Output\n[W/m²]', size=17)
+                  ax3.set_xlabel("Time", size=17)
+                  ax3.set_title('Bifacial Output Power', size=17)
+                  
+                  #fig3.grid(True, which="minor")
+                  fig3.tight_layout()
+                  fig3.savefig("Bifacial_output_Power_" + datetime.datetime.now().strftime("%Y-%m-%d-%H-%M") + ".png")
+                  #os.rename(resultsPath + "/electrical_simulation.csv", resultsPath + "electrical_simulation_" + datetime.datetime.now().strftime("%Y-%m-%d-%H-%M") + ".csv") 
 
 #                 
 # =============================================================================
@@ -954,7 +977,7 @@ class Window(tk.Tk):
             Combo_Soilrate.current(0)
             rad1_Soiling.invoke()
             rad1_weatherfile.invoke()
-            rad1_simulationMode.invoke()
+            rad2_simulationMode.invoke()
             rad1_rb_SingleAxisTracking.invoke()
             rad1_Albedo.invoke()
             rad1_ElectricalMode.invoke()
@@ -1145,9 +1168,32 @@ class Window(tk.Tk):
             SimulationDict["spectralReflectancefile"]=Entry_reflectivityfile.get()
             
         def Set_UTC_offset():
+            """ This function takes the coordinates entered by the user in the GUI, and returns as a result the resulting UTC timezone offset of the given location.
+                The coordinates should be entered according to the following format:
+                Longitudes: +/- 00.000000, where '+' represents East and '-' represents West
+                Latitudes:  +/- 00.000000, where '+' represents North and '-' represents South"""
+                
+            #User Longitude and Latitude entries    
             Longitude= float(Entry_longitude.get())
-            offset_result= round(Longitude*24/360)
+            Latitude= float(Entry_latitude.get())
+            
+            #this part gets time zone name only
+            tz_GMT = tf().timezone_at(lng=0, lat=0)             #GMT is required to calculate the difference and obtain the UTC
+            tz= tf().timezone_at(lng=Longitude, lat=Latitude)   #This is the coordinates entered by the user
+            
+            #create a timezone object here:
+            timezone_GMT= pytz.timezone(tz_GMT)
+            timezone= pytz.timezone(tz)
+
+            #Getting actual time in each time zone 
+            GMT_time= datetime.datetime.now(timezone_GMT)
+            tested_time= datetime.datetime.now(timezone)
+
+            #Subtracting both times to obtain the difference in hours, which is the UTC offset required
+            UTC_offset= tested_time.hour- GMT_time.hour
+         
             Entry_utcoffset.delete(0,END)
+#<<<<<<< HEAD
             Entry_utcoffset.insert(0, int(offset_result))
             
 # Function to set 'longitude' and 'latitude' in SimulationDict. Needed for getSoilingWeatherdata()             
@@ -1182,6 +1228,10 @@ class Window(tk.Tk):
                 messagebox.showwarning(
                     "Main Control", "Note that the soiling rate is significantly reduced if modules are nearly vertical!") 
                    
+#=======
+            Entry_utcoffset.insert(0, int(UTC_offset))
+                     
+#>>>>>>> master
         #Changing the weatherfile
         Lab_weatherfile=ttk.Label(namecontrol_frame, text="Add Path of weatherfile:")
         Lab_weatherfile.grid(row=4, column=0, sticky=W)

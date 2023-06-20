@@ -2956,7 +2956,21 @@ class MetObj:
         self.dhi = np.array(tmydata.DHI)
         self.dni = np.array(tmydata.DNI)
         self.albedo = np.array(tmydata.Alb)
-        self.pressure = np.array(tmydata.Pressure) # changed by THKoeln
+        
+        try:
+            self.datetime = tmydata.index.tolist() # this is tz-aware.
+            self.ghi = np.array(tmydata.GHI)
+            self.dhi = np.array(tmydata.DHI)
+            self.dni = np.array(tmydata.DNI)
+            self.albedo = np.array(tmydata.Alb)
+            self.pressure = np.array(tmydata.Pressure) # changed by THKoeln
+        except:
+            self.datetime = tmydata.index.tolist() # this is tz-aware.
+            self.ghi = np.array(tmydata.GHI)
+            self.dhi = np.array(tmydata.DHI)
+            self.dni = np.array(tmydata.DNI)
+            self.albedo = np.array(tmydata.Alb)
+            
         try:
             self.temp_air = np.array(tmydata.DryBulb) #changed by THKoeln
         except:
