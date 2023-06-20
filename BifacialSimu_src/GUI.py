@@ -1154,7 +1154,7 @@ class Window(tk.Tk):
 
             Entry_weatherfile.delete(0, END)
             Entry_weatherfile.insert(0, filename)   
-            SimulationDict["weatherFile"]=Entry_weatherfile.get()
+            SimulationDict["weatherFile"] = Entry_weatherfile.get()
         
         def InsertReflectivityfile():    
             
@@ -1167,6 +1167,7 @@ class Window(tk.Tk):
             Entry_reflectivityfile.insert(0, filename)   
             SimulationDict["spectralReflectancefile"]=Entry_reflectivityfile.get()
             
+
         def Set_UTC_offset():
             """ This function takes the coordinates entered by the user in the GUI, and returns as a result the resulting UTC timezone offset of the given location.
                 The coordinates should be entered according to the following format:
@@ -1200,36 +1201,45 @@ class Window(tk.Tk):
         def Set_lat_lng():
             
             # Get 'longitude' and 'latitude' from entryboxes, when trying to download weatherfile            
-            if len(Entry_longitude.get()) != 0 and len(Entry_longitude.get()) != 0 and rb_weatherfile.get() == 1:                
-                try:
-                    SimulationDict["longitude"] = float(Entry_longitude.get())                                                                                      
-                    SimulationDict["latitude"] = float(Entry_latitude.get())      
-                except:                     
-                    messagebox.showwarning("Main Control", "Please enter coordinates according to following following exampe (lat, lon): 50.9, 7.0 ")                    
-                pass
+            if len(Entry_longitude.get()) != 0 and len(Entry_longitude.get()) != 0 and rb_weatherfile.get() == 1: 
+                SimulationDict["longitude"] = float(Entry_longitude.get())                                                                                      
+                SimulationDict["latitude"] = float(Entry_latitude.get())  
+            # When local file is used, try to get 'longitude' and 'latitude' from TMY files with help of pvlib.iotools                          
+            elif len(Entry_weatherfile.get()) != 0 and rb_weatherfile.get() == 0:
+                tmydata, tmymetadata = pvlib.iotools.read_tmy3(Entry_weatherfile.get())
+                SimulationDict["longitude"] = tmymetadata['longitude']
+                SimulationDict["latitude"] = tmymetadata['latitude']                 
+                     
+                    
+#                try:
+#                    SimulationDict["longitude"] = float(Entry_longitude.get())                                                                                      
+#                    SimulationDict["latitude"] = float(Entry_latitude.get())      
+#                except:                     
+#                    messagebox.showwarning("Main Control", "Please enter coordinates according to following following exampe (lat, lon): 50.9, 7.0 ")                    
+#                pass
             
             # When local file is used, try to get 'longitude' and 'latitude' from TMY files with help of pvlib.iotools                          
-            elif len(Entry_weatherfile.get()) != 0 and rb_weatherfile.get() == 0:                
-                try:
-                    tmydata, tmymetadata = pvlib.iotools.read_tmy3(Entry_weatherfile.get())
-                    SimulationDict["longitude"] = tmymetadata['longitude']
-                    SimulationDict["latitude"] = tmymetadata['latitude']                 
-                except:
-                    messagebox.showwarning(
-                         "Main Control", "PLease enter a weather file in TMY format")                     
+#            elif len(Entry_weatherfile.get()) != 0 and rb_weatherfile.get() == 0:                
+#                try:
+#                    tmydata, tmymetadata = pvlib.iotools.read_tmy3(Entry_weatherfile.get())
+#                    SimulationDict["longitude"] = tmymetadata['longitude']
+#                    SimulationDict["latitude"] = tmymetadata['latitude']                 
+#                except:
+#                    messagebox.showwarning(
+#                         "Main Control", "PLease enter a weather file in TMY format")                     
             # If both options did not work, show warning messagebox             
-            else:
-                messagebox.showwarning(
-                    "Main Control", "Please insert a TMY weather file or enter coordinates of the simulation location")         
-            Soiling() #Update Soilingrates for new Weatherdata or Location 
+#            else:
+#                messagebox.showwarning(
+#                    "Main Control", "Please insert a TMY weather file or enter coordinates of the simulation location")         
+#            Soiling() #Update Soilingrates for new Weatherdata or Location 
             
             # Show message to user, when PV-Module tilt is over 85°             
-            if (float(Entry_Tilt.get()) > 84.0):                 
-                messagebox.showwarning(
-                    "Main Control", "Note that the soiling rate is significantly reduced if modules are nearly vertical!") 
+#            if (float(Entry_Tilt.get()) > 84.0):                 
+#                messagebox.showwarning(
+#                    "Main Control", "Note that the soiling rate is significantly reduced if modules are nearly vertical!") 
                    
 #=======
-            Entry_utcoffset.insert(0, int(UTC_offset))
+            #Entry_utcoffset.insert(0, int(UTC_offset))
                      
 #>>>>>>> master
         #Changing the weatherfile
@@ -2415,8 +2425,6 @@ class Window(tk.Tk):
             #breaking flag must be rest before starting a new Simulation, otherwise it won't function if someone pressed the stop button before.
             globals.thread_break = False 
             
-            messagebox.showwarning("Main Control", "Confirm Main Control inputs when done!")# Input has to be confirmed with Button to update soiling rate
-
             threading.Thread(target=StartSimulation).start()
        
         #break Simulation in Thread
