@@ -2,10 +2,12 @@
 """
 Created on Fri May 12 18:15:38 2023
 
+Function to iteratively test all simulation variations of BifacialSimu with testdata from Brazil and Germany
+ 
 @author: max2k
 """
 
-# Import modules
+#%% Import modules
 
 import os
 #import time
@@ -23,6 +25,9 @@ from BifacialSimu import Controller
 from multiprocessing import Process
 
 
+
+
+#%% Simulation and Module Dicts
 timestamp = datetime.now().strftime("%Y-%m-%d %H.%M") 
 rootPath = os.getcwd().replace(os.sep, '/')
 
@@ -181,7 +186,7 @@ ModuleDict_Brazil = {
 
 
 
-
+#%% Test function
 
 def test_function(SimulationDict, ModuleDict, test_name, startHour, endHour, electricalMode, singleAxisTrackingMode):
 
@@ -277,7 +282,7 @@ def test_function(SimulationDict, ModuleDict, test_name, startHour, endHour, ele
      
  
     
-    
+#%% Start of iterating processes    
     
     procs = []
     
@@ -325,7 +330,7 @@ def test_function(SimulationDict, ModuleDict, test_name, startHour, endHour, ele
     ergebnisausgabe()                
     
 
-
+#%% start test function
 
 if __name__ == '__main__':
     
