@@ -3,124 +3,109 @@
 Created on Wed Apr 12 00:09:28 2023
 
 @author: Arsene Siewe Towoua
+
 """
 
-
-###Pandas
-#import pandas as pd
-
-# Spécifiez l'encodage approprié pour votre fichier CSV
-#df = pd.read_csv('wetter.csv', encoding='utf-8',  delimiter=';')
-
-
-#premiere_ligne = df.iloc[3]
-#derniere_ligne = df.tail(1).iloc[0]
-#wind_speed_df = df[df['specie'].str.contains('wind-speed')]
-
-
-#print(premiere_ligne)
-#print(derniere_ligne)
-#print(wind_speed_df)
-#print(df.columns)
-#print(df.columns.tolist())
-
-
-
-
+# This string extracts specifiqued PM2.5 and PM10 particle and wind speed data in a CSV table containing several data sets. 
+#3 tables are then created for PM2.5, PM10 and wind speed respectively.
+#data from 2021-12-27 to 2023-03-22
+#the data is arranged chronologically. 
 
 import csv
 
-# Ouvrir le fichier CSV en mode lecture
+import pandas as pd
+
+# Open the CSV file in read mode
 with open('wetter.csv', encoding='utf-8') as csvfile:
     
-    # Créer un objet csv.reader
+    # Create a csv.reader object
     reader = csv.reader(csvfile)
     
-    # Lire la première ligne pour obtenir les noms de colonnes
+    # Read the first line to obtain the column names
     headers = next(reader)   
     print(headers)
     
-    # Trouver l'index de la colonne "Specie"
+    # Find the index for the "Specie" column
     specie_index = headers.index('Specie')
     
-    # Créer une liste pour stocker les lignes filtrées
+    # Create a list to store filtered lines
     filtered_rows = []
     
     for row in reader:
         if 'pm10' in row[specie_index] or 'wind-speed' in row[specie_index] or 'pm25' in row[specie_index]:
             filtered_rows.append(row)
             
-      # Imprimer les lignes filtrées
+      # Print filtered lines
     #for row in filtered_rows:
     #    print(row)        
         
-# Ouvrir le nouveau fichier CSV en mode écriture
+# Open the new CSV file in write mode
     with open('filtered_rows.csv', 'w', newline='', encoding='utf-8') as f:
-        # Créer un objet csv.writer
+        # Create a csv.write object
         csv_writer = csv.writer(f)
         
-        # Écrire l'en-tête dans le nouveau fichier
+        # Write the header to the new file
         csv_writer.writerow(headers)
         
-        # Écrire les lignes filtrées dans le nouveau fichier
+        # Write the filtered lines to the new file
         for row in filtered_rows:
             csv_writer.writerow(row)        
         #print(row)
    
- # Ouvrir le fichier CSV en mode lecture
+ # Open the CSV file in read mode
     with open('filtered_rows.csv', mode='r', newline='', encoding='utf-8') as file:
     
-        # Lire le fichier CSV en utilisant le lecteur CSV
+        # Read the CSV file using the CSV reader
         new_file = csv.reader(file)
     
-        # Lire la première ligne pour obtenir les en-têtes de colonne
+        # Read the first line to obtain the column headers
         headers  = next(new_file)
     
-        # Créer un dictionnaire pour stocker les données regroupées
+        # Create a dictionary to store the grouped data
         grouped_data = {}
 
-        # Parcourir chaque ligne du fichier CSV
+        # Browse each line of the CSV file
         for row in new_file:
             
-            # Obtenir l'index de la colonne "Spicie"
+            # Get the index for the "Spicie" column
             spicie_index = headers.index("Specie")
         
             
-            # Vérifier si la valeur de la colonne "Specie" est "pm10", "wind-speed" ou "pm25"
+            # Check whether the value in the "Specie" column is "pm10", "wind-speed" or "pm25".
             if row[spicie_index] in ["pm10", "wind-speed", "pm25"]:
                 
-                # Obtenir la date de la ligne
+                # Get the date of the line
                 date = row[headers.index("Date")]
     
-                # Ajouter la ligne à la liste correspondante dans le dictionnaire
+                # Add the line to the corresponding list in the dictionary
                 if date not in grouped_data:
                     grouped_data[date] = []
                     
-                    # Vérifier si la date est comprise entre le 1er janvier 2022 et le 31 décembre 2022
+                    # Check if the date is between 1 January 2022 and 31 December 2022
                     #if '2022-01-01' <= date <= '2022-12-31':
                         
                 grouped_data[date].append(row)
                 
                             
-        # Trier les données en fonction des dates
+        # Sort data
         sorted_data = []
         for date in sorted(grouped_data.keys()):
             sorted_data.extend(grouped_data[date])   
         
-        # Tri des données en fonction des colonnes Spicie et Country
+        # Sorting data by Spicie and Country columns
             sorted_data = sorted(sorted_data, key=lambda row: row[headers.index("Specie")])
 
-        # Trier les données en fonction des dates
+        # Sort data by date
             #sorted_data = sorted(new_file, key=lambda row: row[headers.index("Date")])
         
-        # Ouvrir un nouveau fichier CSV en mode écriture
+        # Open a new CSV file in write mode
         with open('filtered_wetter_data.csv', mode='w', newline='', encoding='utf-8') as file_out:
         
-            # Écrire les en-têtes de colonne dans le fichier de sortie
+            # Write column headers in the output file
             writer = csv.writer(file_out)
             writer.writerow(headers)
         
-            # Écrire chaque ligne triée dans le fichier de sortie
+            # Write each sorted line to the output file
             for row in sorted_data:
                 writer.writerow(row)   
             print(row)
@@ -129,22 +114,22 @@ with open('wetter.csv', encoding='utf-8') as csvfile:
 ##########################################################################################
     #PM2.5-Daten
         
-# Ouvrir le fichier CSV en mode lecture
+# Open the CSV file "filtered_wetter_data" in read mode
 with open('filtered_wetter_data.csv', mode='r', newline='', encoding='utf-8') as pm25_file:
     
-    # Créer un objet csv.reader
+    # Create a csv.reader object
     pm25 = csv.reader(pm25_file)
     
-    # Lire la première ligne pour obtenir les noms de colonnes
+    # Read the first line to obtain the column names
     headers = next(pm25)   
     print(headers)
     
-    # Trouver l'index de la colonne "Specie"
+    # Find the index for the "Specie" column
     specie_index = headers.index('Specie')
    # date_index = headers.index('Date')
     
     #headers.pop(date_index)
-    # Créer une liste pour stocker les lignes filtrées
+    # Create a list to store filtered lines
     pm25_filtered_rows = []
  
     for row in pm25:
@@ -153,11 +138,11 @@ with open('filtered_wetter_data.csv', mode='r', newline='', encoding='utf-8') as
         if 'pm25' in row[specie_index]: #or 'wind-speed' in row[specie_index] or 'pm25' in row[specie_index]:
             pm25_filtered_rows.append(row)
             
-      # Imprimer les lignes filtrées
+      # Print filtered lines
     #for row in pm25_filtered_rows:
         #print(row)        
 
-    # Ouvrir le nouveau fichier CSV en mode écriture
+    # Open the new CSV file in write mode
     with open('pm25_filtered_rows.csv', 'w', newline='', encoding='utf-8') as pm25_f:
             # Créer un objet csv.writer
         csv_writer = csv.writer(pm25_f)
@@ -165,46 +150,46 @@ with open('filtered_wetter_data.csv', mode='r', newline='', encoding='utf-8') as
             # Écrire l'en-tête dans le nouveau fichier
         csv_writer.writerow(headers)
             
-            # Écrire les lignes filtrées dans le nouveau fichier
+            # Write the filtered lines to the new file
         for row in pm25_filtered_rows:
             csv_writer.writerow(row)        
             #print(row)
 
 ################################################################################################    
      #PM10-Daten
-# Ouvrir le fichier CSV en mode lecture
+# Open the CSV file "filtered_wetter_data" in read mode
 with open('filtered_wetter_data.csv', mode='r', newline='', encoding='utf-8') as pm10_file:
     
-    # Créer un objet csv.reader
+    # Create a csv.reader object
     pm10 = csv.reader(pm10_file)
     
-    # Lire la première ligne pour obtenir les noms de colonnes
+    # Read the first line to obtain the column names
     headers = next(pm10)   
     print(headers)
     
-    # Trouver l'index de la colonne "Specie"
+    # Find the index for the "Specie" column
     specie_index = headers.index('Specie')
     
-    # Créer une liste pour stocker les lignes filtrées
+    # Create a list to store filtered lines
     pm10_filtered_rows = []
       
     for row in pm10:
         if 'pm10' in row[specie_index]: #or 'wind-speed' in row[specie_index] or 'pm25' in row[specie_index]:
             pm10_filtered_rows.append(row)
             
-      # Imprimer les lignes filtrées
+      # Print filtered lines
     #for row in pm10_filtered_rows:
         #print(row)        
 
-    # Ouvrir le nouveau fichier CSV en mode écriture
+    # Open the new CSV file in write mode
     with open('pm10_filtered_rows.csv', 'w', newline='', encoding='utf-8') as pm10_f:
     # Créer un objet csv.writer
        csv_writer = csv.writer(pm10_f)
             
-          # Écrire l'en-tête dans le nouveau fichier
+          # Write the header to the new file
        csv_writer.writerow(headers)
             
-            # Écrire les lignes filtrées dans le nouveau fichier
+            # Write the filtered lines to the new file
        for row in pm10_filtered_rows:
            csv_writer.writerow(row)        
             #print(row)
@@ -212,20 +197,20 @@ with open('filtered_wetter_data.csv', mode='r', newline='', encoding='utf-8') as
             
 ############################################################################################### 
 # Windgeschwindigkeitsdaten
-# Ouvrir le fichier CSV en mode lecture
+# Open the CSV file "filtered_wetter_data" in read mode
 with open('filtered_wetter_data.csv', mode='r', newline='', encoding='utf-8') as wind_speed_file:
     
-    # Créer un objet csv.reader
+    # Create a csv.reader object
     wind_speed = csv.reader(wind_speed_file)
     
-    # Lire la première ligne pour obtenir les noms de colonnes
+    # Read the first line to obtain the column names
     headers = next(wind_speed)   
     print(headers)
     
-    # Trouver l'index de la colonne "Specie"
+    # Find the index for the "Specie" column
     specie_index = headers.index('Specie')
     
-    # Créer une liste pour stocker les lignes filtrées
+    # Create a list to store filtered lines
     wind_speed_filtered_rows = []
     
     for row in wind_speed:
@@ -236,15 +221,15 @@ with open('filtered_wetter_data.csv', mode='r', newline='', encoding='utf-8') as
     #for row in wind_speed_filtered_rows:
         #print(row)        
 
-    # Ouvrir le nouveau fichier CSV en mode écriture
+    # Open the new CSV file in write mode
     with open('wind_speed_filtered_rows.csv', 'w', newline='', encoding='utf-8') as wind_speed_f:
             # Créer un objet csv.writer
         csv_writer = csv.writer(wind_speed_f)
             
-            # Écrire l'en-tête dans le nouveau fichier
+            # Write the header to the new file
         csv_writer.writerow(headers)
             
-            # Écrire les lignes filtrées dans le nouveau fichier
+            # Write the filtered lines to the new file
         for row in wind_speed_filtered_rows:
             csv_writer.writerow(row)        
             #print(row)
