@@ -1775,11 +1775,79 @@ class Window(tk.Tk):
                 
                 Soiling_hegazy_new = round((sum(values_soiling_hegazy) / len (values_soiling_hegazy)), 6)
                 print('average for the location indicated as a function of the length of the simulation:',Soiling_hegazy_new)
-                #SimulationDict["fixSoilrate"] = Soiling_hegazy_new
+                SimulationDict["fixSoilrate"] = Soiling_hegazy_new
                 
                 #reset value in the Entry_Soilrate
                 Entry_Soilrate.delete(0, END)
-                Entry_Soilrate.insert(0, Soiling_hegazy_new)
+                Entry_Soilrate.insert(0, SimulationDict["fixSoilrate"])
+                
+                if Soiling_hegazy_new == 0:
+                    # Load csv file with soiling rates from over 500 locations  and convert to pandas dataframe
+                    soilingrate_Weatherdata = pd.read_csv(rootPath + '\Lib\input_soiling\soilingrate_coordinates_monthly_2022.csv',  encoding ='latin-1')
+                    soilingrate_Weatherdata = pd.DataFrame(soilingrate_Weatherdata)
+                    print(soilingrate_Weatherdata)
+                    
+                    cities = [] # Array to collect pairs of latitude and longitude for each location
+                    soilingrate_Weatherdata = soilingrate_Weatherdata.reset_index() # Create index with range of numbers starting with '0'
+                    #print(soilingrate_Weatherdata)
+                   
+                    # Collcect all pairs of coordinates from soiling_Weatherdata in cities[]
+                    # for count in soilingrate_Weatherdata.index:
+                    count = 0    
+                    while count < len(soilingrate_Weatherdata['City, Country']):
+                        coord = (soilingrate_Weatherdata["lat"][count], soilingrate_Weatherdata["lng"][count])
+                        #print(coord)
+                        cities.append(coord)
+                        #print(cities)
+                        count = count + 12
+                        
+                    # Find nearest location to given latitude and longitude from SimulationDict
+                    nearest_location = closest(cities, (SimulationDict["latitude"],SimulationDict["longitude"]))
+                    indexout = cities.index(nearest_location)
+                    print('Lat and long', nearest_location)
+                    print('Index city in the excelsheet:', indexout) 
+                    
+                    
+                    # clear weatherstation and distance entries         
+                    Entry_weatherstation.delete(0, END)
+                    Entry_distance.delete(0, END)
+                              
+                    # set weatherstation entry with nearest location from soilingrate_Weatherdata
+                    Entry_weatherstation.insert(0, soilingrate_Weatherdata['City, Country'].values[indexout*12])
+                        
+                    # set distance entry with distance from simulation location to nearest weatherstation from given data with geodesic      
+                    Entry_distance.insert(0, round(GD((SimulationDict["latitude"],SimulationDict["longitude"]),cities[indexout]).km, 2))
+                    soilingrate_Weatherdata = soilingrate_Weatherdata.set_index('City, Country')
+                    
+                    SimulationDict["variableSoilrate"] = soilingrate_Weatherdata['Soiling_Rate'].iloc[indexout*12:(indexout*12 + 12)].values.tolist()
+                    #SimulationDict["fixSoilrate"] = SimulationDict["variableSoilrate"]
+                    
+                    print("Monthly Soiling Rates:", SimulationDict["variableSoilrate"])
+                    
+                    
+                    #to calculate the Duration of the simulation 
+                    Startdate = datetime.datetime(int(Entry_year_start.get()), int(Entry_month_start.get()), int(Entry_day_start.get()), int(Entry_hour_start.get())) #defining as Date
+                    Enddate = datetime.datetime(int(Entry_year_end.get()), int(Entry_month_end.get()), int(Entry_day_end.get()), int(Entry_hour_end.get()))
+                    
+                    # Duration of the simulation (in months)
+                    simulation_duration = Enddate - Startdate
+                    
+                    print('Startdate:', Startdate)
+                    print('Enddate:', Enddate)
+                    print('simulation_duration:', simulation_duration)
+                    
+                    
+                    #reset value in the Entry_Soilrate
+                    average_Soiling = round((sum(SimulationDict["variableSoilrate"]) / len (SimulationDict["variableSoilrate"])), 6)
+                    print('average for the location indicated as a function of the length of the simulation:', average_Soiling)
+                    SimulationDict["fixSoilrate"] = average_Soiling
+                    
+                    #reset value in the Entry_Soilrate
+                    Entry_Soilrate.delete(0, END)
+                    Entry_Soilrate.insert(0, SimulationDict["fixSoilrate"])
+                    
+                    #simulationDict["monthlySoilingrate"] == True
+            
             
             
             # When radiobutton 'soilingrate from weatherdata' active, set new soilingrate
@@ -1846,11 +1914,11 @@ class Window(tk.Tk):
                 #reset value in the Entry_Soilrate
                 average_Soiling = round((sum(SimulationDict["variableSoilrate"]) / len (SimulationDict["variableSoilrate"])), 6)
                 print('average for the location indicated as a function of the length of the simulation:', average_Soiling)
-                #SimulationDict["fixSoilrate"] = Soiling_hegazy_new
+                SimulationDict["fixSoilrate"] = average_Soiling
                 
                 #reset value in the Entry_Soilrate
                 Entry_Soilrate.delete(0, END)
-                Entry_Soilrate.insert(0, average_Soiling)
+                Entry_Soilrate.insert(0, SimulationDict["fixSoilrate"])
                 
 
         # Defining the electrical Mode with or without Values of rear side
