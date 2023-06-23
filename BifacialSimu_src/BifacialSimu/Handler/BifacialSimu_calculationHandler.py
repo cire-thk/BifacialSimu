@@ -261,7 +261,7 @@ class Electrical_simulation:
                 else:
                     P_bi=0
                 
-                P_bi_hourly.append(P_bi)
+                P_bi_hourly.append(P_bi/(simulationDict['moduley'] *simulationDict['modulex']))  #Bifacial Power Output per Module Area  [W/m2]
                 
             # Append P_bi_hourly array to arrays
             P_bi_hourly_arrays.append(P_bi_hourly)
@@ -299,6 +299,7 @@ class Electrical_simulation:
         print ("\n")'''
         
         module_area = (simulationDict['moduley'] *simulationDict['nModsy'] *simulationDict['modulex'])
+
         
         annual_power_per_area_b = (annual_power_per_module_b / module_area)    #[W/m^2] annual bifacial poutput power per module area
         '''print("Yearly bifacial output power per module area: " + str(annual_power_per_area_b) + " W/m^2")
@@ -307,7 +308,7 @@ class Electrical_simulation:
         
         # Plot total qinc front and back for every row
       
-        
+       
         f = plt.Figure(figsize=(12, 3))
         ax1 = f.subplots(1)
         ax1.locator_params(tight=True, nbins=6)
@@ -589,7 +590,7 @@ class Electrical_simulation:
 
                 sum_energy_b += P_bi # Sum up the energy of every row in every hour
 
-                P_bi_hourly.append(P_bi)
+                P_bi_hourly.append(P_bi/(simulationDict['moduley'] *simulationDict['modulex'])) #Bifacial Power Output per Module Area  [W/m2]
                 
             # Append P_bi_hourly array to arrays
             P_bi_hourly_arrays.append(P_bi_hourly)
@@ -1200,7 +1201,7 @@ class Electrical_simulation:
                     P_bi=0
                 
                 P_m_hourly.append(P_m)
-                P_bi_hourly.append(P_bi)
+                P_bi_hourly.append(P_bi/(simulationDict['moduley'] *simulationDict['modulex']))  #Bifacial Power Output per Module Area  [W/m2]
                 
             # Append P_bi_hourly array to arrays
             P_m_hourly_arrays.append(P_m_hourly)
@@ -1760,7 +1761,7 @@ class Electrical_simulation:
                     P_bi=0
                 
                 P_m_hourly.append(P_m)
-                P_bi_hourly.append(P_bi)
+                P_bi_hourly.append(P_bi/(simulationDict['moduley'] *simulationDict['modulex']))  #Bifacial Power Output per Module Area  [W/m2]
                 
             # Append P_bi_hourly array to arrays
             P_m_hourly_arrays.append(P_m_hourly)
@@ -2061,7 +2062,7 @@ class Electrical_simulation:
                     
                     sum_energy_b += P_bi # Sum up the energy of every row in every hour
 
-                    P_bi_hourly.append(P_bi)
+                    P_bi_hourly.append(P_bi/(simulationDict['moduley'] *simulationDict['modulex']))  #Bifacial Power Output per Module Area  [W/m2]
                     
                 # Append P_bi_hourly array to arrays
                 P_bi_hourly_arrays.append(P_bi_hourly)
