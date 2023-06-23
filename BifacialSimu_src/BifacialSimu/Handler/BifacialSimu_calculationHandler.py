@@ -1,10 +1,3 @@
-# -*- coding: utf-8 -*-
-"""
-Created on Thu Jun  8 10:42:31 2023
-
-@author: Arsene Siewe Towoua
-"""
-
     # -*- coding: utf-8 -*-
 """
 Created on Mon Jun  7 11:39:16 2021
