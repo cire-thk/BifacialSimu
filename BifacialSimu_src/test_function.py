@@ -241,9 +241,8 @@ def test_function(SimulationDict, ModuleDict, test_name, startHour, endHour, ele
                         electrical_simulation_data['Error_Message']= file.read().replace('\n', ' - ')
             else:    
                 electrical_simulation_data = pd.read_csv(glob.glob(unterverzeichnis+'/electrical_simulation*.csv')[0].replace(os.sep, '/'), index_col=0)
-                #print(electrical_simulation_data)
-                #print(electrical_simulation_data.columns)
-                #gesamtergebnis_sum_el_df.loc[variante, 'E_Wh'] = electrical_simulation_data['P_bi'].sum(axis=1)
+                
+                gesamtergebnis_sum_el_df.loc[variante, 'E_kWh/m2'] = electrical_simulation_data['P_bi '].sum() /1000
             
             for i in electrical_simulation_data.iterrows():
                 electrical_simulation_data['Variante']=variante
@@ -254,7 +253,7 @@ def test_function(SimulationDict, ModuleDict, test_name, startHour, endHour, ele
     
         gesamtergebnis_rad_df.to_csv(verzeichnis+'/Gesamtergebnis-Radiation.csv', index=True, encoding='utf-8-sig', na_rep='0')              
         gesamtergebnis_el_df.to_csv(verzeichnis+'/Gesamtergebnis-Elektrisch.csv', index=True, encoding='utf-8-sig', na_rep='0')              
-        #gesamtergebnis_sum_el_df.to_csv(verzeichnis+'/AVG-Elektrisch.csv', index=True, encoding='utf-8-sig', na_rep='0')   
+        gesamtergebnis_sum_el_df.to_csv(verzeichnis+'/AVG-Elektrisch.csv', index=True, encoding='utf-8-sig', na_rep='0')   
         
     
     def define_albedo(albedoMode):
@@ -311,7 +310,7 @@ def test_function(SimulationDict, ModuleDict, test_name, startHour, endHour, ele
                         SimulationDict["endHour"] = (2001, 12, 31, 23)
                         
                     
-                    for simMode in range(3):
+                    for simMode in range(2):
                     
                         SimulationDict["simulationMode"] = simMode+1
                         
@@ -334,9 +333,9 @@ def test_function(SimulationDict, ModuleDict, test_name, startHour, endHour, ele
 
 if __name__ == '__main__':
     
-    #test_function(SimulationDict_Heggelbach, ModuleDict_Heggelbach, 'Heggelbach_2022', (2022, 1, 1, 0), (2022, 1, 1, 1), 0, 0)
-    test_function(SimulationDict_Heggelbach, ModuleDict_Heggelbach, 'Heggelbach_2022', (2022, 1, 1, 0), (2022, 12, 31, 22), 0, 0)
-    test_function(SimulationDict_Brazil_fixed, ModuleDict_Brazil, 'Brazil_fixed_2022', (2022, 1, 1, 1), (2022, 12, 31, 22), 0, 0)
+    #test_function(SimulationDict_Heggelbach, ModuleDict_Heggelbach, 'Heggelbach_2022', (2022, 1, 1, 10), (2022, 1, 1, 12), 0, 0)
+    test_function(SimulationDict_Heggelbach, ModuleDict_Heggelbach, 'Heggelbach_2022', (2022, 1, 1, 0), (2022, 12, 31, 23), 0, 0)
+    test_function(SimulationDict_Brazil_fixed, ModuleDict_Brazil, 'Brazil_fixed_2021', (2021, 1, 1, 0), (2021, 12, 31, 23), 0, 0)
     
     #test_function(SimulationDict_Brazil_tracked , ModuleDict_Brazil , 'Brazil_tracked_2022', (2022, 1, 1, 1), (2022, 12, 31, 22), 0, 1)
 
