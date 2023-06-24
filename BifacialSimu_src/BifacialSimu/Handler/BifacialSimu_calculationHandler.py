@@ -88,6 +88,8 @@ class Electrical_simulation:
         
         return df_report
     
+  
+        
     def simulate_oneDiode(moduleDict, simulationDict, df_reportVF, df_reportRT, df_report, df, resultsPath):
         """
         Applies the one diode model for bifacial electrical simulation. Needs module front and rear parameters to work correctly.
@@ -223,8 +225,10 @@ class Electrical_simulation:
                 
                 row_qabs_front = df_report.loc[index,key_front]
                 row_qabs_back = df_report.loc[index,key_back]
-                T_Current = df.loc[index,'temperature']
-                
+                       
+                T_Current = df.loc[index,'temperature'] + ((70-df.loc[index,'temperature'])/1300) * row_qabs_front
+                if np.isnan(T_Current):
+                    T_Current = df.loc[index,'temperature']
                 
                 #print("front: " + str(row_qabs_front))
                 #print("back: " + str(row_qabs_back))
@@ -339,7 +343,10 @@ class Electrical_simulation:
                 
                 #SG
                 row_qabs_front = df_report.loc[index,key_front_mono]
-                T_Current = df.loc[index,'temperature']
+                
+                T_Current = df.loc[index,'temperature'] + ((70-df.loc[index,'temperature'])/1300) * row_qabs_front
+                if np.isnan(T_Current):
+                    T_Current = df.loc[index,'temperature']
 
                 if math.isnan(row_qabs_front):
                     row_qabs_front = 0 
@@ -569,7 +576,10 @@ class Electrical_simulation:
                 row_qabs_front = df_report.loc[index,key_front]
                 row_qabs_back = df_report.loc[index,key_back]
                 row_qabs_combined = row_qabs_front + (row_qabs_back*bi_factor)
-                T_Current = df.loc[index,'temperature']
+                
+                T_Current = df.loc[index,'temperature'] + ((70-df.loc[index,'temperature'])/1300) * row_qabs_front
+                if np.isnan(T_Current):
+                    T_Current = df.loc[index,'temperature']
                 
                 
                 # calculation of frontside power output
@@ -663,7 +673,10 @@ class Electrical_simulation:
                 #row_qabs_front = row[key_front_mono]
                 #T_Current = df.loc[index,'temperature']
                 row_qabs_front = df_report.loc[index,key_front_mono]
-                T_Current = df.loc[index,'temperature']
+                
+                T_Current = df.loc[index,'temperature'] + ((70-df.loc[index,'temperature'])/1300) * row_qabs_front
+                if np.isnan(T_Current):
+                    T_Current = df.loc[index,'temperature']
 
                 # calculation of frontside power output
                 if math.isnan(row_qabs_front) or row_qabs_front < 0.0:
@@ -1057,7 +1070,10 @@ class Electrical_simulation:
                 
                 row_qabs_front = df_report.loc[index,key_front]
                 row_qabs_back = df_report.loc[index,key_back]
-                T_Current = df.loc[index,'temperature']
+                
+                T_Current = df.loc[index,'temperature'] + ((70-df.loc[index,'temperature'])/1300) * row_qabs_front
+                if np.isnan(T_Current):
+                    T_Current = df.loc[index,'temperature']
                 
                 
                 #print("front: " + str(row_qabs_front))
@@ -1606,7 +1622,10 @@ class Electrical_simulation:
                 
                 row_qabs_front = df_report.loc[index,key_front]
                 row_qabs_back = df_report.loc[index,key_back]
-                T_Current = df.loc[index,'temperature']
+                
+                T_Current = df.loc[index,'temperature'] + ((70-df.loc[index,'temperature'])/1300) * row_qabs_front
+                if np.isnan(T_Current):
+                    T_Current = df.loc[index,'temperature']
                 
                 
                 #print("front: " + str(row_qabs_front))
@@ -2032,7 +2051,10 @@ class Electrical_simulation:
                     
                     row_qabs_front = df_report.loc[index,key_front]
                     row_qabs_back = df_report.loc[index,key_back]
-                    T_Current = df.loc[index,'temperature']
+                    
+                    T_Current = df.loc[index,'temperature'] + ((70-df.loc[index,'temperature'])/1300) * row_qabs_front
+                    if np.isnan(T_Current):
+                        T_Current = df.loc[index,'temperature']
                     
                     
                     # calculation of frontside power output
@@ -2138,7 +2160,10 @@ class Electrical_simulation:
                     #row_qabs_front = row[key_front_mono]
                     #T_Current = df.loc[index,'temperature']
                     row_qabs_front = df_report.loc[index,key_front_mono]
-                    T_Current = df.loc[index,'temperature']
+                    
+                    T_Current = df.loc[index,'temperature'] + ((70-df.loc[index,'temperature'])/1300) * row_qabs_front
+                    if np.isnan(T_Current):
+                        T_Current = df.loc[index,'temperature']
 
                     if math.isnan(row_qabs_front):
                         row_qabs_front = 0     

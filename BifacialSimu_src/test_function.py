@@ -56,7 +56,7 @@ SimulationDict_Heggelbach = {
                 'BackReflect' : 0.05, #back surface reflectivity of PV rows
                 'longitude' : 9.136, 
                 'latitude' : 47.853,
-                'gcr' : 0.3735,#0.35, #ground coverage ratio (module area / land use)
+                'gcr' : 0.38,#0.35, #ground coverage ratio (module area / land use)
                 'module_type' : 'SW-Bisun-270-duo', #Name of Module                    
                 }
 
@@ -102,7 +102,7 @@ SimulationDict_Brazil_fixed = {
                 'BackReflect' : 0.05, #back surface reflectivity of PV rows
                 'longitude' : -48.440694, 
                 'latitude' : -27.430972,
-                'gcr' : 0.35, #ground coverage ratio (module area / land use)
+                'gcr' : 0.45, #ground coverage ratio (module area / land use)
                 'module_type' : 'Canadian Solar CS7N-MB', #Name of Module                    
                 }
 
