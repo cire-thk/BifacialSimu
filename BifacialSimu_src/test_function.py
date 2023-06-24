@@ -36,18 +36,12 @@ rootPath = os.getcwd().replace(os.sep, '/')
 SimulationDict_Heggelbach = {
                 'clearance_height': 6, #value was found missing! should be added later!
                 'simulationName' : 'test_heggelbach',
-                'simulationMode' : 1, 
-                'localFile' : True, # Decide wether you want to use a  weather file or try to download one for the coordinates
                 'weatherFile' : rootPath + '/WeatherData/Heggelbach_Germany/Heggelbach_Germany_2022.csv',#'/WeatherData/Golden_USA/SRRLWeatherdata Nov_Dez_2.csv', #'/WeatherData/weatherfile_Hegelbach_2022.csv', #weather file in TMY format 
                 'spectralReflectancefile' : rootPath + '/ReflectivityData/interpolated_reflectivity.csv',
                 'cumulativeSky' : False, # Mode for RayTracing: CumulativeSky or hourly
-                'startHour' : (2022, 11, 2, 1),  # Only for hourly simulation, yy, mm, dd, hh
-                'endHour' : (2022, 11, 7, 23),  # Only for hourly simulation, yy, mm, dd, hh
                 'utcOffset': 2,#2,
                 'tilt' : 20, #tilt of the PV surface [deg]
                 'singleAxisTracking' : False, # singleAxisTracking or not
-                'backTracking' : False, # Solar backtracking is a tracking control program that aims to minimize PV panel-on-panel shading 
-                'ElectricalMode_simple': 0, # simple electrical Simulation after PVSyst, use if rear module parameters are missing
                 'limitAngle' : 60, # limit Angle for singleAxisTracking
                 'hub_height' : 6.8, # Height of the rotation axis of the tracker [m]
                 'azimuth' : 232.5, #azimuth of the PV surface [deg] 90°: East, 135° : South-East, 180°:South
@@ -57,16 +51,12 @@ SimulationDict_Heggelbach = {
                 'sensorsy' : 5, #number of sensors
                 'moduley' : 1.675,#1.675 ,#length of modules in y-axis
                 'modulex' : 1.001,#1.001, #length of modules in x-axis  
-                'fixAlbedo': True, # Option to use the fix albedo
-                'hourlyMeasuredAlbedo' : False, # True if measured albedo values in weather file
-                'hourlySpectralAlbedo' : False, # Option to calculate a spectral Albedo 
-                'variableAlbedo': False, # Option to calculate sun position dependend, variable albedo
                 'albedo' : 0.15, # Measured Albedo average value, if hourly isn't available
                 'frontReflect' : 0.03, #front surface reflectivity of PV rows
                 'BackReflect' : 0.05, #back surface reflectivity of PV rows
                 'longitude' : 9.136, 
                 'latitude' : 47.853,
-                'gcr' : 0.735,#0.35, #ground coverage ratio (module area / land use)
+                'gcr' : 0.3735,#0.35, #ground coverage ratio (module area / land use)
                 'module_type' : 'SW-Bisun-270-duo', #Name of Module                    
                 }
 
@@ -93,18 +83,11 @@ ModuleDict_Heggelbach = {
 SimulationDict_Brazil_fixed = {
                 'clearance_height': 0.6, #value was found missing! should be added later!
                 'simulationName' : 'test_brazil_fixed',
-                'simulationMode' : 1, 
-                'localFile' : True, # Decide wether you want to use a  weather file or try to download one for the coordinates
                 'weatherFile' : rootPath + '/WeatherData/Brazil/Brazil_2021_grey_gravel.csv',#'/WeatherData/Golden_USA/SRRLWeatherdata Nov_Dez_2.csv', #'/WeatherData/weatherfile_Hegelbach_2022.csv', #weather file in TMY format 
                 'spectralReflectancefile' : rootPath + '/ReflectivityData/interpolated_reflectivity.csv',
                 'cumulativeSky' : False, # Mode for RayTracing: CumulativeSky or hourly
-                'startHour' : (2021, 11, 2, 1),  # Only for hourly simulation, yy, mm, dd, hh
-                'endHour' : (2021, 11, 7, 23),  # Only for hourly simulation, yy, mm, dd, hh
-                'utcOffset': -3,#2,
-                'tilt' : 35, #tilt of the PV surface [deg]
-                'singleAxisTracking' : False, # singleAxisTracking or not
-                'backTracking' : False, # Solar backtracking is a tracking control program that aims to minimize PV panel-on-panel shading 
-                'ElectricalMode_simple': 0, # simple electrical Simulation after PVSyst, use if rear module parameters are missing
+                'utcOffset': -3,
+                'tilt' : 30, #tilt of the PV surface [deg]
                 'limitAngle' : 0, # limit Angle for singleAxisTracking
                 'hub_height' : 1.42, # Height of the rotation axis of the tracker [m]
                 'azimuth' : 30, #azimuth of the PV surface [deg] 90°: East, 135° : South-East, 180°:South
@@ -114,11 +97,7 @@ SimulationDict_Brazil_fixed = {
                 'sensorsy' : 5, #number of sensors
                 'moduley' : 2.384,#1.675 ,#length of modules in y-axis
                 'modulex' : 1.303,#1.001, #length of modules in x-axis  
-                'fixAlbedo': True, # Option to use the fix albedo
-                'hourlyMeasuredAlbedo' : False, # True if measured albedo values in weather file
-                'hourlySpectralAlbedo' : False, # Option to calculate a spectral Albedo 
-                'variableAlbedo': False, # Option to calculate sun position dependend, variable albedo
-                'albedo' : 0.175, # Measured Albedo average value, if hourly isn't available
+                'albedo' : 0.145, # Measured Albedo average value, if hourly isn't available
                 'frontReflect' : 0.03, #front surface reflectivity of PV rows
                 'BackReflect' : 0.05, #back surface reflectivity of PV rows
                 'longitude' : -48.440694, 
@@ -130,18 +109,11 @@ SimulationDict_Brazil_fixed = {
 SimulationDict_Brazil_tracked = {
                 'clearance_height': 0.6, #value was found missing! should be added later!
                 'simulationName' : 'test_brazil_tracked',
-                'simulationMode' : 1, 
-                'localFile' : True, # Decide wether you want to use a  weather file or try to download one for the coordinates
                 'weatherFile' : rootPath + '/WeatherData/Brazil/Brazil_2021_grey_gravel.csv',#'/WeatherData/Golden_USA/SRRLWeatherdata Nov_Dez_2.csv', #'/WeatherData/weatherfile_Hegelbach_2022.csv', #weather file in TMY format 
                 'spectralReflectancefile' : rootPath + '/ReflectivityData/interpolated_reflectivity.csv',
                 'cumulativeSky' : False, # Mode for RayTracing: CumulativeSky or hourly
-                'startHour' : (2001, 11, 2, 1),  # Only for hourly simulation, yy, mm, dd, hh
-                'endHour' : (2001, 11, 7, 23),  # Only for hourly simulation, yy, mm, dd, hh
-                'utcOffset': -3,#2,
+                'utcOffset': -3,
                 'tilt' : 20, #tilt of the PV surface [deg]
-                'singleAxisTracking' : True, # singleAxisTracking or not
-                'backTracking' : False, # Solar backtracking is a tracking control program that aims to minimize PV panel-on-panel shading 
-                'ElectricalMode_simple': 0, # simple electrical Simulation after PVSyst, use if rear module parameters are missing
                 'limitAngle' : 58, # limit Angle for singleAxisTracking
                 'hub_height' : 1.42, # Height of the rotation axis of the tracker [m]
                 'azimuth' : 90, #azimuth of the PV surface [deg] 90°: East, 135° : South-East, 180°:South
@@ -151,16 +123,12 @@ SimulationDict_Brazil_tracked = {
                 'sensorsy' : 5, #number of sensors
                 'moduley' : 2.384,#1.675 ,#length of modules in y-axis
                 'modulex' : 1.303,#1.001, #length of modules in x-axis  
-                'fixAlbedo': True, # Option to use the fix albedo
-                'hourlyMeasuredAlbedo' : False, # True if measured albedo values in weather file
-                'hourlySpectralAlbedo' : False, # Option to calculate a spectral Albedo 
-                'variableAlbedo': False, # Option to calculate sun position dependend, variable albedo
                 'albedo' : 0.25, # Measured Albedo average value, if hourly isn't available
                 'frontReflect' : 0.03, #front surface reflectivity of PV rows
                 'BackReflect' : 0.05, #back surface reflectivity of PV rows
                 'longitude' : -48.440694, 
                 'latitude' : -27.430972,
-                'gcr' : 0.35,#0.35, #ground coverage ratio (module area / land use)
+                'gcr' : 0.45, #ground coverage ratio (module area / land use)
                 'module_type' : 'Canadian Solar CS7N-MB', #Name of Module                    
                 }
 
@@ -286,9 +254,9 @@ def test_function(SimulationDict, ModuleDict, test_name, startHour, endHour, ele
     procs = []
     
         
-    for backTrackingMode in range(2): #
+    for backTrackingMode in range(1): #
         
-        for albedoMode in range(2): # 
+        for albedoMode in range(1): # 
         
             for localFile in range(1,2):
                 
@@ -334,8 +302,15 @@ def test_function(SimulationDict, ModuleDict, test_name, startHour, endHour, ele
 if __name__ == '__main__':
     
     #test_function(SimulationDict_Heggelbach, ModuleDict_Heggelbach, 'Heggelbach_2022', (2022, 1, 1, 10), (2022, 1, 1, 12), 0, 0)
+    
     test_function(SimulationDict_Heggelbach, ModuleDict_Heggelbach, 'Heggelbach_2022', (2022, 1, 1, 0), (2022, 12, 31, 23), 0, 0)
-    test_function(SimulationDict_Brazil_fixed, ModuleDict_Brazil, 'Brazil_fixed_2021', (2021, 1, 1, 0), (2021, 12, 31, 23), 0, 0)
+    SimulationDict_Heggelbach['weatherFile'] = rootPath + '/WeatherData/Heggelbach_Germany/Heggelbach_Germany_2021.csv'
+    test_function(SimulationDict_Heggelbach, ModuleDict_Heggelbach, 'Heggelbach_2021', (2021, 1, 1, 0), (2021, 12, 31, 23), 0, 0)
+    
+    #test_function(SimulationDict_Brazil_fixed, ModuleDict_Brazil, 'Brazil_fixed_2021', (2021, 1, 1, 0), (2021, 12, 31, 23), 0, 0)
+    
+    SimulationDict_Brazil_fixed['weatherFile'] = rootPath + '/WeatherData/Brazil/Brazil_Aug21-Jul22_grey_gravel.csv'
+    test_function(SimulationDict_Brazil_fixed, ModuleDict_Brazil, 'Brazil_fixed_2021', (2021, 8, 1, 0), (2022, 5, 8, 23), 0, 0)
     
     #test_function(SimulationDict_Brazil_tracked , ModuleDict_Brazil , 'Brazil_tracked_2022', (2022, 1, 1, 1), (2022, 12, 31, 22), 0, 1)
 
