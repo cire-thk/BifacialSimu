@@ -155,6 +155,7 @@ ModuleDict = {
     'P_mpp': 354, # Power at maximum power Point [W]
     'T_koeff_P': -0.0036, #Temperature Coeffizient [1/°C]
     'T_amb':20, #Ambient Temperature for measuring the Temperature Coeffizient [°C]
+    'T_NOCT':45, #NOCT Temperature for estimation of module Temperature [°C]
     'T_koeff_I': 0.0005, #Temperaturkoeffizient for I_sc [1/°C] #SG
     'T_koeff_V': 0.0005, #Temperaturkoeffizient for U_oc [1/°C] #SG
     'zeta': 0.06 #Bestrahlungskoeffizient für Leerlaufspannung [-]
@@ -577,7 +578,10 @@ class Window(tk.Tk):
                 ModuleDict["zeta"]=float(Entry_zeta.get())
                 
             if len(Entry_Ns.get()) !=0:
-                ModuleDict["Ns"]=float(Entry_Ns.get())           
+                ModuleDict["Ns"]=float(Entry_Ns.get())       
+                
+            if len(Entry_Tnoct.get()) !=0:
+                ModuleDict["T_NOCT"]=float(Entry_Tnoct.get())    
                 
             
 # =============================================================================
@@ -994,6 +998,7 @@ class Window(tk.Tk):
             Entry_Pmpp.insert(0,str(d['P_mpp']))
             Entry_TkoeffP.insert(0,str(d['T_koeff_P']))
             Entry_Tamb.insert(0,str(d['T_amb']))
+            Entry_Tnoct.insert(0,str(d['T_NOCT']))
             Entry_TkoeffI.insert(0,str(d['T_koeff_I']))
             Entry_TkoeffV.insert(0,str(d['T_koeff_V']))
             Entry_zeta.insert(0,str(d['zeta']))
@@ -1053,6 +1058,7 @@ class Window(tk.Tk):
             Entry_zeta.delete(0,END)
             Entry_albedo.delete(0,END)
             Entry_utcoffset.delete(0,END)
+            Entry_Tnoct.delete(0,END)
 
             
            # Combo_Module.delete(0,END)
@@ -1668,7 +1674,13 @@ class Window(tk.Tk):
         Entry_Ns=ttk.Entry(ModuleParameter_frame, background="white", width=8)
         Entry_Ns.grid(column=1, row=20, sticky=W) 
         
-
+        
+        Label_Tnoct =ttk.Label(ModuleParameter_frame, text="T_NOCT:")
+        Label_Tnoct.grid(column=0, row=21, sticky=W)
+        Label_TnoctPar=ttk.Label(ModuleParameter_frame, text="[\u00b0C]")
+        Label_TnoctPar.grid(column=2, row=21, sticky=W)
+        Entry_Tnoct=ttk.Entry(ModuleParameter_frame, background="white", width=8)
+        Entry_Tnoct.grid(column=1, row=21, sticky=W) 
         
 # =============================================================================
 #          Config file (default.ini) 
@@ -1813,6 +1825,7 @@ class Window(tk.Tk):
                 Entry_Pmpp.delete(0,END)
                 Entry_TkoeffP.delete(0,END)
                 Entry_Tamb.delete(0,END)
+                Entry_Tnoct.delete(0,END)
                 Entry_TkoeffI.delete(0,END)
                 Entry_TkoeffV.delete(0,END)
                 Entry_zeta.delete(0,END)
@@ -1843,7 +1856,8 @@ class Window(tk.Tk):
                     Entry_TkoeffV.insert(0,str(d['T_koeff_V']))
                     Entry_zeta.insert(0,str(d['zeta']))
                     Entry_modulex.insert(0,str(d['modulex']))
-                    Entry_moduley.insert(0,str(d['moduley']))   
+                    Entry_moduley.insert(0,str(d['moduley']))
+                    Entry_Tnoct.insert(0,str(d['T_NOCT']))
                 
                 else:                                               #If the rb "Without rear values!" is activated it is possible to just pick the B-Modules
  
@@ -1866,6 +1880,7 @@ class Window(tk.Tk):
                     Entry_zeta.insert(0,str(d['zeta']))
                     Entry_modulex.insert(0,str(d['modulex']))
                     Entry_moduley.insert(0,str(d['moduley']))    
+                    Entry_Tnoct.insert(0,str(d['T_NOCT']))
                 
 
         # Combobox Module
