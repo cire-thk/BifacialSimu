@@ -226,8 +226,8 @@ class Electrical_simulation:
                 row_qabs_front = df_report.loc[index,key_front]
                 row_qabs_back = df_report.loc[index,key_back]
                        
-                # estimate module temperture with ambient temperature and POA (avg 0.02167 °C/Wm2)
-                T_Current = df.loc[index,'temperature'] + (-2.8 + row_qabs_front*0.02067)
+                # estimate module temperture with ambient temperature and NOCT temp
+                T_Current = df.loc[index,'temperature'] + ((row_qabs_front/800)*(45 - 20))
                 if np.isnan(T_Current):
                     T_Current = df.loc[index,'temperature']
                 
@@ -345,8 +345,8 @@ class Electrical_simulation:
                 #SG
                 row_qabs_front = df_report.loc[index,key_front_mono]
                 
-                # estimate module temperture with ambient temperature and POA (avg 0.02167 °C/Wm2)
-                T_Current = df.loc[index,'temperature'] + (-2.8 + row_qabs_front*0.02067)
+                # estimate module temperture with ambient temperature and NOCT temp
+                T_Current = df.loc[index,'temperature'] + ((row_qabs_front/800)*(45 - 20))
                 if np.isnan(T_Current):
                     T_Current = df.loc[index,'temperature']
 
@@ -579,8 +579,8 @@ class Electrical_simulation:
                 row_qabs_back = df_report.loc[index,key_back]
                 row_qabs_combined = row_qabs_front + (row_qabs_back*bi_factor)
                 
-                # estimate module temperture with ambient temperature and POA (avg 0.02167 °C/Wm2)
-                T_Current = df.loc[index,'temperature'] + (-2.8 + row_qabs_front*0.02067)
+                # estimate module temperture with ambient temperature and NOCT temp
+                T_Current = df.loc[index,'temperature'] + ((row_qabs_front/800)*(45 - 20))
                 if np.isnan(T_Current):
                     T_Current = df.loc[index,'temperature']
                 
@@ -677,8 +677,8 @@ class Electrical_simulation:
                 #T_Current = df.loc[index,'temperature']
                 row_qabs_front = df_report.loc[index,key_front_mono]
                 
-                # estimate module temperture with ambient temperature and POA (avg 0.02167 °C/Wm2)
-                T_Current = df.loc[index,'temperature'] + (-2.8 + row_qabs_front*0.02067)
+                # estimate module temperture with ambient temperature and NOCT temp
+                T_Current = df.loc[index,'temperature'] + ((row_qabs_front/800)*(45 - 20))
                 if np.isnan(T_Current):
                     T_Current = df.loc[index,'temperature']
 
@@ -1075,8 +1075,8 @@ class Electrical_simulation:
                 row_qabs_front = df_report.loc[index,key_front]
                 row_qabs_back = df_report.loc[index,key_back]
                 
-                # estimate module temperture with ambient temperature and POA (avg 0.02167 °C/Wm2)
-                T_Current = df.loc[index,'temperature'] + (-2.8 + row_qabs_front*0.02067)
+                # estimate module temperture with ambient temperature and NOCT temp
+                T_Current = df.loc[index,'temperature'] + ((row_qabs_front/800)*(45 - 20))
                 if np.isnan(T_Current):
                     T_Current = df.loc[index,'temperature']
                 
@@ -1628,8 +1628,8 @@ class Electrical_simulation:
                 row_qabs_front = df_report.loc[index,key_front]
                 row_qabs_back = df_report.loc[index,key_back]
                 
-                # estimate module temperture with ambient temperature and POA (avg 0.02167 °C/Wm2)
-                T_Current = df.loc[index,'temperature'] + (-2.8 + row_qabs_front*0.02067)
+                # estimate module temperture with ambient temperature and NOCT temp
+                T_Current = df.loc[index,'temperature'] + ((row_qabs_front/800)*(45 - 20))
                 if np.isnan(T_Current):
                     T_Current = df.loc[index,'temperature']
                 
@@ -2058,8 +2058,8 @@ class Electrical_simulation:
                     row_qabs_front = df_report.loc[index,key_front]
                     row_qabs_back = df_report.loc[index,key_back]
                     
-                    # estimate module temperture with ambient temperature and POA (avg 0.02167 °C/Wm2)
-                    T_Current = df.loc[index,'temperature'] + (-2.8 + row_qabs_front*0.02067)
+                    # estimate module temperture with ambient temperature and NOCT temp
+                    T_Current = df.loc[index,'temperature'] + ((row_qabs_front/800)*(45 - 20))
                     if np.isnan(T_Current):
                         T_Current = df.loc[index,'temperature']
                     
@@ -2168,8 +2168,8 @@ class Electrical_simulation:
                     #T_Current = df.loc[index,'temperature']
                     row_qabs_front = df_report.loc[index,key_front_mono]
                     
-                    # estimate module temperture with ambient temperature and POA (avg 0.02167 °C/Wm2)
-                    T_Current = df.loc[index,'temperature'] + (-2.8 + row_qabs_front*0.02067)
+                    # estimate module temperture with ambient temperature and NOCT temp
+                    T_Current = df.loc[index,'temperature'] + ((row_qabs_front/800)*(45 - 20))
                     if np.isnan(T_Current):
                         T_Current = df.loc[index,'temperature']
 
