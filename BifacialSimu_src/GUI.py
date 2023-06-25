@@ -1846,8 +1846,7 @@ class Window(tk.Tk):
                     Entry_Soilrate.delete(0, END)
                     Entry_Soilrate.insert(0, SimulationDict["fixSoilrate"])
                     
-                    #simulationDict["monthlySoilingrate"] == True
-            
+                    #simulationDict["monthlySoilingrate"] == True            
             
             
             # When radiobutton 'soilingrate from weatherdata' active, set new soilingrate
