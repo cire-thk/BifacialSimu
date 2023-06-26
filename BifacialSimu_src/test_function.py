@@ -10,7 +10,7 @@ Function to iteratively test all simulation variations of BifacialSimu with test
 #%% Import modules
 
 import os
-#import time
+import time
 
 import pandas as pd
 
@@ -23,6 +23,7 @@ import glob
 from BifacialSimu import Controller
 
 from multiprocessing import Process
+import threading
 
 
 
@@ -30,7 +31,7 @@ from multiprocessing import Process
 #%% Simulation and Module Dicts
 timestamp = datetime.now().strftime("%Y-%m-%d %H.%M") 
 rootPath = os.getcwd().replace(os.sep, '/')
-
+resultspath = Controller.DataHandler().setDirectories()
 
 # simulation parameters and variables
 SimulationDict_Heggelbach = {
@@ -160,7 +161,7 @@ ModuleDict_Brazil = {
 
 def test_function(SimulationDict, ModuleDict, test_name, startHour, endHour, electricalMode, singleAxisTrackingMode):
 
-    verzeichnis = rootPath + '/TEST_results/'+timestamp +'-'+test_name +'/'
+    verzeichnis = resultspath+'/Test_result_'+test_name +'/' #rootPath + 'TEST_results/'+timestamp +'-'+test_name +'/'
 
     def test_thread(name, timestamp):
         resultsPath = verzeichnis + name + '/'
@@ -246,20 +247,15 @@ def test_function(SimulationDict, ModuleDict, test_name, startHour, endHour, ele
             SimulationDict["fixAlbedo"]=False    
             SimulationDict["hourlyMeasuredAlbedo"]=False
             SimulationDict["hourlySpectralAlbedo"]=False
-            SimulationDict["variableAlbedo"]=True
+            SimulationDict["variableAlbedo"]=True  
             
-      
-    
 #%% Start of iterating processes    
     
     procs = []
     
-    startHour_save = startHour
-    endHour_save = endHour
-    
     for simMode in range(2):
         
-        for backTrackingMode in range(1): #
+        for backTrackingMode in range(2): #
             
             for albedoMode in range(2): # 
             
@@ -278,56 +274,67 @@ def test_function(SimulationDict, ModuleDict, test_name, startHour, endHour, ele
                     SimulationDict["singleAxisTracking"] = bool(singleAxisTrackingMode)
                     
                     define_albedo(albedoMode)
-
-                    if localFile == 0 and albedoMode == 1:
-                        continue
+                    
                     if localFile == 0:
                         startHour_lst = list(startHour)
                         startHour_lst[0] = 2001
-                        startHour = tuple(startHour_lst)
+                        SimulationDict["startHour"] = tuple(startHour_lst)
                         
                         endHour_lst = list(endHour)
                         endHour_lst[0] = 2001
-                        endHour = tuple(endHour_lst)
+                        SimulationDict["endHour"] = tuple(endHour_lst)
                     else:
-                        startHour = startHour_save
-                        endHour = endHour_save
+                        SimulationDict["startHour"] = startHour
+                        SimulationDict["endHour"] = endHour   
+                   
+                    if localFile == 0 and albedoMode == 1:
+                        continue
+
+                    if system == 'linux':
+                        if simMode == 2 or simMode == 4:
+                            proc = Process(target=test_thread, args=(name, timestamp, ))
+                            proc.start()
+                            procs.append(proc)
+                        else:
+                            proc = Process(target=test_thread, args=(name, timestamp, ))
+                            proc.start()
+                            proc.join()
+                    else:
                         
-                    SimulationDict["startHour"] = startHour
-                    SimulationDict["endHour"] = endHour
-                    
-                    
-                    if simMode == 2 or simMode == 4:
-                        proc = Process(target=test_thread, args=(name, timestamp, ))
-                        proc.start()
-                        procs.append(proc)
-                    else:
-                        proc = Process(target=test_thread, args=(name, timestamp, ))
-                        proc.start()
-                        proc.join()
+                        thread = threading.Thread(target=test_thread, args=(name, timestamp, ))
+                        thread.start()
+                        thread.join()
+                        time.sleep(0.5)
+    
+    if system == 'linux':
+        for proc in procs:
+            proc.join()
         
-    for proc in procs:
-        proc.join()
-        
+    time.sleep(2)
     ergebnisausgabe()              
     
 
 #%% start test function
-
+system = 'win'
+    
 if __name__ == '__main__':
     
-    #test_function(SimulationDict_Heggelbach, ModuleDict_Heggelbach, 'Heggelbach_2022', (2022, 1, 1, 10), (2022, 1, 1, 12), 0, 0)
+    test_function(SimulationDict_Heggelbach, ModuleDict_Heggelbach, 'Heggelbach_2022', (2022, 7, 1, 4), (2022, 12, 31, 22), 0, 0)
     
-    test_function(SimulationDict_Heggelbach, ModuleDict_Heggelbach, 'Heggelbach_2022', (2022, 1, 1, 0), (2022, 12, 31, 23), 0, 0)
-    SimulationDict_Heggelbach['weatherFile'] = rootPath + '/WeatherData/Heggelbach_Germany/Heggelbach_Germany_2021.csv'
-    test_function(SimulationDict_Heggelbach, ModuleDict_Heggelbach, 'Heggelbach_2021', (2021, 1, 1, 0), (2021, 12, 31, 23), 0, 0)
+    #test_function(SimulationDict_Heggelbach, ModuleDict_Heggelbach, 'Heggelbach_2022', (2022, 1, 1, 0), (2022, 12, 31, 23), 0, 0)
+    #SimulationDict_Heggelbach['weatherFile'] = rootPath + '/WeatherData/Heggelbach_Germany/Heggelbach_Germany_2021.csv'
+    #test_function(SimulationDict_Heggelbach, ModuleDict_Heggelbach, 'Heggelbach_2021', (2021, 1, 1, 0), (2021, 12, 31, 23), 0, 0)
     
-    #test_function(SimulationDict_Brazil_fixed, ModuleDict_Brazil, 'Brazil_fixed_2021', (2021, 1, 1, 0), (2021, 12, 31, 23), 0, 0)
+    test_function(SimulationDict_Brazil_fixed, ModuleDict_Brazil, 'Brazil_fixed_2021', (2021, 8, 1, 4), (2021, 12, 31, 22), 0, 0)
     
-    SimulationDict_Brazil_fixed['weatherFile'] = rootPath + '/WeatherData/Brazil/Brazil_Aug21-Jul22_grey_gravel.csv'
-    test_function(SimulationDict_Brazil_fixed, ModuleDict_Brazil, 'Brazil_fixed_2021', (2021, 8, 1, 0), (2022, 5, 8, 23), 0, 0)
+    #SimulationDict_Brazil_fixed['weatherFile'] = rootPath + '/WeatherData/Brazil/Brazil_Aug21-Jul22_grey_gravel.csv'
+    #test_function(SimulationDict_Brazil_fixed, ModuleDict_Brazil, 'Brazil_fixed_2021', (2021, 8, 1, 0), (2022, 5, 8, 23), 0, 0)
     
     #test_function(SimulationDict_Brazil_tracked , ModuleDict_Brazil , 'Brazil_tracked_2022', (2022, 1, 1, 1), (2022, 12, 31, 22), 0, 1)
-
+    print('!!!System shutdown!!!')
+    time.sleep(30)
+    print('!!!System shutdown!!!')
+    time.sleep(30)
+    os.system("shutdown /s /t 1")
 
 
