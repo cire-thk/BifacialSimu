@@ -74,6 +74,7 @@ ModuleDict_Heggelbach = {
             'P_mpp': 270, # Power at maximum power Point [W]
             'T_koeff_P': -0.0043, #Temperature Coeffizient [1/°C]
             'T_amb':20, #Ambient Temperature for measuring the Temperature Coeffizient [°C]
+            'T_NOCT': 48, #NOCT Temperature for module temp estimation
             'T_koeff_I': 0.00044, #Temperaturkoeffizient for I_sc [1/°C] #SG
             'T_koeff_V': -0.0031, #Temperaturkoeffizient for U_oc [1/°C] #SG
             'zeta': 0.06 #Bestrahlungskoeffizient für Leerlaufspannung [-]
@@ -81,7 +82,7 @@ ModuleDict_Heggelbach = {
 
 
 SimulationDict_Brazil_fixed = {
-                'clearance_height': 0.6, #value was found missing! should be added later!
+                'clearance_height': 0.8, #value was found missing! should be added later!
                 'simulationName' : 'test_brazil_fixed',
                 'weatherFile' : rootPath + '/WeatherData/Brazil/Brazil_2021_grey_gravel.csv',#'/WeatherData/Golden_USA/SRRLWeatherdata Nov_Dez_2.csv', #'/WeatherData/weatherfile_Hegelbach_2022.csv', #weather file in TMY format 
                 'spectralReflectancefile' : rootPath + '/ReflectivityData/interpolated_reflectivity.csv',
@@ -102,7 +103,7 @@ SimulationDict_Brazil_fixed = {
                 'BackReflect' : 0.05, #back surface reflectivity of PV rows
                 'longitude' : -48.440694, 
                 'latitude' : -27.430972,
-                'gcr' : 0.45, #ground coverage ratio (module area / land use)
+                'gcr' : 0.5, #ground coverage ratio (module area / land use)
                 'module_type' : 'Canadian Solar CS7N-MB', #Name of Module                    
                 }
 
@@ -147,6 +148,7 @@ ModuleDict_Brazil = {
             'P_mpp': 645, # Power at maximum power Point [W]
             'T_koeff_P': -0.0034, #Temperature Coeffizient [1/°C]
             'T_amb':20, #Ambient Temperature for measuring the Temperature Coeffizient [°C]
+            'T_NOCT': 41, #NOCT Temperature for module temp estimation
             'T_koeff_I': 0.0005, #Temperaturkoeffizient for I_sc [1/°C] #SG
             'T_koeff_V': -0.0026, #Temperaturkoeffizient for U_oc [1/°C] #SG
             'zeta': 0.06 #Bestrahlungskoeffizient für Leerlaufspannung [-]
@@ -246,20 +248,27 @@ def test_function(SimulationDict, ModuleDict, test_name, startHour, endHour, ele
             SimulationDict["hourlySpectralAlbedo"]=False
             SimulationDict["variableAlbedo"]=True
             
-     
- 
+      
     
 #%% Start of iterating processes    
     
     procs = []
     
+    startHour_save = startHour
+    endHour_save = endHour
+    
+    for simMode in range(2):
         
-    for backTrackingMode in range(1): #
-        
-        for albedoMode in range(1): # 
-        
-            for localFile in range(1,2):
-                
+        for backTrackingMode in range(1): #
+            
+            for albedoMode in range(2): # 
+            
+                for localFile in range(2):
+                        
+                    name = 'SM'+ str(simMode+1) + '-EL'+str(electricalMode) + '-BT'+str(backTrackingMode) + '-AL'+str(albedoMode) + '-TR'+str(singleAxisTrackingMode) + '-LF'+str(localFile)
+                    
+                    SimulationDict["simulationMode"] = simMode+1
+                    
                     SimulationDict["localFile"] = bool(localFile)                
                     
                     SimulationDict["ElectricalMode_simple"] = electricalMode
@@ -269,32 +278,38 @@ def test_function(SimulationDict, ModuleDict, test_name, startHour, endHour, ele
                     SimulationDict["singleAxisTracking"] = bool(singleAxisTrackingMode)
                     
                     define_albedo(albedoMode)
-                    
-                    if localFile == True:
-                        SimulationDict["startHour"] = startHour
-                        SimulationDict["endHour"] = endHour
+
+                    if localFile == 0 and albedoMode == 1:
+                        continue
+                    if localFile == 0:
+                        startHour_lst = list(startHour)
+                        startHour_lst[0] = 2001
+                        startHour = tuple(startHour_lst)
+                        
+                        endHour_lst = list(endHour)
+                        endHour_lst[0] = 2001
+                        endHour = tuple(endHour_lst)
                     else:
-                        SimulationDict["startHour"] = (2001, 1, 1, 0)
-                        SimulationDict["endHour"] = (2001, 12, 31, 23)
+                        startHour = startHour_save
+                        endHour = endHour_save
                         
+                    SimulationDict["startHour"] = startHour
+                    SimulationDict["endHour"] = endHour
                     
-                    for simMode in range(2):
                     
-                        SimulationDict["simulationMode"] = simMode+1
-                        
-                        name = 'SM'+ str(simMode+1) + '-EL'+str(electricalMode) + '-BT'+str(backTrackingMode) + '-AL'+str(albedoMode) + '-TR'+str(singleAxisTrackingMode) + '-LF'+str(localFile)
-                        
+                    if simMode == 2 or simMode == 4:
                         proc = Process(target=test_thread, args=(name, timestamp, ))
-                        procs.append(proc)
-                    
                         proc.start()
-
-                    
-                    for proc in procs:
-                        proc.join()    
+                        procs.append(proc)
+                    else:
+                        proc = Process(target=test_thread, args=(name, timestamp, ))
+                        proc.start()
+                        proc.join()
         
-
-    ergebnisausgabe()                
+    for proc in procs:
+        proc.join()
+        
+    ergebnisausgabe()              
     
 
 #%% start test function
