@@ -41,8 +41,6 @@ sys.path.append(rootPath)
 from BifacialSimu_src import globals
 from BifacialSimu_src.BifacialSimu.Handler import * #much easier handling Directories using __init__.py files (avoids import errors)
 
-
-
 # Overarching procedure to perform bifacial irrdiance and electrical simulations  
 def startSimulation(simulationDict, moduleDict, resultsPath):
     
@@ -58,8 +56,8 @@ def startSimulation(simulationDict, moduleDict, resultsPath):
     if globals.thread_break == True:
         messagebox.showinfo("Simulation Stopped!", "The simulation was successfully terminated!")
         exit
-   
     
+
     #get weatherFile
     metdata, demo = BifacialSimu_dataHandler.DataHandler().getWeatherData(simulationDict, resultsPath)
 

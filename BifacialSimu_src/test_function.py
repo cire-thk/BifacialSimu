@@ -159,7 +159,7 @@ ModuleDict_Brazil = {
 
 #%% Test function
 
-def test_function(SimulationDict, ModuleDict, test_name, startHour, endHour, electricalMode, singleAxisTrackingMode):
+def test_function(SimulationDict, ModuleDict, test_name, startHour, endHour, electricalMode, singleAxisTrackingMode, E_real):
 
     verzeichnis = resultspath+'/Test_result_'+test_name +'/' #rootPath + 'TEST_results/'+timestamp +'-'+test_name +'/'
 
@@ -207,13 +207,17 @@ def test_function(SimulationDict, ModuleDict, test_name, startHour, endHour, ele
             
             if not glob.glob(unterverzeichnis+'/electrical_simulation*.csv'):
                 electrical_simulation_data.loc[variante, 'Error']='ERROR'
+                gesamtergebnis_sum_el_df.loc[variante, 'Error'] = 'ERROR'
                 if glob.glob(unterverzeichnis+'/error_msg*'):
                     with open(unterverzeichnis+'/error_msg.txt', 'r') as file:
-                        electrical_simulation_data['Error_Message']= file.read().replace('\n', ' - ')
+                        electrical_simulation_data['Error']= file.read().replace('\n', ' - ')
+                        gesamtergebnis_sum_el_df.loc[variante, 'Error'] = file.read().replace('\n', ' - ')
             else:    
                 electrical_simulation_data = pd.read_csv(glob.glob(unterverzeichnis+'/electrical_simulation*.csv')[0].replace(os.sep, '/'), index_col=0)
                 
                 gesamtergebnis_sum_el_df.loc[variante, 'E_kWh/m2'] = electrical_simulation_data['P_bi '].sum() /1000
+                gesamtergebnis_sum_el_df.loc[variante, 'Abweichung'] = (electrical_simulation_data['P_bi '].sum() /1000)/E_real - 1
+                
             
             for i in electrical_simulation_data.iterrows():
                 electrical_simulation_data['Variante']=variante
@@ -253,7 +257,7 @@ def test_function(SimulationDict, ModuleDict, test_name, startHour, endHour, ele
     
     procs = []
     
-    for simMode in range(2):
+    for simMode in range(1,2):
         
         for backTrackingMode in range(2): #
             
@@ -319,22 +323,28 @@ system = 'win'
     
 if __name__ == '__main__':
     
-    test_function(SimulationDict_Heggelbach, ModuleDict_Heggelbach, 'Heggelbach_2022', (2022, 7, 1, 4), (2022, 12, 31, 22), 0, 0)
-    
-    #test_function(SimulationDict_Heggelbach, ModuleDict_Heggelbach, 'Heggelbach_2022', (2022, 1, 1, 0), (2022, 12, 31, 23), 0, 0)
-    #SimulationDict_Heggelbach['weatherFile'] = rootPath + '/WeatherData/Heggelbach_Germany/Heggelbach_Germany_2021.csv'
-    #test_function(SimulationDict_Heggelbach, ModuleDict_Heggelbach, 'Heggelbach_2021', (2021, 1, 1, 0), (2021, 12, 31, 23), 0, 0)
-    
-    test_function(SimulationDict_Brazil_fixed, ModuleDict_Brazil, 'Brazil_fixed_2021', (2021, 8, 1, 4), (2021, 12, 31, 22), 0, 0)
-    
-    #SimulationDict_Brazil_fixed['weatherFile'] = rootPath + '/WeatherData/Brazil/Brazil_Aug21-Jul22_grey_gravel.csv'
-    #test_function(SimulationDict_Brazil_fixed, ModuleDict_Brazil, 'Brazil_fixed_2021', (2021, 8, 1, 0), (2022, 5, 8, 23), 0, 0)
-    
-    #test_function(SimulationDict_Brazil_tracked , ModuleDict_Brazil , 'Brazil_tracked_2022', (2022, 1, 1, 1), (2022, 12, 31, 22), 0, 1)
-    print('!!!System shutdown!!!')
-    time.sleep(30)
-    print('!!!System shutdown!!!')
-    time.sleep(30)
-    os.system("shutdown /s /t 1")
-
+    try:
+        #test_function(SimulationDict_Heggelbach, ModuleDict_Heggelbach, 'Heggelbach_2022', (2022, 1, 1, 5), (2022, 12, 31, 20), 0, 0, 222)
+        test_function(SimulationDict_Brazil_fixed, ModuleDict_Brazil, 'Brazil_fixed_2021_NREL', (2021, 8, 1, 5), (2021, 12, 31, 20), 0, 0, 144)
+        
+        #test_function(SimulationDict_Heggelbach, ModuleDict_Heggelbach, 'Heggelbach_2022', (2022, 1, 1, 0), (2022, 12, 31, 23), 0, 0)
+        #SimulationDict_Heggelbach['weatherFile'] = rootPath + '/WeatherData/Heggelbach_Germany/Heggelbach_Germany_2021.csv'
+        #test_function(SimulationDict_Heggelbach, ModuleDict_Heggelbach, 'Heggelbach_2021', (2021, 1, 1, 0), (2021, 12, 31, 23), 0, 0)
+        
+        
+        
+        #SimulationDict_Brazil_fixed['weatherFile'] = rootPath + '/WeatherData/Brazil/Brazil_Aug21-Jul22_grey_gravel.csv'
+        #test_function(SimulationDict_Brazil_fixed, ModuleDict_Brazil, 'Brazil_fixed_2021', (2021, 8, 1, 0), (2022, 5, 8, 23), 0, 0)
+        
+        #test_function(SimulationDict_Brazil_tracked , ModuleDict_Brazil , 'Brazil_tracked_2022', (2022, 1, 1, 1), (2022, 12, 31, 22), 0, 1)
+        
+        #initiate system shutdown when simulation is done
+        #print('!!!System shutdown!!!')
+        #time.sleep(30)
+        #print('!!!System shutdown!!!')
+        #time.sleep(30)
+        #os.system("shutdown /s /t 1")
+       
+    except Exception as err:     
+       print('Error:'+err)
 

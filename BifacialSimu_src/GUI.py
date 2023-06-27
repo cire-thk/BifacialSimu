@@ -408,7 +408,6 @@ class Window(tk.Tk):
 # =============================================================================
 #             Time Parameter
 # =============================================================================
-            
             if (len(Entry_year_start.get())==0 or len(Entry_month_start.get()) == 0 
                 or len(Entry_day_start.get()) == 0 
                 or len(Entry_hour_start.get()) == 0 
@@ -452,16 +451,18 @@ class Window(tk.Tk):
                 SimulationDict["startHour"]=(Startdate.year, Startdate.month, Startdate.day, Startdate.hour)
                 Enddate=datetime.datetime(int(Entry_year_end.get()), int(Entry_month_end.get()), int(Entry_day_end.get()), int(Entry_hour_end.get()))
                 SimulationDict["endHour"]=(Enddate.year, Enddate.month, Enddate.day, Enddate.hour)
-            
+                
+                #if SimulationDict['localFile'] == False:    
+
+                   #Startdate=datetime.datetime(int(2001), int(Entry_month_start.get()), int(Entry_day_start.get()), int(Entry_hour_start.get())) #defining as Date
+                   #SimulationDict["startHour"]=(Startdate.year, Startdate.month, Startdate.day, Startdate.hour)
+                   #Enddate=datetime.datetime(int(2001), int(Entry_month_end.get()), int(Entry_day_end.get()), int(Entry_hour_end.get()))
+                   #SimulationDict["endHour"]=(Enddate.year, Enddate.month, Enddate.day, Enddate.hour)
             else:
                 messagebox.showwarning("Simulation Control", "Please insert a Start and End Date \n in the format: [yyyy mm dd hh]!")
                 exit
                 
-               
-            if len(Entry_utcoffset.get())!=0:
-                SimulationDict["utcOffset"]=float(Entry_utcoffset.get())
-           
-
+            
 # =============================================================================
 #             Simulation Parameter
 # =============================================================================
@@ -972,14 +973,11 @@ class Window(tk.Tk):
             Entry_month_end.insert(0, End_Month_configfile)
             Entry_day_end.insert(0, End_Day_configfile)
             Entry_hour_end.insert(0, End_Hour_configfile)
-         #   Entry_moduley.insert(0, moduley_configfile)
-          #  Entry_modulex.insert(0, modulex_configfile)
             Entry_frontReflect.insert(0, frontReflect_configfile)
             Entry_backReflect.insert(0, backReflect_configfile)
             Entry_longitude.insert(0, longitude_configfile)
             Entry_latitude.insert(0, latitude_configfile)
             Entry_gcr.insert(0, gcr_configfile)
-            Entry_utcoffset.insert(0, utcoffset_configfile)
 
             key = entry_modulename_value.get()
             d = self.jsondata[key]
@@ -1057,7 +1055,6 @@ class Window(tk.Tk):
             Entry_TkoeffV.delete(0,END)
             Entry_zeta.delete(0,END)
             Entry_albedo.delete(0,END)
-            Entry_utcoffset.delete(0,END)
             Entry_Tnoct.delete(0,END)
 
             
@@ -1129,13 +1126,13 @@ class Window(tk.Tk):
             Entry_reflectivityfile.insert(0, filename)   
             SimulationDict["spectralReflectancefile"]=Entry_reflectivityfile.get()
             
-        def Set_UTC_offset():
+        #def Set_UTC_offset():
             """ This function takes the coordinates entered by the user in the GUI, and returns as a result the resulting UTC timezone offset of the given location.
                 The coordinates should be entered according to the following format:
                 Longitudes: +/- 00.000000, where '+' represents East and '-' represents West
                 Latitudes:  +/- 00.000000, where '+' represents North and '-' represents South"""
                 
-            #User Longitude and Latitude entries    
+            """#User Longitude and Latitude entries    
             Longitude= float(Entry_longitude.get())
             Latitude= float(Entry_latitude.get())
             
@@ -1155,7 +1152,7 @@ class Window(tk.Tk):
             UTC_offset= tested_time.hour- GMT_time.hour
          
             Entry_utcoffset.delete(0,END)
-            Entry_utcoffset.insert(0, int(UTC_offset))
+            Entry_utcoffset.insert(0, int(UTC_offset))"""
                      
         #Changing the weatherfile
         Lab_weatherfile=ttk.Label(namecontrol_frame, text="Add Path of weatherfile:")
@@ -1182,10 +1179,6 @@ class Window(tk.Tk):
         Entry_latitude=ttk.Entry(namecontrol_frame, background="white", width=10)
         Entry_longitude.grid(column=1, row=6, sticky=W)
         Entry_latitude.grid(column=1, row=7, sticky=W)        
-        
-        #Setting UTC offset of Longitude and Latitude coordinates
-        Calculate_UTC= ttk.Button(namecontrol_frame,text= "Set UTC offset", command=lambda: Set_UTC_offset())
-        Calculate_UTC.grid(column=2, row=6,sticky=W)
   
 # =============================================================================
 #     Parameter of the Simulation Parameter Frame
@@ -1233,13 +1226,9 @@ class Window(tk.Tk):
         #Inserting Time Data
         Label_startdate=ttk.Label(simulationMode_frame, text="Startdate (yy, mm, dd, hh):")
         Label_enddate=ttk.Label(simulationMode_frame, text="Enddate (yy, mm, dd, hh):")
-        Label_utcoffset=ttk.Label(simulationMode_frame, text="UTC offset:")
         Label_startdate.grid(column=0,row=7, sticky="W")
         Label_enddate.grid(column=0,row=8, sticky="W")
-        Label_utcoffset.grid(column=0,row=9, sticky="W")
         
-               
-
         Entry_year_start=ttk.Entry(simulationMode_frame, background="white", width=16)
         Entry_month_start=ttk.Entry(simulationMode_frame, background="white", width=4)
         Entry_day_start=ttk.Entry(simulationMode_frame, background="white", width=4)
@@ -1258,9 +1247,6 @@ class Window(tk.Tk):
         Entry_day_end.grid(column=3,row=8)
         Entry_hour_end.grid(column=4,row=8)
         
-        Entry_utcoffset=ttk.Entry(simulationMode_frame, background="white", width=16)
-        Entry_utcoffset.grid(column=1,row=9)
-
 
         def Singleaxis():
             #disabling and enabling for singleaxis
@@ -1715,12 +1701,8 @@ class Window(tk.Tk):
         longitude_configfile=parser.get('default', 'longitude')
         latitude_configfile=parser.get('default', 'latitude')
         gcr_configfile=parser.get('default', 'gcr')
-        utcoffset_configfile=parser.get('default', 'utcoffset')
-        
         
 
-        
-        
 # =============================================================================
 #         defining the input for the Albedo
 # =============================================================================

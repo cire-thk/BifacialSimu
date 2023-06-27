@@ -186,7 +186,7 @@ class Electrical_simulation:
         df_report['timestamp'] = df_report.index
         df_report = df_report.reset_index()
         df_report['corrected_timestamp'] = pd.to_datetime(df_report['timestamp'])
-        df_report['time'] = df_report['corrected_timestamp'].dt.strftime('%m_%d_%H')
+        df_report['time'] = df_report['corrected_timestamp'].dt.strftime('%Y_%m_%d_%H')
         df_report = df_report.set_index('time')
         
         
@@ -195,21 +195,19 @@ class Electrical_simulation:
         if simulationDict['simulationMode'] == 3:
             df = df.reset_index()
             
-            df['time'] = df['corrected_timestamp'].dt.strftime('%m_%d_%H')
-            df = df.set_index('time')
-            df['timestamp'] = df['corrected_timestamp'].dt.strftime('%m-%d %H:%M%')
-            df['timestamp'] = pd.to_datetime(df['timestamp'])  
+            df['time'] = df['corrected_timestamp'].dt.strftime('%Y_%m_%d_%H')
+            #df = df.set_index('time')
+            #df['timestamp'] = df['corrected_timestamp'].dt.strftime('%Y-%m-%d %H:%M%')
+            df['timestamp'] = pd.to_datetime(df['corrected_timestamp'])  
             #df['timestamp'] = df['timestamp'].dt.tz_localize(None)
             df = df.set_index('timestamp')
             
             dtStart = datetime.datetime(simulationDict['startHour'][0], simulationDict['startHour'][1], simulationDict['startHour'][2], simulationDict['startHour'][3], tzinfo=dateutil.tz.tzoffset(None, simulationDict['utcOffset']*60*60))
-        
-        
             dtEnd = datetime.datetime(simulationDict['endHour'][0], simulationDict['endHour'][1], simulationDict['endHour'][2], simulationDict['endHour'][3], tzinfo=dateutil.tz.tzoffset(None, simulationDict['utcOffset']*60*60))
             mask = (df.index >= dtStart) & (df.index <= dtEnd) 
             df = df.loc[mask]
         
-        df['time'] = df['corrected_timestamp'].dt.strftime('%m_%d_%H')
+        df['time'] = df['corrected_timestamp'].dt.strftime('%Y_%m_%d_%H')
         df = df.set_index('time')
         
         
@@ -536,15 +534,15 @@ class Electrical_simulation:
         df_report['timestamp'] = df_report.index
         df_report = df_report.reset_index()
         df_report['corrected_timestamp'] = pd.to_datetime(df_report['timestamp'])
-        df_report['time'] = df_report['corrected_timestamp'].dt.strftime('%m_%d_%H')
+        df_report['time'] = df_report['corrected_timestamp'].dt.strftime('%Y_%m_%d_%H')
         df_report = df_report.set_index('time')
         
         if simulationDict['simulationMode'] == 3:
             df = df.reset_index()
             
-            df['time'] = df['corrected_timestamp'].dt.strftime('%m_%d_%H')
+            df['time'] = df['corrected_timestamp'].dt.strftime('%Y_%m_%d_%H')
             df = df.set_index('time')
-            df['timestamp'] = df['corrected_timestamp'].dt.strftime('%m-%d %H:%M%')
+            df['timestamp'] = df['corrected_timestamp'].dt.strftime('%Y-%m-%d %H:%M%')
             df['timestamp'] = pd.to_datetime(df['timestamp'])  
             #df['timestamp'] = df['timestamp'].dt.tz_localize(None)
             df = df.set_index('timestamp')
@@ -556,7 +554,7 @@ class Electrical_simulation:
             mask = (df.index >= dtStart) & (df.index <= dtEnd) 
             df = df.loc[mask]
         
-        df['time'] = df['corrected_timestamp'].dt.strftime('%m_%d_%H')
+        df['time'] = df['corrected_timestamp'].dt.strftime('%Y_%m_%d_%H')
         df = df.set_index('time')
         print(df_report)
         
@@ -825,7 +823,7 @@ class Electrical_simulation:
         df_report['timestamp'] = df_report.index
         df_report = df_report.reset_index()
         df_report['corrected_timestamp'] = pd.to_datetime(df_report['timestamp'])
-        df_report['time'] = df_report['corrected_timestamp'].dt.strftime('%m_%d_%H')
+        df_report['time'] = df_report['corrected_timestamp'].dt.strftime('%Y_%m_%d_%H')
         df_report = df_report.set_index('time')
         
         
@@ -834,9 +832,9 @@ class Electrical_simulation:
         if simulationDict['simulationMode'] == 3:
             df = df.reset_index()
             
-            df['time'] = df['corrected_timestamp'].dt.strftime('%m_%d_%H')
+            df['time'] = df['corrected_timestamp'].dt.strftime('%Y_%m_%d_%H')
             df = df.set_index('time')
-            df['timestamp'] = df['corrected_timestamp'].dt.strftime('%m-%d %H:%M%')
+            df['timestamp'] = df['corrected_timestamp'].dt.strftime('%Y-%m-%d %H:%M%')
             df['timestamp'] = pd.to_datetime(df['timestamp'])  
             #df['timestamp'] = df['timestamp'].dt.tz_localize(None)
             df = df.set_index('timestamp')
@@ -848,7 +846,7 @@ class Electrical_simulation:
             mask = (df.index >= dtStart) & (df.index <= dtEnd) 
             df = df.loc[mask]
         
-        df['time'] = df['corrected_timestamp'].dt.strftime('%m_%d_%H')
+        df['time'] = df['corrected_timestamp'].dt.strftime('%Y_%m_%d_%H')
         df = df.set_index('time')
         
         #Diode ideality factors. a1 has to be 1 while a2 is flexible but it has to be above 1.2
@@ -1471,7 +1469,7 @@ class Electrical_simulation:
         df_report['timestamp'] = df_report.index
         df_report = df_report.reset_index()
         df_report['corrected_timestamp'] = pd.to_datetime(df_report['timestamp'])
-        df_report['time'] = df_report['corrected_timestamp'].dt.strftime('%m_%d_%H')
+        df_report['time'] = df_report['corrected_timestamp'].dt.strftime('%Y_%m_%d_%H')
         df_report = df_report.set_index('time')
         
         
@@ -1480,9 +1478,9 @@ class Electrical_simulation:
         if simulationDict['simulationMode'] == 3:
             df = df.reset_index()
             
-            df['time'] = df['corrected_timestamp'].dt.strftime('%m_%d_%H')
+            df['time'] = df['corrected_timestamp'].dt.strftime('%Y_%m_%d_%H')
             df = df.set_index('time')
-            df['timestamp'] = df['corrected_timestamp'].dt.strftime('%m-%d %H:%M%')
+            df['timestamp'] = df['corrected_timestamp'].dt.strftime('%Y-%m-%d %H:%M%')
             df['timestamp'] = pd.to_datetime(df['timestamp'])  
             #df['timestamp'] = df['timestamp'].dt.tz_localize(None)
             df = df.set_index('timestamp')
@@ -1494,7 +1492,7 @@ class Electrical_simulation:
             mask = (df.index >= dtStart) & (df.index <= dtEnd) 
             df = df.loc[mask]
         
-        df['time'] = df['corrected_timestamp'].dt.strftime('%m_%d_%H')
+        df['time'] = df['corrected_timestamp'].dt.strftime('%Y_%m_%d_%H')
         df = df.set_index('time')
         
         #Diode ideality factors. a1 has to be 1 while a2 is flexible but it has to be above 1.2
@@ -2016,15 +2014,15 @@ class Electrical_simulation:
             df_report['timestamp'] = df_report.index
             df_report = df_report.reset_index()
             df_report['corrected_timestamp'] = pd.to_datetime(df_report['timestamp'])
-            df_report['time'] = df_report['corrected_timestamp'].dt.strftime('%m_%d_%H')
+            df_report['time'] = df_report['corrected_timestamp'].dt.strftime('%Y_%m_%d_%H')
             df_report = df_report.set_index('time')
             
             if simulationDict['simulationMode'] == 3:
                 df = df.reset_index()
                 
-                df['time'] = df['corrected_timestamp'].dt.strftime('%m_%d_%H')
+                df['time'] = df['corrected_timestamp'].dt.strftime('%Y_%m_%d_%H')
                 df = df.set_index('time')
-                df['timestamp'] = df['corrected_timestamp'].dt.strftime('%m-%d %H:%M%')
+                df['timestamp'] = df['corrected_timestamp'].dt.strftime('%Y-%m-%d %H:%M%')
                 df['timestamp'] = pd.to_datetime(df['timestamp'])  
                 #df['timestamp'] = df['timestamp'].dt.tz_localize(None)
                 df = df.set_index('timestamp')
@@ -2036,7 +2034,7 @@ class Electrical_simulation:
                 mask = (df.index >= dtStart) & (df.index <= dtEnd) 
                 df = df.loc[mask]
             
-            df['time'] = df['corrected_timestamp'].dt.strftime('%m_%d_%H')
+            df['time'] = df['corrected_timestamp'].dt.strftime('%Y_%m_%d_%H')
             df = df.set_index('time')
             print(df_report)
             
