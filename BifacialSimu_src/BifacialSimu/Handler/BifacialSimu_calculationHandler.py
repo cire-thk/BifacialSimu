@@ -542,16 +542,15 @@ class Electrical_simulation:
             
             df['time'] = df['corrected_timestamp'].dt.strftime('%Y_%m_%d_%H')
             df = df.set_index('time')
-            df['timestamp'] = df['corrected_timestamp'].dt.strftime('%Y-%m-%d %H:%M%')
+            df['timestamp'] = df['corrected_timestamp'].dt.strftime('%Y-%m-%d %H:%M')
             df['timestamp'] = pd.to_datetime(df['timestamp'])  
             #df['timestamp'] = df['timestamp'].dt.tz_localize(None)
             df = df.set_index('timestamp')
             
             dtStart = datetime.datetime(simulationDict['startHour'][0], simulationDict['startHour'][1], simulationDict['startHour'][2], simulationDict['startHour'][3], tzinfo=dateutil.tz.tzoffset(None, simulationDict['utcOffset']*60*60))
-        
-        
             dtEnd = datetime.datetime(simulationDict['endHour'][0], simulationDict['endHour'][1], simulationDict['endHour'][2], simulationDict['endHour'][3], tzinfo=dateutil.tz.tzoffset(None, simulationDict['utcOffset']*60*60))
-            mask = (df.index >= dtStart) & (df.index <= dtEnd) 
+            
+            mask = (df.corrected_timestamp >= dtStart) & (df.corrected_timestamp <= dtEnd) 
             df = df.loc[mask]
         
         df['time'] = df['corrected_timestamp'].dt.strftime('%Y_%m_%d_%H')
@@ -834,7 +833,7 @@ class Electrical_simulation:
             
             df['time'] = df['corrected_timestamp'].dt.strftime('%Y_%m_%d_%H')
             df = df.set_index('time')
-            df['timestamp'] = df['corrected_timestamp'].dt.strftime('%Y-%m-%d %H:%M%')
+            df['timestamp'] = df['corrected_timestamp'].dt.strftime('%Y-%m-%d %H:%M')
             df['timestamp'] = pd.to_datetime(df['timestamp'])  
             #df['timestamp'] = df['timestamp'].dt.tz_localize(None)
             df = df.set_index('timestamp')
@@ -1480,7 +1479,7 @@ class Electrical_simulation:
             
             df['time'] = df['corrected_timestamp'].dt.strftime('%Y_%m_%d_%H')
             df = df.set_index('time')
-            df['timestamp'] = df['corrected_timestamp'].dt.strftime('%Y-%m-%d %H:%M%')
+            df['timestamp'] = df['corrected_timestamp'].dt.strftime('%Y-%m-%d %H:%M')
             df['timestamp'] = pd.to_datetime(df['timestamp'])  
             #df['timestamp'] = df['timestamp'].dt.tz_localize(None)
             df = df.set_index('timestamp')
@@ -2022,7 +2021,7 @@ class Electrical_simulation:
                 
                 df['time'] = df['corrected_timestamp'].dt.strftime('%Y_%m_%d_%H')
                 df = df.set_index('time')
-                df['timestamp'] = df['corrected_timestamp'].dt.strftime('%Y-%m-%d %H:%M%')
+                df['timestamp'] = df['corrected_timestamp'].dt.strftime('%Y-%m-%d %H:%M')
                 df['timestamp'] = pd.to_datetime(df['timestamp'])  
                 #df['timestamp'] = df['timestamp'].dt.tz_localize(None)
                 df = df.set_index('timestamp')
