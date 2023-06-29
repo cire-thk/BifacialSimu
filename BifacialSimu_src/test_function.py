@@ -191,6 +191,8 @@ ModuleDict_Brazil = {
                 }
 
 
+
+
 #%% Test function
 
 def test_function(SimulationDict, ModuleDict, test_name, startHour, endHour, electricalMode, singleAxisTrackingMode,  real_results_path):
@@ -211,207 +213,208 @@ def test_function(SimulationDict, ModuleDict, test_name, startHour, endHour, ele
             
         except Exception as err:
             with open(resultsPath + 'error_msg.txt', 'a') as file:
-                file.write(str(err))
- 
-#%% Test function - get results and compare to field test data      
+                file.write(str(err))   
+      
+     #%% make results 
     def ergebnisausgabe(name, timer_df):
-    
-        gesamtergebnis_df = pd.DataFrame() 
-        gesamtergebnis_df_d_avg = pd.DataFrame() 
-        gesamtergebnis_avg_df = pd.DataFrame() 
-        
-        
-        def plot_boxplots(df, column_names, save_path, title, show, fliers):
+         
+             gesamtergebnis_df = pd.DataFrame() 
+             gesamtergebnis_df_d_avg = pd.DataFrame() 
+             gesamtergebnis_avg_df = pd.DataFrame() 
+             
+     #%% Plot functions        
+             def plot_boxplots(df, column_names, save_path, title, show, fliers):
+                 
+                 fig, axs = plt.subplots(1, len(column_names), figsize=(len(column_names)*4, 6))
+
+                 axs = np.array(axs).flatten()
+
+                 for i, col in enumerate(column_names):
+                     sns.boxplot(y=col, data=df, ax=axs[i], showfliers=fliers)
+                     axs[i].set_title(col)
+                     #formatter = FuncFormatter(lambda y, _: '{:.0%}'.format(y))
+                     #axs[i].yaxis.set_major_formatter(formatter)
+
+                 fig.suptitle(title)
+             
+                 plt.savefig(save_path+'/Boxplot-'+title+'.png', format='png')
+
+                 if show ==True:
+                     plt.show()
+                 else:
+                     plt.close()
             
-            fig, axs = plt.subplots(1, len(column_names), figsize=(len(column_names)*4, 6))
+             def plot_data(x, y, x_label, y_label, save_path, title, show):
 
-            axs = np.array(axs).flatten()
+                 plt.figure(figsize=(10,6))
+                 plt.scatter(x, y)
+                 plt.xlabel(x_label)
+                 plt.ylabel(y_label)
+                 plt.title(title)
+                 plt.savefig(save_path+'/Scatter-'+title+'.png', format='png')
 
-            for i, col in enumerate(column_names):
-                sns.boxplot(y=col, data=df, ax=axs[i], showfliers=fliers)
-                axs[i].set_title(col)
-                #formatter = FuncFormatter(lambda y, _: '{:.0%}'.format(y))
-                #axs[i].yaxis.set_major_formatter(formatter)
+                 if show ==True:
+                     plt.show()
+                 else:
+                     plt.close()
+            
+             
+             def plot_lines(df, y_column, variant_column, save_path, title, show=True):
+                 plt.figure(figsize=(15,9))
+             
+                 for variant in df[variant_column].unique():
+                     temp_df = df[df[variant_column] == variant]
+                     plt.plot(temp_df.index, temp_df[y_column], label=variant)
+                 plt.plot(temp_df.index, temp_df['E_Wm2'], label='Real-E_m2')    
+                 plt.xlabel('Date')
+                 plt.ylabel(y_column)
+                 plt.title(title)
+                 plt.legend()
+             
+                 plt.savefig(save_path+'/Line-'+title+'.png', format='png')
+             
+                 if show:
+                     plt.show()
+                 else:
+                     plt.close()
+             
+             
+             def plot_data_line(df, col1, col2, x_label, y_label1, y_label2, save_path, title, show):
 
-            fig.suptitle(title)
-        
-            plt.savefig(save_path+'/Boxplot-'+title+'.png', format='png')
+                 plt.figure(figsize=(10,6))
+                 plt.plot(df.index, df[col1], label=y_label1)
+                 plt.plot(df.index, df[col2], label=y_label2)
+                 plt.xlabel(x_label)
+                 plt.legend()
+                 plt.title(title)
+                 plt.savefig(save_path+'/Line-'+title+'.png', format='png')
+             
+                 if show ==True:
+                     plt.show()
+                 else:
+                     plt.close()
+     #%% read field test data and cut to timeframe        
+             try:
+                 real_results = pd.read_csv(real_results_path.replace(os.sep, '/'), index_col=0)
+                 real_results['timestamp'] = pd.to_datetime(real_results.index)
+                 real_results['datetime'] = real_results['timestamp']
+                 real_results = real_results.set_index('datetime')
 
-            if show ==True:
-                plt.show()
-            else:
-                plt.close()
-       
-        def plot_data(x, y, x_label, y_label, save_path, title, show):
+             except Exception as err:     
+                print('Error: ',err)
+             
+             
+             dtStart = datetime(SimulationDict['startHour'][0], SimulationDict['startHour'][1], SimulationDict['startHour'][2], SimulationDict['startHour'][3])
+             dtEnd = datetime(SimulationDict['endHour'][0], SimulationDict['endHour'][1], SimulationDict['endHour'][2], SimulationDict['endHour'][3])
+             
+             mask = (real_results.timestamp >= dtStart) & (real_results.timestamp <= dtEnd) 
+             real_results = real_results.loc[mask]
 
-            plt.figure(figsize=(10,6))
-            plt.scatter(x, y)
-            plt.xlabel(x_label)
-            plt.ylabel(y_label)
-            plt.title(title)
-            plt.savefig(save_path+'/Scatter-'+title+'.png', format='png')
+             exclude_columns = ['timestamp', 'index']
+             
+             for col in real_results.columns:
+                 if col not in exclude_columns:
+                     real_results[col] = pd.to_numeric(real_results[col], errors='coerce')
+             
+             
+     #%% open resulst from iterating simulations and compare to field test data        
+             for variante in os.listdir(verzeichnis):
 
-            if show ==True:
-                plt.show()
-            else:
-                plt.close()
-       
-        
-        def plot_lines(df, y_column, variant_column, save_path, title, show=True):
-            plt.figure(figsize=(15,9))
-        
-            for variant in df[variant_column].unique():
-                temp_df = df[df[variant_column] == variant]
-                plt.plot(temp_df.index, temp_df[y_column], label=variant)
-            plt.plot(temp_df.index, temp_df['E_Wm2'], label='Real-E_m2')    
-            plt.xlabel('Date')
-            plt.ylabel(y_column)
-            plt.title(title)
-            plt.legend()
-        
-            plt.savefig(save_path+'/Line-'+title+'.png', format='png')
-        
-            if show:
-                plt.show()
-            else:
-                plt.close()
-        
-        
-        def plot_data_line(df, col1, col2, x_label, y_label1, y_label2, save_path, title, show):
+                 try:
+                     unterverzeichnis = verzeichnis +'/'+ variante
+                     
+                     radiation_simulation_data = pd.DataFrame()   
+                     electrical_simulation_data = pd.DataFrame()
+                     combined_data = real_results
+                     
+                     if not glob.glob(unterverzeichnis+'/radiation*.csv'):
+                         gesamtergebnis_avg_df.loc[variante, 'Error'] = 'ERROR_Radiation'
+                     else:    
+                         radiation_simulation_data = pd.read_csv(glob.glob(unterverzeichnis+'/radiation*.csv')[0].replace(os.sep, '/'), index_col=0)
+                         radiation_simulation_data.index = pd.to_datetime(radiation_simulation_data.index)
+                         radiation_simulation_data.index = radiation_simulation_data.index.tz_localize(None)
+                         combined_data = pd.merge(combined_data, radiation_simulation_data, left_index=True, right_index=True, how='inner')
+                     
+                     
+                     if not glob.glob(unterverzeichnis+'/electrical_simulation*.csv'):
+                         
+                         gesamtergebnis_avg_df.loc[variante, 'Error'] = 'ERROR_Electrical'
+                         
+                         if glob.glob(unterverzeichnis+'/error_msg*'):
+                             with open(unterverzeichnis+'/error_msg.txt', 'r') as file:
+                                 electrical_simulation_data['Error']= file.read().replace('\n', ' - ')
+                                 gesamtergebnis_avg_df.loc[variante, 'Error'] = file.read().replace('\n', ' - ')
+                     
+                     else:    
+                         electrical_simulation_data = pd.read_csv(glob.glob(unterverzeichnis+'/electrical_simulation*.csv')[0].replace(os.sep, '/'), index_col=0)
+                         electrical_simulation_data['timestamps'] = pd.to_datetime(electrical_simulation_data['timestamps'], format="%Y_%m_%d_%H")
 
-            plt.figure(figsize=(10,6))
-            plt.plot(df.index, df[col1], label=y_label1)
-            plt.plot(df.index, df[col2], label=y_label2)
-            plt.xlabel(x_label)
-            plt.legend()
-            plt.title(title)
-            plt.savefig(save_path+'/Line-'+title+'.png', format='png')
-        
-            if show ==True:
-                plt.show()
-            else:
-                plt.close()
-        
-        try:
-            real_results = pd.read_csv(real_results_path.replace(os.sep, '/'), index_col=0)
-            real_results['timestamp'] = pd.to_datetime(real_results.index)
-            real_results['datetime'] = real_results['timestamp']
-            real_results = real_results.set_index('datetime')
+                         electrical_simulation_data.set_index('timestamps', inplace=True)
+                         
+                         gesamtergebnis_avg_df.loc[variante, 'E_kWh/m2'] = electrical_simulation_data['P_bi '].sum() /1000
+                         gesamtergebnis_avg_df.loc[variante, 'E_real_kWh/m2'] = real_results.E_Wm2.sum() /1000
+                         gesamtergebnis_avg_df.loc[variante, 'delta_E_rel'] = (electrical_simulation_data['P_bi '].sum())/real_results.E_Wm2.sum() - 1
+                         gesamtergebnis_avg_df.loc[variante, 'sim_runtime_s'] = timer_df.loc[variante, 'sim_runtime_s']
+                         gesamtergebnis_avg_df.loc[variante, 'sim_runtime_m'] = timer_df.loc[variante, 'sim_runtime_s']/60
+                     
+                         combined_data = pd.merge(combined_data, electrical_simulation_data, left_index=True, right_index=True, how='inner')
+                         combined_data['E_Wm2'] = combined_data['E_Wm2'].replace(0, np.nan)
+                         combined_data['delta_E_rel'] = combined_data['P_bi '] / combined_data.E_Wm2 - 1
+                         combined_data['delta_E_abs'] = combined_data['P_bi '] - combined_data.E_Wm2
+                         
+                         if 'row_0_qabs_front' in radiation_simulation_data.columns:
+                             gesamtergebnis_avg_df.loc[variante, 'Q_abs_front_kWh/m2'] = radiation_simulation_data['row_0_qabs_front'].sum() /1000
+                             gesamtergebnis_avg_df.loc[variante, 'Q_abs_front_real__kWh/m2'] = real_results.Q_abs_front.sum() /1000
+                             gesamtergebnis_avg_df.loc[variante, 'delta_E_rad_front_rel'] = radiation_simulation_data['row_0_qabs_front'].sum()/real_results.Q_abs_front.sum() - 1
+                             combined_data['row_0_qabs_front'] = combined_data['row_0_qabs_front'].replace(0, np.nan)
+                             combined_data['delta_Q_front_rel'] = combined_data.row_0_qabs_front / combined_data.Q_abs_front - 1
+                             combined_data['delta_Q_front_abs'] = combined_data.row_0_qabs_front - combined_data.Q_abs_front
+                         
+                         if 'row_0_qabs_back' in radiation_simulation_data.columns:
+                             gesamtergebnis_avg_df.loc[variante, 'Q_abs_rear_kWh/m2'] = radiation_simulation_data['row_0_qabs_back'].sum() /1000
+                             gesamtergebnis_avg_df.loc[variante, 'Q_abs_rear_real_kWh/m2'] = real_results.Q_abs_rear.sum() /1000
+                             gesamtergebnis_avg_df.loc[variante, 'delta_E_rad_rear_rel'] = radiation_simulation_data['row_0_qabs_back'].sum()/real_results.Q_abs_rear.sum() - 1
+                             combined_data['row_0_qabs_back'] = combined_data['row_0_qabs_back'].replace(0, np.nan)
+                             combined_data['delta_Q_rear_rel'] = combined_data.row_0_qabs_back / combined_data.Q_abs_rear - 1   
+                             combined_data['delta_Q_rear_abs'] = combined_data.row_0_qabs_back - combined_data.Q_abs_rear  
+         
+                         #plot_boxplots(combined_data, ['delta_E_rel', 'delta_Q_front_rel', 'delta_Q_rear_rel'], unterverzeichnis, variante, False, False)
+                         plot_boxplots(combined_data, ['delta_E_abs', 'delta_Q_front_abs', 'delta_Q_rear_abs'], unterverzeichnis, variante, False, True)
+                         plot_data_line(combined_data, 'P_bi ', 'E_Wm2', 'Date', 'E-sim', 'E-real', unterverzeichnis, variante, False)
+                     for i in electrical_simulation_data.iterrows():
+                         combined_data['Variante']=variante
+                     
+                     combined_data_d = combined_data.copy()
+                     combined_data_d = combined_data_d.resample('D').mean()
+                     
+                     gesamtergebnis_df = pd.concat([gesamtergebnis_df, combined_data])         
+                     gesamtergebnis_df_d_avg = pd.concat([gesamtergebnis_df_d_avg, combined_data_d])
+                 except Exception as err:     
+                    print(err)
+             
+     #%% Plot results        
+             plot_lines(gesamtergebnis_df, 'P_bi ', 'Variante', verzeichnis, name+'-all_variants', True)
+             
+             
+             plot_data(gesamtergebnis_df.index, gesamtergebnis_df['delta_E_abs'] ,  ' ', 'Deviation abs', verzeichnis, name, True)
+             #plot_data(gesamtergebnis_df_d_avg.index, gesamtergebnis_df_d_avg['delta_E_abs'] ,  ' ', 'Deviation abs', verzeichnis, name+"-day", False)
+             #plot_data(gesamtergebnis_df['row_0_qabs_front'], gesamtergebnis_df['delta_E_rel'] ,  'Q Abs front W/m2 ', 'rel Fehler', verzeichnis, name+"Q_abs", True)
+             #plot_data(gesamtergebnis_df, 'index', 'delta_E_rel')
+             
+             #gesamtergebnis_df_filter = gesamtergebnis_df[gesamtergebnis_df['row_0_qabs_front'] > 100]
+             #plot_boxplots(gesamtergebnis_df_filter, ['delta_E_rel', 'delta_Q_front_rel', 'delta_Q_rear_rel'], verzeichnis, name+'-filter', True)
 
-        except Exception as err:     
-           print('Error: ',err)
-        
-        
-        dtStart = datetime(SimulationDict['startHour'][0], SimulationDict['startHour'][1], SimulationDict['startHour'][2], SimulationDict['startHour'][3])
-        dtEnd = datetime(SimulationDict['endHour'][0], SimulationDict['endHour'][1], SimulationDict['endHour'][2], SimulationDict['endHour'][3])
-        
-        mask = (real_results.timestamp >= dtStart) & (real_results.timestamp <= dtEnd) 
-        real_results = real_results.loc[mask]
-
-        exclude_columns = ['timestamp', 'index']
-        
-        for col in real_results.columns:
-            if col not in exclude_columns:
-                real_results[col] = pd.to_numeric(real_results[col], errors='coerce')
-        
-        
-        
-        for variante in os.listdir(verzeichnis):
-
-            try:
-                unterverzeichnis = verzeichnis +'/'+ variante
-                
-                radiation_simulation_data = pd.DataFrame()   
-                electrical_simulation_data = pd.DataFrame()
-                combined_data = real_results
-                
-                if not glob.glob(unterverzeichnis+'/radiation*.csv'):
-                    gesamtergebnis_avg_df.loc[variante, 'Error'] = 'ERROR_Radiation'
-                else:    
-                    radiation_simulation_data = pd.read_csv(glob.glob(unterverzeichnis+'/radiation*.csv')[0].replace(os.sep, '/'), index_col=0)
-                    radiation_simulation_data.index = pd.to_datetime(radiation_simulation_data.index)
-                    radiation_simulation_data.index = radiation_simulation_data.index.tz_localize(None)
-                    combined_data = pd.merge(combined_data, radiation_simulation_data, left_index=True, right_index=True, how='inner')
-                
-                
-                if not glob.glob(unterverzeichnis+'/electrical_simulation*.csv'):
-                    
-                    gesamtergebnis_avg_df.loc[variante, 'Error'] = 'ERROR_Electrical'
-                    
-                    if glob.glob(unterverzeichnis+'/error_msg*'):
-                        with open(unterverzeichnis+'/error_msg.txt', 'r') as file:
-                            electrical_simulation_data['Error']= file.read().replace('\n', ' - ')
-                            gesamtergebnis_avg_df.loc[variante, 'Error'] = file.read().replace('\n', ' - ')
-                
-                else:    
-                    electrical_simulation_data = pd.read_csv(glob.glob(unterverzeichnis+'/electrical_simulation*.csv')[0].replace(os.sep, '/'), index_col=0)
-                    electrical_simulation_data['timestamps'] = pd.to_datetime(electrical_simulation_data['timestamps'], format="%Y_%m_%d_%H")
-
-                    electrical_simulation_data.set_index('timestamps', inplace=True)
-                    
-                    gesamtergebnis_avg_df.loc[variante, 'E_kWh/m2'] = electrical_simulation_data['P_bi '].sum() /1000
-                    gesamtergebnis_avg_df.loc[variante, 'E_real_kWh/m2'] = real_results.E_Wm2.sum() /1000
-                    gesamtergebnis_avg_df.loc[variante, 'delta_E_rel'] = (electrical_simulation_data['P_bi '].sum())/real_results.E_Wm2.sum() - 1
-                    gesamtergebnis_avg_df.loc[variante, 'sim_runtime_s'] = timer_df.loc[variante, 'sim_runtime_s']
-                    gesamtergebnis_avg_df.loc[variante, 'sim_runtime_m'] = timer_df.loc[variante, 'sim_runtime_s']/60
-                
-                    combined_data = pd.merge(combined_data, electrical_simulation_data, left_index=True, right_index=True, how='inner')
-                    combined_data['E_Wm2'] = combined_data['E_Wm2'].replace(0, np.nan)
-                    combined_data['delta_E_rel'] = combined_data['P_bi '] / combined_data.E_Wm2 - 1
-                    combined_data['delta_E_abs'] = combined_data['P_bi '] - combined_data.E_Wm2
-                    
-                    if 'row_0_qabs_front' in radiation_simulation_data.columns:
-                        gesamtergebnis_avg_df.loc[variante, 'Q_abs_front_kWh/m2'] = radiation_simulation_data['row_0_qabs_front'].sum() /1000
-                        gesamtergebnis_avg_df.loc[variante, 'Q_abs_front_real__kWh/m2'] = real_results.Q_abs_front.sum() /1000
-                        gesamtergebnis_avg_df.loc[variante, 'delta_E_rad_front_rel'] = radiation_simulation_data['row_0_qabs_front'].sum()/real_results.Q_abs_front.sum() - 1
-                        combined_data['row_0_qabs_front'] = combined_data['row_0_qabs_front'].replace(0, np.nan)
-                        combined_data['delta_Q_front_rel'] = combined_data.row_0_qabs_front / combined_data.Q_abs_front - 1
-                        combined_data['delta_Q_front_abs'] = combined_data.row_0_qabs_front - combined_data.Q_abs_front
-                    
-                    if 'row_0_qabs_back' in radiation_simulation_data.columns:
-                        gesamtergebnis_avg_df.loc[variante, 'Q_abs_rear_kWh/m2'] = radiation_simulation_data['row_0_qabs_back'].sum() /1000
-                        gesamtergebnis_avg_df.loc[variante, 'Q_abs_rear_real_kWh/m2'] = real_results.Q_abs_rear.sum() /1000
-                        gesamtergebnis_avg_df.loc[variante, 'delta_E_rad_rear_rel'] = radiation_simulation_data['row_0_qabs_back'].sum()/real_results.Q_abs_rear.sum() - 1
-                        combined_data['row_0_qabs_back'] = combined_data['row_0_qabs_back'].replace(0, np.nan)
-                        combined_data['delta_Q_rear_rel'] = combined_data.row_0_qabs_back / combined_data.Q_abs_rear - 1   
-                        combined_data['delta_Q_rear_abs'] = combined_data.row_0_qabs_back - combined_data.Q_abs_rear  
-    
-                    #plot_boxplots(combined_data, ['delta_E_rel', 'delta_Q_front_rel', 'delta_Q_rear_rel'], unterverzeichnis, variante, False, False)
-                    plot_boxplots(combined_data, ['delta_E_abs', 'delta_Q_front_abs', 'delta_Q_rear_abs'], unterverzeichnis, variante, False, True)
-                    plot_data_line(combined_data, 'P_bi ', 'E_Wm2', 'Date', 'E-sim', 'E-real', unterverzeichnis, variante, False)
-                for i in electrical_simulation_data.iterrows():
-                    combined_data['Variante']=variante
-                
-                combined_data_d = combined_data.copy()
-                combined_data_d = combined_data_d.resample('D').mean()
-                
-                gesamtergebnis_df = pd.concat([gesamtergebnis_df, combined_data])         
-                gesamtergebnis_df_d_avg = pd.concat([gesamtergebnis_df_d_avg, combined_data_d])
-            except Exception as err:     
-               print(err)
-        
-        
-        plot_lines(gesamtergebnis_df, 'P_bi ', 'Variante', verzeichnis, name+'-all_variants')
-        
-        
-        plot_data(gesamtergebnis_df.index, gesamtergebnis_df['delta_E_abs'] ,  ' ', 'Deviation abs', verzeichnis, name, False)
-        #plot_data(gesamtergebnis_df_d_avg.index, gesamtergebnis_df_d_avg['delta_E_abs'] ,  ' ', 'Deviation abs', verzeichnis, name+"-day", False)
-        #plot_data(gesamtergebnis_df['row_0_qabs_front'], gesamtergebnis_df['delta_E_rel'] ,  'Q Abs front W/m2 ', 'rel Fehler', verzeichnis, name+"Q_abs", True)
-        #plot_data(gesamtergebnis_df, 'index', 'delta_E_rel')
-        
-        #gesamtergebnis_df_filter = gesamtergebnis_df[gesamtergebnis_df['row_0_qabs_front'] > 100]
-        #plot_boxplots(gesamtergebnis_df_filter, ['delta_E_rel', 'delta_Q_front_rel', 'delta_Q_rear_rel'], verzeichnis, name+'-filter', True)
-
-        #plot_boxplots(gesamtergebnis_df, ['delta_E_rel', 'delta_Q_front_rel', 'delta_Q_rear_rel'], verzeichnis, name, True, False)
-        #plot_boxplots(gesamtergebnis_df, ['delta_E_abs', 'delta_Q_front_abs', 'delta_Q_rear_abs'], verzeichnis, name, True, True)
-        plot_boxplots(gesamtergebnis_avg_df, ['delta_E_rel', 'delta_E_rad_front_rel', 'delta_E_rad_rear_rel'], verzeichnis, name+'-avg', True, True)
-        
-        print(gesamtergebnis_avg_df)     
-        
-       
-        gesamtergebnis_df.to_csv(verzeichnis + '/'+ name + '-results_all_data.csv', index=True, encoding='utf-8-sig', na_rep='0')  
-        gesamtergebnis_df_d_avg.to_csv(verzeichnis + '/'+ name + '-results_all_data_d_avg.csv', index=True, encoding='utf-8-sig', na_rep='0')                 
-        gesamtergebnis_avg_df.to_csv(verzeichnis + '/'+ name + '-results_sum.csv', index=True, encoding='utf-8-sig', na_rep='0')   
+             #plot_boxplots(gesamtergebnis_df, ['delta_E_rel', 'delta_Q_front_rel', 'delta_Q_rear_rel'], verzeichnis, name, True, False)
+             #plot_boxplots(gesamtergebnis_df, ['delta_E_abs', 'delta_Q_front_abs', 'delta_Q_rear_abs'], verzeichnis, name, True, True)
+             plot_boxplots(gesamtergebnis_avg_df, ['delta_E_rel', 'delta_E_rad_front_rel', 'delta_E_rad_rear_rel'], verzeichnis, name+'-avg', True, True)
+             
+             print(gesamtergebnis_avg_df)     
+             
+            
+             gesamtergebnis_df.to_csv(verzeichnis + '/'+ name + '-results_all_data.csv', index=True, encoding='utf-8-sig', na_rep='0')  
+             gesamtergebnis_df_d_avg.to_csv(verzeichnis + '/'+ name + '-results_all_data_d_avg.csv', index=True, encoding='utf-8-sig', na_rep='0')                 
+             gesamtergebnis_avg_df.to_csv(verzeichnis + '/'+ name + '-results_sum.csv', index=True, encoding='utf-8-sig', na_rep='0')
+      
 
 #%% Test function - function to set albedo mode    
     def define_albedo(albedoMode):
@@ -441,11 +444,11 @@ def test_function(SimulationDict, ModuleDict, test_name, startHour, endHour, ele
     procs = []
     runtime_df = pd.DataFrame()
     
-    for simMode in range(3):
+    for simMode in range(1,2):
         
         for backTrackingMode in range(1): #
             
-            for albedoMode in range(1): # 
+            for albedoMode in range(2): # 
             
                 for localFile in range(2):
                         
@@ -490,8 +493,11 @@ def test_function(SimulationDict, ModuleDict, test_name, startHour, endHour, ele
             proc.join()
         
     time.sleep(2)
-    ergebnisausgabe(test_name, runtime_df)              
-    
+    ergebnisausgabe(test_name, runtime_df)
+    #thread_return_results = threading.Thread(target=ergebnisausgabe, args=(test_name, runtime_df, ))          
+    #thread_return_results.start()
+    #thread_return_results = threading.Thread(target=ergebnisausgabe, args=(test_name, runtime_df, SimulationDict, verzeichnis, real_results_path ))          
+    #thread_return_results.start()
 
 #%% start test function
 
@@ -508,22 +514,24 @@ if __name__ == '__main__':
     try:
         """simulate 2 days"""
         #test_function(SimulationDict_Heggelbach, ModuleDict_Heggelbach, 'Heggelbach_2022_8_11', (2022, 8, 11, 5), (2022, 8, 12, 20), 0, 0, heggelbach_real_path)
-        #test_function(SimulationDict_Brazil_fixed, ModuleDict_Brazil, 'Brazil_fixed_2022_12_12', (2022, 12, 12, 5), (2022, 12, 13, 20), 0, 0, brazil_fixed_real_path)
+        test_function(SimulationDict_Brazil_fixed, ModuleDict_Brazil, 'Brazil_fixed_2022_12_12', (2022, 12, 12, 5), (2022, 12, 13, 20), 0, 0, brazil_fixed_real_path)
         
         """simulate 2 weeks"""
-        test_function(SimulationDict_Heggelbach, ModuleDict_Heggelbach, 'Heggelbach_2022_8', (2022, 8, 1, 5), (2022, 8, 14, 20), 0, 0, heggelbach_real_path)
-        test_function(SimulationDict_Brazil_fixed, ModuleDict_Brazil, 'Brazil_fixed_2023_2', (2023, 2, 1, 5), (2023, 2, 14, 20), 0, 0, brazil_fixed_real_path)
+        #test_function(SimulationDict_Heggelbach, ModuleDict_Heggelbach, 'Heggelbach_2022_8', (2022, 8, 1, 5), (2022, 8, 14, 20), 0, 0, heggelbach_real_path)
+        #test_function(SimulationDict_Brazil_fixed, ModuleDict_Brazil, 'Brazil_fixed_2023_2', (2023, 2, 1, 5), (2023, 2, 14, 20), 0, 0, brazil_fixed_real_path)
         
         
         """simulate whole year"""
         #test_function(SimulationDict_Heggelbach, ModuleDict_Heggelbach, 'Heggelbach_2022', (2022, 1, 1, 5), (2022, 12, 31, 20), 0, 0, heggelbach_real_path)
+        #SimulationDict_Heggelbach['weatherFile'] = rootPath + '/WeatherData/Heggelbach_Germany/Heggelbach_Germany_2021.csv'
+        #test_function(SimulationDict_Heggelbach, ModuleDict_Heggelbach, 'Heggelbach_2021', (2021, 1, 1, 5), (2021, 12, 31, 20), 0, 0, heggelbach_real_path)
+        
         #test_function(SimulationDict_Brazil_fixed, ModuleDict_Brazil, 'Brazil_fixed_2022_poa', (2022, 8, 5, 5), (2022, 12, 31, 20), 0, 0, brazil_fixed_real_path)
         
         #SimulationDict_Brazil_fixed['weatherFile'] = rootPath + '/WeatherData/Brazil/Brazil_Aug22-Jul23_grey_gravel_nrel.csv'
         #test_function(SimulationDict_Brazil_fixed, ModuleDict_Brazil, 'Brazil_fixed_2022_nrel', (2022, 8, 5, 5), (2022, 12, 31, 20), 0, 0, brazil_fixed_real_path)
         
-        #SimulationDict_Heggelbach['weatherFile'] = rootPath + '/WeatherData/Heggelbach_Germany/Heggelbach_Germany_2021.csv'
-        #test_function(SimulationDict_Heggelbach, ModuleDict_Heggelbach, 'Heggelbach_2021', (2021, 1, 1, 0), (2021, 12, 31, 23), 0, 0)
+        
         
         """simulate across year boundaries"""
         #SimulationDict_Brazil_fixed['weatherFile'] = rootPath + '/WeatherData/Brazil/Brazil_Aug21-Jul22_grey_gravel.csv'

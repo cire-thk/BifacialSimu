@@ -113,13 +113,15 @@ class DataHandler:
             df['temperature'] = metdata.temp_air
             df['pressure'] = metdata.pressure
             df['albedo'] = metdata.albedo
+            
         except:
             df['ghi'] = metdata.ghi
             df['dhi'] = metdata.dhi
             df['dni'] = metdata.dni
             df['temperature'] = metdata.temp_air
             df['albedo'] = metdata.albedo
-                
+        
+        df['albedo'] = df['albedo'].apply(lambda x: simulationDict['albedo'] if x > 1 else x)        
         df = df.reset_index()
 
         df['corrected_timestamp'] = pd.to_datetime(df['corrected_timestamp'])
