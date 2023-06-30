@@ -88,6 +88,8 @@ class Electrical_simulation:
         
         return df_report
     
+  
+        
     def simulate_oneDiode(moduleDict, simulationDict, df_reportVF, df_reportRT, df_report, df, resultsPath):
         """
         Applies the one diode model for bifacial electrical simulation. Needs module front and rear parameters to work correctly.
@@ -184,7 +186,7 @@ class Electrical_simulation:
         df_report['timestamp'] = df_report.index
         df_report = df_report.reset_index()
         df_report['corrected_timestamp'] = pd.to_datetime(df_report['timestamp'])
-        df_report['time'] = df_report['corrected_timestamp'].dt.strftime('%m_%d_%H')
+        df_report['time'] = df_report['corrected_timestamp'].dt.strftime('%Y_%m_%d_%H')
         df_report = df_report.set_index('time')
         
         
@@ -193,21 +195,19 @@ class Electrical_simulation:
         if simulationDict['simulationMode'] == 3:
             df = df.reset_index()
             
-            df['time'] = df['corrected_timestamp'].dt.strftime('%m_%d_%H')
-            df = df.set_index('time')
-            df['timestamp'] = df['corrected_timestamp'].dt.strftime('%m-%d %H:%M%')
-            df['timestamp'] = pd.to_datetime(df['timestamp'])  
+            df['time'] = df['corrected_timestamp'].dt.strftime('%Y_%m_%d_%H')
+            #df = df.set_index('time')
+            #df['timestamp'] = df['corrected_timestamp'].dt.strftime('%Y-%m-%d %H:%M%')
+            df['timestamp'] = pd.to_datetime(df['corrected_timestamp'])  
             #df['timestamp'] = df['timestamp'].dt.tz_localize(None)
             df = df.set_index('timestamp')
             
             dtStart = datetime.datetime(simulationDict['startHour'][0], simulationDict['startHour'][1], simulationDict['startHour'][2], simulationDict['startHour'][3], tzinfo=dateutil.tz.tzoffset(None, simulationDict['utcOffset']*60*60))
-        
-        
             dtEnd = datetime.datetime(simulationDict['endHour'][0], simulationDict['endHour'][1], simulationDict['endHour'][2], simulationDict['endHour'][3], tzinfo=dateutil.tz.tzoffset(None, simulationDict['utcOffset']*60*60))
             mask = (df.index >= dtStart) & (df.index <= dtEnd) 
             df = df.loc[mask]
         
-        df['time'] = df['corrected_timestamp'].dt.strftime('%m_%d_%H')
+        df['time'] = df['corrected_timestamp'].dt.strftime('%Y_%m_%d_%H')
         df = df.set_index('time')
         
         
@@ -223,8 +223,11 @@ class Electrical_simulation:
                 
                 row_qabs_front = df_report.loc[index,key_front]
                 row_qabs_back = df_report.loc[index,key_back]
-                T_Current = df.loc[index,'temperature']
-                
+                       
+                # estimate module temperture with ambient temperature and NOCT temp
+                T_Current = df.loc[index,'temperature'] + ((row_qabs_front/800)*(moduleDict['T_NOCT'] - 20))
+                if np.isnan(T_Current):
+                    T_Current = df.loc[index,'temperature']
                 
                 #print("front: " + str(row_qabs_front))
                 #print("back: " + str(row_qabs_back))
@@ -261,7 +264,7 @@ class Electrical_simulation:
                 else:
                     P_bi=0
                 
-                P_bi_hourly.append(P_bi)
+                P_bi_hourly.append(P_bi/(simulationDict['moduley'] *simulationDict['modulex']))  #Bifacial Power Output per Module Area  [W/m2]
                 
             # Append P_bi_hourly array to arrays
             P_bi_hourly_arrays.append(P_bi_hourly)
@@ -299,6 +302,7 @@ class Electrical_simulation:
         print ("\n")'''
         
         module_area = (simulationDict['moduley'] *simulationDict['nModsy'] *simulationDict['modulex'])
+
         
         annual_power_per_area_b = (annual_power_per_module_b / module_area)    #[W/m^2] annual bifacial poutput power per module area
         '''print("Yearly bifacial output power per module area: " + str(annual_power_per_area_b) + " W/m^2")
@@ -307,7 +311,7 @@ class Electrical_simulation:
         
         # Plot total qinc front and back for every row
       
-        
+       
         f = plt.Figure(figsize=(12, 3))
         ax1 = f.subplots(1)
         ax1.locator_params(tight=True, nbins=6)
@@ -338,7 +342,11 @@ class Electrical_simulation:
                 
                 #SG
                 row_qabs_front = df_report.loc[index,key_front_mono]
-                T_Current = df.loc[index,'temperature']
+                
+                # estimate module temperture with ambient temperature and NOCT temp
+                T_Current = df.loc[index,'temperature'] + ((row_qabs_front/800)*(moduleDict['T_NOCT'] - 20))
+                if np.isnan(T_Current):
+                    T_Current = df.loc[index,'temperature']
 
                 if math.isnan(row_qabs_front):
                     row_qabs_front = 0 
@@ -355,7 +363,7 @@ class Electrical_simulation:
                 else:
                     P_m = 0
                     
-                P_m_hourly.append(P_m)
+                P_m_hourly.append(P_m/(simulationDict['moduley'] *simulationDict['modulex'])) # monofacial power output per module area [W/m2]
             
             # Append P_m_hourly array to arrays
             P_m_hourly_arrays.append(P_m_hourly)
@@ -376,7 +384,7 @@ class Electrical_simulation:
                     #print("Power: 0.0")
              
                     
-        mismatch_array=Electrical_simulation.calculate_mismatch(P_bi_hourly_average, P_mpp0)
+        mismatch_array=Electrical_simulation.calculate_mismatch(P_m_hourly_average, P_mpp0)
         
              
 
@@ -526,27 +534,26 @@ class Electrical_simulation:
         df_report['timestamp'] = df_report.index
         df_report = df_report.reset_index()
         df_report['corrected_timestamp'] = pd.to_datetime(df_report['timestamp'])
-        df_report['time'] = df_report['corrected_timestamp'].dt.strftime('%m_%d_%H')
+        df_report['time'] = df_report['corrected_timestamp'].dt.strftime('%Y_%m_%d_%H')
         df_report = df_report.set_index('time')
         
         if simulationDict['simulationMode'] == 3:
             df = df.reset_index()
             
-            df['time'] = df['corrected_timestamp'].dt.strftime('%m_%d_%H')
+            df['time'] = df['corrected_timestamp'].dt.strftime('%Y_%m_%d_%H')
             df = df.set_index('time')
-            df['timestamp'] = df['corrected_timestamp'].dt.strftime('%m-%d %H:%M%')
+            df['timestamp'] = df['corrected_timestamp'].dt.strftime('%Y-%m-%d %H:%M')
             df['timestamp'] = pd.to_datetime(df['timestamp'])  
             #df['timestamp'] = df['timestamp'].dt.tz_localize(None)
             df = df.set_index('timestamp')
             
             dtStart = datetime.datetime(simulationDict['startHour'][0], simulationDict['startHour'][1], simulationDict['startHour'][2], simulationDict['startHour'][3], tzinfo=dateutil.tz.tzoffset(None, simulationDict['utcOffset']*60*60))
-        
-        
             dtEnd = datetime.datetime(simulationDict['endHour'][0], simulationDict['endHour'][1], simulationDict['endHour'][2], simulationDict['endHour'][3], tzinfo=dateutil.tz.tzoffset(None, simulationDict['utcOffset']*60*60))
-            mask = (df.index >= dtStart) & (df.index <= dtEnd) 
+            
+            mask = (df.corrected_timestamp >= dtStart) & (df.corrected_timestamp <= dtEnd) 
             df = df.loc[mask]
         
-        df['time'] = df['corrected_timestamp'].dt.strftime('%m_%d_%H')
+        df['time'] = df['corrected_timestamp'].dt.strftime('%Y_%m_%d_%H')
         df = df.set_index('time')
         print(df_report)
         
@@ -567,8 +574,12 @@ class Electrical_simulation:
                 
                 row_qabs_front = df_report.loc[index,key_front]
                 row_qabs_back = df_report.loc[index,key_back]
-                row_qabs_combined = row_qabs_front + (row_qabs_back*bi_factor) #This value is used in lines 585 & 586
-                T_Current = df.loc[index,'temperature']
+                row_qabs_combined = row_qabs_front + (row_qabs_back*bi_factor)
+                
+                # estimate module temperture with ambient temperature and NOCT temp
+                T_Current = df.loc[index,'temperature'] + ((row_qabs_front/800)*(moduleDict['T_NOCT'] - 20))
+                if np.isnan(T_Current):
+                    T_Current = df.loc[index,'temperature']
                 
                 
                 # calculation of frontside power output
@@ -586,10 +597,10 @@ class Electrical_simulation:
                     I_sc_f = I_sc_f0 * (1 + T_koeff_I * (T_Current - T_amb)) * (row_qabs_combined / q_stc_front)
                     P_bi = FF_f0 * V_oc_f * I_sc_f
                 
-                
+
                 sum_energy_b += P_bi # Sum up the energy of every row in every hour
 
-                P_bi_hourly.append(P_bi)
+                P_bi_hourly.append(P_bi/(simulationDict['moduley'] *simulationDict['modulex'])) #Bifacial Power Output per Module Area  [W/m2]
                 
             # Append P_bi_hourly array to arrays
             P_bi_hourly_arrays.append(P_bi_hourly)
@@ -608,11 +619,9 @@ class Electrical_simulation:
             
             P_bi_hourly_average.append(average)
             
-            
-        mismatch_array=Electrical_simulation.calculate_mismatch(P_bi_hourly_average, P_mpp0)
-
+                
         # Create dataframe with average data
-        p_bi_df = pd.DataFrame({"timestamps":df_report.index, "P_bi ": P_bi_hourly_average, "Mismatch":mismatch_array})
+        p_bi_df = pd.DataFrame({"timestamps":df_report.index, "P_bi ": P_bi_hourly_average})
         p_bi_df.set_index("timestamps")
         p_bi_df.to_csv(resultsPath + "electrical_simulation" + datetime.datetime.now().strftime("%Y-%m-%d-%H-%M") + ".csv")
         
@@ -635,14 +644,14 @@ class Electrical_simulation:
         print ("\n")'''
         
         # Plot total qinc front and back for every row
-        # f = plt.Figure(figsize=(12, 3))
-        # ax1 = f.subplots(1)
-        # ax1.locator_params(tight=True, nbins=6)
-        # #f.plot(P_bi_hourly)
-        # ax1.set_title('Bifacial output Power hourly')
-        # ax1.set_xlabel('Hour')
-        # ax1.set_ylabel('W')
-        # f.savefig("P_bi_hourly" + datetime.datetime.now().strftime("%Y-%m-%d-%H-%M") + ".png", dpi = dpi)
+        f = plt.Figure(figsize=(12, 3))
+        ax1 = f.subplots(1)
+        ax1.locator_params(tight=True, nbins=6)
+        #f.plot(P_bi_hourly)
+        ax1.set_title('Bifacial output Power hourly')
+        ax1.set_xlabel('Hour')
+        ax1.set_ylabel('W')
+        f.savefig("P_bi_hourly" + datetime.datetime.now().strftime("%Y-%m-%d-%H-%M") + ".png", dpi = dpi)
         #plt.show()()
         ##plt.show()(sns)
          
@@ -664,7 +673,11 @@ class Electrical_simulation:
                 #row_qabs_front = row[key_front_mono]
                 #T_Current = df.loc[index,'temperature']
                 row_qabs_front = df_report.loc[index,key_front_mono]
-                T_Current = df.loc[index,'temperature']
+                
+                # estimate module temperture with ambient temperature and NOCT temp
+                T_Current = df.loc[index,'temperature'] + ((row_qabs_front/800)*(moduleDict['T_NOCT'] - 20))
+                if np.isnan(T_Current):
+                    T_Current = df.loc[index,'temperature']
 
                 # calculation of frontside power output
                 if math.isnan(row_qabs_front) or row_qabs_front < 0.0:
@@ -705,7 +718,7 @@ class Electrical_simulation:
         print("Bifacial Gain: " + str(Bifacial_gain*100) + " %")
         
         #Plot for Bifacial Power Output + Bifacial Gain
-        # GUI.Window.makePlotBifacialRadiance(resultsPath,Bifacial_gain)     
+        GUI.Window.makePlotBifacialRadiance(resultsPath,Bifacial_gain)     
         
         return Bifacial_gain*100
         
@@ -809,7 +822,7 @@ class Electrical_simulation:
         df_report['timestamp'] = df_report.index
         df_report = df_report.reset_index()
         df_report['corrected_timestamp'] = pd.to_datetime(df_report['timestamp'])
-        df_report['time'] = df_report['corrected_timestamp'].dt.strftime('%m_%d_%H')
+        df_report['time'] = df_report['corrected_timestamp'].dt.strftime('%Y_%m_%d_%H')
         df_report = df_report.set_index('time')
         
         
@@ -818,9 +831,9 @@ class Electrical_simulation:
         if simulationDict['simulationMode'] == 3:
             df = df.reset_index()
             
-            df['time'] = df['corrected_timestamp'].dt.strftime('%m_%d_%H')
+            df['time'] = df['corrected_timestamp'].dt.strftime('%Y_%m_%d_%H')
             df = df.set_index('time')
-            df['timestamp'] = df['corrected_timestamp'].dt.strftime('%m-%d %H:%M%')
+            df['timestamp'] = df['corrected_timestamp'].dt.strftime('%Y-%m-%d %H:%M')
             df['timestamp'] = pd.to_datetime(df['timestamp'])  
             #df['timestamp'] = df['timestamp'].dt.tz_localize(None)
             df = df.set_index('timestamp')
@@ -832,7 +845,7 @@ class Electrical_simulation:
             mask = (df.index >= dtStart) & (df.index <= dtEnd) 
             df = df.loc[mask]
         
-        df['time'] = df['corrected_timestamp'].dt.strftime('%m_%d_%H')
+        df['time'] = df['corrected_timestamp'].dt.strftime('%Y_%m_%d_%H')
         df = df.set_index('time')
         
         #Diode ideality factors. a1 has to be 1 while a2 is flexible but it has to be above 1.2
@@ -1058,7 +1071,11 @@ class Electrical_simulation:
                 
                 row_qabs_front = df_report.loc[index,key_front]
                 row_qabs_back = df_report.loc[index,key_back]
-                T_Current = df.loc[index,'temperature']
+                
+                # estimate module temperture with ambient temperature and NOCT temp
+                T_Current = df.loc[index,'temperature'] + ((row_qabs_front/800)*(moduleDict['T_NOCT'] - 20))
+                if np.isnan(T_Current):
+                    T_Current = df.loc[index,'temperature']
                 
                 
                 #print("front: " + str(row_qabs_front))
@@ -1201,8 +1218,8 @@ class Electrical_simulation:
                     P_m=0
                     P_bi=0
                 
-                P_m_hourly.append(P_m)
-                P_bi_hourly.append(P_bi)
+                P_m_hourly.append(P_m /(simulationDict['moduley'] *simulationDict['modulex'])) # monofacial power output per module area [W/m2]
+                P_bi_hourly.append(P_bi /(simulationDict['moduley'] *simulationDict['modulex']))  #Bifacial Power Output per Module Area  [W/m2]
                 
             # Append P_bi_hourly array to arrays
             P_m_hourly_arrays.append(P_m_hourly)
@@ -1451,7 +1468,7 @@ class Electrical_simulation:
         df_report['timestamp'] = df_report.index
         df_report = df_report.reset_index()
         df_report['corrected_timestamp'] = pd.to_datetime(df_report['timestamp'])
-        df_report['time'] = df_report['corrected_timestamp'].dt.strftime('%m_%d_%H')
+        df_report['time'] = df_report['corrected_timestamp'].dt.strftime('%Y_%m_%d_%H')
         df_report = df_report.set_index('time')
         
         
@@ -1460,9 +1477,9 @@ class Electrical_simulation:
         if simulationDict['simulationMode'] == 3:
             df = df.reset_index()
             
-            df['time'] = df['corrected_timestamp'].dt.strftime('%m_%d_%H')
+            df['time'] = df['corrected_timestamp'].dt.strftime('%Y_%m_%d_%H')
             df = df.set_index('time')
-            df['timestamp'] = df['corrected_timestamp'].dt.strftime('%m-%d %H:%M%')
+            df['timestamp'] = df['corrected_timestamp'].dt.strftime('%Y-%m-%d %H:%M')
             df['timestamp'] = pd.to_datetime(df['timestamp'])  
             #df['timestamp'] = df['timestamp'].dt.tz_localize(None)
             df = df.set_index('timestamp')
@@ -1474,7 +1491,7 @@ class Electrical_simulation:
             mask = (df.index >= dtStart) & (df.index <= dtEnd) 
             df = df.loc[mask]
         
-        df['time'] = df['corrected_timestamp'].dt.strftime('%m_%d_%H')
+        df['time'] = df['corrected_timestamp'].dt.strftime('%Y_%m_%d_%H')
         df = df.set_index('time')
         
         #Diode ideality factors. a1 has to be 1 while a2 is flexible but it has to be above 1.2
@@ -1607,7 +1624,11 @@ class Electrical_simulation:
                 
                 row_qabs_front = df_report.loc[index,key_front]
                 row_qabs_back = df_report.loc[index,key_back]
-                T_Current = df.loc[index,'temperature']
+                
+                # estimate module temperture with ambient temperature and NOCT temp
+                T_Current = df.loc[index,'temperature'] + ((row_qabs_front/800)*(moduleDict['T_NOCT'] - 20))
+                if np.isnan(T_Current):
+                    T_Current = df.loc[index,'temperature']
                 
                 
                 #print("front: " + str(row_qabs_front))
@@ -1761,8 +1782,8 @@ class Electrical_simulation:
                     P_m=0
                     P_bi=0
                 
-                P_m_hourly.append(P_m)
-                P_bi_hourly.append(P_bi)
+                P_m_hourly.append(P_m/(simulationDict['moduley'] *simulationDict['modulex'])) # monofacial power output per module area [W/m2]
+                P_bi_hourly.append(P_bi/(simulationDict['moduley'] *simulationDict['modulex']))  #Bifacial Power Output per Module Area  [W/m2]
                 
             # Append P_bi_hourly array to arrays
             P_m_hourly_arrays.append(P_m_hourly)
@@ -1992,15 +2013,15 @@ class Electrical_simulation:
             df_report['timestamp'] = df_report.index
             df_report = df_report.reset_index()
             df_report['corrected_timestamp'] = pd.to_datetime(df_report['timestamp'])
-            df_report['time'] = df_report['corrected_timestamp'].dt.strftime('%m_%d_%H')
+            df_report['time'] = df_report['corrected_timestamp'].dt.strftime('%Y_%m_%d_%H')
             df_report = df_report.set_index('time')
             
             if simulationDict['simulationMode'] == 3:
                 df = df.reset_index()
                 
-                df['time'] = df['corrected_timestamp'].dt.strftime('%m_%d_%H')
+                df['time'] = df['corrected_timestamp'].dt.strftime('%Y_%m_%d_%H')
                 df = df.set_index('time')
-                df['timestamp'] = df['corrected_timestamp'].dt.strftime('%m-%d %H:%M%')
+                df['timestamp'] = df['corrected_timestamp'].dt.strftime('%Y-%m-%d %H:%M')
                 df['timestamp'] = pd.to_datetime(df['timestamp'])  
                 #df['timestamp'] = df['timestamp'].dt.tz_localize(None)
                 df = df.set_index('timestamp')
@@ -2012,7 +2033,7 @@ class Electrical_simulation:
                 mask = (df.index >= dtStart) & (df.index <= dtEnd) 
                 df = df.loc[mask]
             
-            df['time'] = df['corrected_timestamp'].dt.strftime('%m_%d_%H')
+            df['time'] = df['corrected_timestamp'].dt.strftime('%Y_%m_%d_%H')
             df = df.set_index('time')
             print(df_report)
             
@@ -2033,7 +2054,11 @@ class Electrical_simulation:
                     
                     row_qabs_front = df_report.loc[index,key_front]
                     row_qabs_back = df_report.loc[index,key_back]
-                    T_Current = df.loc[index,'temperature']
+                    
+                    # estimate module temperture with ambient temperature and NOCT temp
+                    T_Current = df.loc[index,'temperature'] + ((row_qabs_front/800)*(moduleDict['T_NOCT'] - 20))
+                    if np.isnan(T_Current):
+                        T_Current = df.loc[index,'temperature']
                     
                     
                     # calculation of frontside power output
@@ -2063,7 +2088,7 @@ class Electrical_simulation:
                     
                     sum_energy_b += P_bi # Sum up the energy of every row in every hour
 
-                    P_bi_hourly.append(P_bi)
+                    P_bi_hourly.append(P_bi/(simulationDict['moduley'] *simulationDict['modulex']))  #Bifacial Power Output per Module Area  [W/m2]
                     
                 # Append P_bi_hourly array to arrays
                 P_bi_hourly_arrays.append(P_bi_hourly)
@@ -2139,7 +2164,11 @@ class Electrical_simulation:
                     #row_qabs_front = row[key_front_mono]
                     #T_Current = df.loc[index,'temperature']
                     row_qabs_front = df_report.loc[index,key_front_mono]
-                    T_Current = df.loc[index,'temperature']
+                    
+                    # estimate module temperture with ambient temperature and NOCT temp
+                    T_Current = df.loc[index,'temperature'] + ((row_qabs_front/800)*(moduleDict['T_NOCT'] - 20))
+                    if np.isnan(T_Current):
+                        T_Current = df.loc[index,'temperature']
 
                     if math.isnan(row_qabs_front):
                         row_qabs_front = 0     
