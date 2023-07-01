@@ -75,6 +75,7 @@ SimulationDict_Heggelbach = {
                 'weatherFile' : rootPath + '/WeatherData/Heggelbach_Germany/Heggelbach_Germany_2022.csv',#'/WeatherData/Golden_USA/SRRLWeatherdata Nov_Dez_2.csv', #'/WeatherData/weatherfile_Hegelbach_2022.csv', #weather file in TMY format 
                 'spectralReflectancefile' : rootPath + '/ReflectivityData/interpolated_reflectivity.csv',
                 'cumulativeSky' : False, # Mode for RayTracing: CumulativeSky or hourly
+                'backTracking' : False,
                 'utcOffset': 2,#2,
                 'tilt' : 20, #tilt of the PV surface [deg]
                 'singleAxisTracking' : False, # singleAxisTracking or not
@@ -123,6 +124,7 @@ SimulationDict_Brazil_fixed = {
                 'weatherFile' : rootPath + '/WeatherData/Brazil/Brazil_Aug22-Jul23_grey_gravel_poa.csv',#'/WeatherData/Golden_USA/SRRLWeatherdata Nov_Dez_2.csv', #'/WeatherData/weatherfile_Hegelbach_2022.csv', #weather file in TMY format 
                 'spectralReflectancefile' : rootPath + '/ReflectivityData/interpolated_reflectivity.csv',
                 'cumulativeSky' : False, # Mode for RayTracing: CumulativeSky or hourly
+                'backTracking' : False,
                 'utcOffset': -3,
                 'tilt' : 30, #tilt of the PV surface [deg]
                 'limitAngle' : 0, # limit Angle for singleAxisTracking
@@ -149,6 +151,7 @@ SimulationDict_Brazil_tracked = {
                 'weatherFile' : rootPath + '/WeatherData/Brazil/Brazil_2021_grey_gravel.csv',#'/WeatherData/Golden_USA/SRRLWeatherdata Nov_Dez_2.csv', #'/WeatherData/weatherfile_Hegelbach_2022.csv', #weather file in TMY format 
                 'spectralReflectancefile' : rootPath + '/ReflectivityData/interpolated_reflectivity.csv',
                 'cumulativeSky' : False, # Mode for RayTracing: CumulativeSky or hourly
+                'backTracking' : False,
                 'utcOffset': -3,
                 'tilt' : 20, #tilt of the PV surface [deg]
                 'limitAngle' : 58, # limit Angle for singleAxisTracking
@@ -196,61 +199,66 @@ ModuleDict_Brazil = {
 #%% Test function
 def plot_lines(df, y_column, label, save_path, title, show=True):
     
-    plt.figure(figsize=(15,12),dpi=300)
+    try:
+        plt.figure(figsize=(15,12),dpi=300)
+            
+    
+        for variant in df['Variante'].unique():
+            temp_df = df[df['Variante'] == variant]
+            plt.plot(temp_df.index, temp_df[y_column], label=variant)
         
-
-    for variant in df['Variante'].unique():
-        temp_df = df[df['Variante'] == variant]
-        plt.plot(temp_df.index, temp_df[y_column], label=variant)
+        avg_line = df.groupby(df.index)[y_column].mean()  # Durchschnittskurve für alle Varianten
+        plt.plot(avg_line.index, avg_line, label='Simulation Average', linestyle='--', linewidth=2, color='darkred')   
+        
+        plt.plot(temp_df.index, temp_df['E_Wm2'], label='Field test data', linestyle='--', linewidth=2, color='black')    
     
-    avg_line = df.groupby(df.index)[y_column].mean()  # Durchschnittskurve für alle Varianten
-    plt.plot(avg_line.index, avg_line, label='Simulation Average', linestyle='--', linewidth=2, color='darkred')   
+        plt.ylabel(label, fontsize=6)
+        plt.title(title, fontsize=8)
+        plt.legend(fontsize=6)
+        plt.xticks(fontsize=6)
+        plt.yticks(fontsize=6) 
     
-    plt.plot(temp_df.index, temp_df['E_Wm2'], label='Field test data', linestyle='--', linewidth=2, color='black')    
-
-    plt.ylabel(label, fontsize=6)
-    plt.title(title, fontsize=8)
-    plt.legend(fontsize=6)
-    plt.xticks(fontsize=6)
-    plt.yticks(fontsize=6) 
-
-    plt.savefig(save_path+'/Line-'+title+'.png', format='png')
-
-    if show:
-        plt.show()
-    else:
-        plt.close()
-
+        plt.savefig(save_path+'/Line-'+title+'.png', format='png')
+    
+        if show:
+            plt.show()
+        else:
+            plt.close()
+    except Exception as err:
+        print('Plot Error:',err)        
 
 def plot_boxplots(df, y_columns, y_label, save_path, title, show=True):
-    n = len(y_columns)
+        
+    try:
+        n = len(y_columns)
+        
+        fig, axs = plt.subplots(n, 1, figsize=(15,12*n), dpi=300)
     
-    fig, axs = plt.subplots(n, 1, figsize=(15,12*n), dpi=300)
-
-
-    for i, y_column in enumerate(y_columns):
-        sns.boxplot(x='Variante', y=y_column, data=df, palette='Set3', ax=axs[i])
-        mean = df[y_column].mean()
-        axs[i].axhline(mean, color='r', linestyle='--')
-        #axs[i].text(0.95, mean, f'Mean: {mean:.2f}', verticalalignment='bottom', horizontalalignment='right', color='r', fontsize=8)
-        
-        axs[i].set_ylabel(y_label, fontsize=6)
-        axs[i].set_xlabel('', fontsize=2)
-        axs[i].set_title(f"{title} - {y_column}", fontsize=8)
-        
-        axs[i].tick_params(axis='x', labelsize=6)
-        axs[i].tick_params(axis='y', labelsize=6)
-
-
-    # Save the figure
-    plt.tight_layout()
-    plt.savefig(save_path + '/Boxplot-' + title.replace('/', '_') + '.png', format='png')
-
-    if show:
-        plt.show()
-    else:
-        plt.close()
-        
+    
+        for i, y_column in enumerate(y_columns):
+            sns.boxplot(x='Variante', y=y_column, data=df, palette='Set3', ax=axs[i])
+            mean = df[y_column].mean()
+            axs[i].axhline(mean, color='r', linestyle='--')
+            #axs[i].text(0.95, mean, f'Mean: {mean:.2f}', verticalalignment='bottom', horizontalalignment='right', color='r', fontsize=8)
+            
+            axs[i].set_ylabel(y_label, fontsize=6)
+            axs[i].set_xlabel('', fontsize=2)
+            axs[i].set_title(f"{title} - {y_column}", fontsize=8)
+            
+            axs[i].tick_params(axis='x', labelsize=6)
+            axs[i].tick_params(axis='y', labelsize=6)
+    
+    
+        # Save the figure
+        plt.tight_layout()
+        plt.savefig(save_path + '/Boxplot-' + title.replace('/', '_') + '.png', format='png')
+    
+        if show:
+            plt.show()
+        else:
+            plt.close()
+    except Exception as err:
+        print('Plot Error:',err)      
         
 def test_function(SimulationDict, ModuleDict, test_name, startHour, endHour, electricalMode, singleAxisTrackingMode,  real_results_path):
 
@@ -440,11 +448,18 @@ def test_function(SimulationDict, ModuleDict, test_name, startHour, endHour, ele
     procs = []
     runtime_df = pd.DataFrame()
     
+    
     for simMode in range(3):
         
-        for backTrackingMode in range(1): #
+        if singleAxisTrackingMode ==1 and simMode !=2:
+            continue
+        
+        for backTrackingMode in range(2): #
             
-            for albedoMode in range(1): # 
+            if backTrackingMode ==1 and singleAxisTrackingMode !=1:
+                continue
+            
+            for albedoMode in range(2): # 
             
                 for localFile in range(1,2):
                         
@@ -461,6 +476,10 @@ def test_function(SimulationDict, ModuleDict, test_name, startHour, endHour, ele
                     SimulationDict["singleAxisTracking"] = bool(singleAxisTrackingMode)
                     
                     define_albedo(albedoMode)
+
+                    #if singleAxisTrackingMode ==1:
+                     #   SimulationDict["backTrackingMode"] = True
+                    
 
                     if system == 'linux':
                         if simMode == 2 or simMode == 4:
@@ -512,8 +531,8 @@ if __name__ == '__main__':
         #heggelbach_h_21, heggelbach_d_21 = test_function(SimulationDict_Heggelbach, ModuleDict_Heggelbach, 'Heggelbach 2021', (2021, 8, 1, 5), (2021, 8, 2, 20), 0, 0, heggelbach_real_path)
         
         SimulationDict_Heggelbach['weatherFile'] = rootPath + '/WeatherData/Heggelbach_Germany/Heggelbach_Germany_2022.csv'
-        heggelbach_h_22, heggelbach_d_22 = test_function(SimulationDict_Heggelbach, ModuleDict_Heggelbach, 'Heggelbach 2022', (2022, 4, 27, 8), (2022, 4, 27, 18), 0, 0, heggelbach_real_path)
-        heggelbach_h_22_sat, heggelbach_d_22_sat = test_function(SimulationDict_Heggelbach, ModuleDict_Heggelbach, 'Heggelbach 2022 tracked', (2022, 4, 27, 8), (2022, 4, 27, 18), 0, True, heggelbach_real_path)
+        heggelbach_h_22, heggelbach_d_22 = test_function(SimulationDict_Heggelbach, ModuleDict_Heggelbach, 'Heggelbach 2022', (2022, 4, 27, 10), (2022, 4, 27, 11), 0, 0, heggelbach_real_path)
+        heggelbach_h_22_sat, heggelbach_d_22_sat = test_function(SimulationDict_Heggelbach, ModuleDict_Heggelbach, 'Heggelbach 2022 tracked', (2022, 4, 27, 11), (2022, 4, 27, 12), 0, 1, heggelbach_real_path)
         
         """simulate year"""
                 
@@ -544,11 +563,11 @@ if __name__ == '__main__':
         plot_lines(heggelbach_h_22, 'P_bi ', r'Bifacial Power Output [$\mathrm{\frac{W}{m^2}}$]', resultspath, 'Heggelbach 2022 - Hourly Bifacial Power Output', True)
         plot_lines(heggelbach_h_22_sat, 'P_bi ', r'Bifacial Power Output [$\mathrm{\frac{W}{m^2}}$]', resultspath, 'Heggelbach 2022 - Hourly Bifacial Power Output', True)
         
-        #plot_boxplots(heggelbach_d_17, ['delta_E_abs', 'delta_Q_front_abs', 'delta_Q_rear_abs' ], r'Energy per m$^2$  [$\mathrm{\frac{Wh}{m^2*d}}$]', resultspath, 'Heggelbach 2017 - Absolute Energy Difference - Daily', True)
-        #plot_boxplots(heggelbach_d_18, ['delta_E_abs', 'delta_Q_front_abs', 'delta_Q_rear_abs' ], r'Energy per m$^2$  [$\mathrm{\frac{Wh}{m^2*d}}$]', resultspath, 'Heggelbach 2018 - Absolute Energy Difference - Daily', True)
-        #plot_boxplots(heggelbach_d_21, ['delta_E_abs', 'delta_Q_front_abs', 'delta_Q_rear_abs' ], r'Energy per m$^2$  [$\mathrm{\frac{Wh}{m^2*d}}$]', resultspath, 'Heggelbach 2021 - Absolute Energy Difference - Daily', True)
-        plot_boxplots(heggelbach_d_22, ['delta_E_abs', 'delta_Q_front_abs', 'delta_Q_rear_abs' ], r'Energy per m$^2$  [$\mathrm{\frac{Wh}{m^2*d}}$]', resultspath, 'Heggelbach 2022 - Absolute Energy Difference - Daily', True)
-        plot_boxplots(heggelbach_d_22_sat, ['delta_E_abs', 'delta_Q_front_abs', 'delta_Q_rear_abs' ], r'Energy per m$^2$  [$\mathrm{\frac{Wh}{m^2*d}}$]', resultspath, 'Heggelbach 2022 - Absolute Energy Difference - Daily', True)
+        #plot_boxplots(heggelbach_d_17, ['delta_E_abs', 'delta_Q_front_abs', 'delta_Q_rear_abs' ], r'Energy yield per m$^2$  [$\mathrm{\frac{Wh}{m^2*d}}$]', resultspath, 'Heggelbach 2017 - Absolute Energy Difference - Daily', True)
+        #plot_boxplots(heggelbach_d_18, ['delta_E_abs', 'delta_Q_front_abs', 'delta_Q_rear_abs' ], r'Energy yield per m$^2$  [$\mathrm{\frac{Wh}{m^2*d}}$]', resultspath, 'Heggelbach 2018 - Absolute Energy Difference - Daily', True)
+        #plot_boxplots(heggelbach_d_21, ['delta_E_abs', 'delta_Q_front_abs', 'delta_Q_rear_abs' ], r'Energy yield per m$^2$  [$\mathrm{\frac{Wh}{m^2*d}}$]', resultspath, 'Heggelbach 2021 - Absolute Energy Difference - Daily', True)
+        plot_boxplots(heggelbach_d_22, ['delta_E_abs', 'delta_Q_front_abs', 'delta_Q_rear_abs' ], r'Energy yield per m$^2$  [$\mathrm{\frac{Wh}{m^2*d}}$]', resultspath, 'Heggelbach 2022 - Absolute Energy Difference - Daily', True)
+        plot_boxplots(heggelbach_d_22_sat, ['delta_E_abs', 'delta_Q_front_abs', 'delta_Q_rear_abs' ], r'Energy yield per m$^2$  [$\mathrm{\frac{Wh}{m^2*d}}$]', resultspath, 'Heggelbach 2022 - Absolute Energy Difference - Daily', True)
         
     except Exception as err:     
        print("Error:",err)

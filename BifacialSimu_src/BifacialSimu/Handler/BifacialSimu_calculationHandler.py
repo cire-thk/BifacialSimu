@@ -83,6 +83,10 @@ class Electrical_simulation:
             df_report = df_reportVF
         if simulationDict['simulationMode'] == 3:
             df_report = df_reportRT
+        if simulationDict['simulationMode'] == 4:
+            df_report = df_reportVF
+        if simulationDict['simulationMode'] == 5:
+            df_report = df_reportRT
         #df_report = df_report.reindex(sorted(df_report.columns), axis=1)
         df_report.to_csv(Path(resultsPath + "radiation_qabs_results.csv"))
         
@@ -183,33 +187,67 @@ class Electrical_simulation:
         P_bi_hourly_arrays = []
         P_m_hourly_arrays = []
         
-        df_report['timestamp'] = df_report.index
+
         df_report = df_report.reset_index()
-        df_report['corrected_timestamp'] = pd.to_datetime(df_report['timestamp'])
-        df_report['time'] = df_report['corrected_timestamp'].dt.strftime('%Y_%m_%d_%H')
-        df_report = df_report.set_index('time')
+        
+
+        if simulationDict['simulationMode'] == 2:
+            df_report['corrected_timestamp'] = pd.to_datetime(df_report['timestamp'])
+        
+        if 'corrected_timestamp' not in df_report.columns:
+            df_report['corrected_timestamp'] = pd.to_datetime(df_report['timestamp'])
+        if 'timestamp' not in df_report.columns:    
+            df_report['time'] = df_report['corrected_timestamp'].dt.strftime('%Y_%m_%d_%H')
+        if 'time' not in df_report.columns:    
+            df_report['time'] = df_report['corrected_timestamp'].dt.strftime('%Y_%m_%d_%H')
         
         
         
-        
-        if simulationDict['simulationMode'] == 3:
-            df = df.reset_index()
+        #if simulationDict['simulationMode'] == 1:  
+            #df_report['time'] = pd.to_datetime(df_report['timestamp'])
             
+            #custom_tz = dateutil.tz.tzoffset(None, simulationDict['utcOffset']*60*60)
+            #df['timestamp'] = pd.to_datetime(df['time'], format='%Y_%m_%d_%H').dt.tz_localize(custom_tz)
+            #df['time'] = pd.to_datetime(df['timestamp'])
+            
+        df_report = df_report.set_index('time')
+
+        if simulationDict['simulationMode'] == 3:
+
+            df = df.reset_index()
             df['time'] = df['corrected_timestamp'].dt.strftime('%Y_%m_%d_%H')
+  
             #df = df.set_index('time')
             #df['timestamp'] = df['corrected_timestamp'].dt.strftime('%Y-%m-%d %H:%M%')
-            df['timestamp'] = pd.to_datetime(df['corrected_timestamp'])  
+            if 'timestamp' not in df.columns:
+                df['timestamp'] = pd.to_datetime(df['corrected_timestamp'])  
             #df['timestamp'] = df['timestamp'].dt.tz_localize(None)
             df = df.set_index('timestamp')
+            print('DF 3:  ',df)
+            #dtStart = datetime.datetime(simulationDict['startHour'][0], simulationDict['startHour'][1], simulationDict['startHour'][2], simulationDict['startHour'][3], tzinfo=dateutil.tz.tzoffset(None, simulationDict['utcOffset']*60*60))
+            #dtEnd = datetime.datetime(simulationDict['endHour'][0], simulationDict['endHour'][1], simulationDict['endHour'][2], simulationDict['endHour'][3], tzinfo=dateutil.tz.tzoffset(None, simulationDict['utcOffset']*60*60))
+            #mask = (df.index >= dtStart) & (df.index <= dtEnd) 
+            #df = df.loc[mask]
+
+        if 'timestamp' not in df.columns:
+            df['timestamp'] = df['corrected_timestamp'].dt.strftime('%Y_%m_%d_%H')
+        
+        #df = df.set_index('time')
+        if not simulationDict['simulationMode'] == 2: 
+            df = df.set_index('time')
             
-            dtStart = datetime.datetime(simulationDict['startHour'][0], simulationDict['startHour'][1], simulationDict['startHour'][2], simulationDict['startHour'][3], tzinfo=dateutil.tz.tzoffset(None, simulationDict['utcOffset']*60*60))
-            dtEnd = datetime.datetime(simulationDict['endHour'][0], simulationDict['endHour'][1], simulationDict['endHour'][2], simulationDict['endHour'][3], tzinfo=dateutil.tz.tzoffset(None, simulationDict['utcOffset']*60*60))
-            mask = (df.index >= dtStart) & (df.index <= dtEnd) 
-            df = df.loc[mask]
+        if not isinstance(df.index[0], pd.Timestamp):
+            df.index = pd.to_datetime(df.index, format="%Y_%m_%d_%H")
+        if not isinstance(df_report.index[0], pd.Timestamp):
+            df_report.index = pd.to_datetime(df_report.index, format="%Y_%m_%d_%H")
         
-        df['time'] = df['corrected_timestamp'].dt.strftime('%Y_%m_%d_%H')
-        df = df.set_index('time')
         
+        dtStart = datetime.datetime(simulationDict['startHour'][0], simulationDict['startHour'][1], simulationDict['startHour'][2], simulationDict['startHour'][3], tzinfo=dateutil.tz.tzoffset(None, simulationDict['utcOffset']*60*60))  
+        
+        df = df.head(len(df_report))
+        new_date_range = pd.date_range(start = dtStart, periods=len(df), freq='H')
+        df = df.set_index(new_date_range) 
+        df_report = df_report.set_index(new_date_range)
         
         # Loop to calculate the Bifacial Output power for every row in every hour
         for i in tqdm(range(0, simulationDict['nRows'])):
@@ -220,12 +258,18 @@ class Electrical_simulation:
             P_bi_hourly = []
           
             for index, row in df_report.iterrows():
-                
-                row_qabs_front = df_report.loc[index,key_front]
-                row_qabs_back = df_report.loc[index,key_back]
+                if simulationDict['simulationMode'] == 5:
+                    row_qabs_front = 0
+                else:
+                    row_qabs_front = df_report.loc[index,key_front]
+                if simulationDict['simulationMode'] == 4:
+                    row_qabs_back = 0
+                else:
+                    row_qabs_back = df_report.loc[index,key_back]
                        
                 # estimate module temperture with ambient temperature and NOCT temp
                 T_Current = df.loc[index,'temperature'] + ((row_qabs_front/800)*(moduleDict['T_NOCT'] - 20))
+                
                 if np.isnan(T_Current):
                     T_Current = df.loc[index,'temperature']
                 
@@ -341,7 +385,10 @@ class Electrical_simulation:
             for index, row in df_report.iterrows():
                 
                 #SG
-                row_qabs_front = df_report.loc[index,key_front_mono]
+                if simulationDict['simulationMode'] == 5:
+                    row_qabs_front = 0
+                else:
+                    row_qabs_front = df_report.loc[index,key_front_mono]
                 
                 # estimate module temperture with ambient temperature and NOCT temp
                 T_Current = df.loc[index,'temperature'] + ((row_qabs_front/800)*(moduleDict['T_NOCT'] - 20))
@@ -571,9 +618,14 @@ class Electrical_simulation:
                 
                 #row_qabs_front = row[key_front]
                 #row_qabs_back = row[key_back]
-                
-                row_qabs_front = df_report.loc[index,key_front]
-                row_qabs_back = df_report.loc[index,key_back]
+                if simulationDict['simulationMode'] == 5:
+                    row_qabs_front = 0
+                else:
+                    row_qabs_front = df_report.loc[index,key_front]
+                if simulationDict['simulationMode'] == 4:
+                    row_qabs_back = 0
+                else:
+                    row_qabs_back = df_report.loc[index,key_back]
                 row_qabs_combined = row_qabs_front + (row_qabs_back*bi_factor)
                 
                 # estimate module temperture with ambient temperature and NOCT temp
@@ -672,7 +724,10 @@ class Electrical_simulation:
                 #SG
                 #row_qabs_front = row[key_front_mono]
                 #T_Current = df.loc[index,'temperature']
-                row_qabs_front = df_report.loc[index,key_front_mono]
+                if simulationDict['simulationMode'] == 5:
+                    row_qabs_front = 0
+                else:
+                    row_qabs_front = df_report.loc[index,key_front_mono]
                 
                 # estimate module temperture with ambient temperature and NOCT temp
                 T_Current = df.loc[index,'temperature'] + ((row_qabs_front/800)*(moduleDict['T_NOCT'] - 20))
@@ -1068,9 +1123,14 @@ class Electrical_simulation:
             P_bi_hourly = []
           
             for index, row in df_report.iterrows():
-                
-                row_qabs_front = df_report.loc[index,key_front]
-                row_qabs_back = df_report.loc[index,key_back]
+                if simulationDict['simulationMode'] == 5:
+                    row_qabs_front = 0
+                else:
+                    row_qabs_front = df_report.loc[index,key_front]
+                if simulationDict['simulationMode'] == 4:
+                    row_qabs_back = 0
+                else:
+                    row_qabs_back = df_report.loc[index,key_back]
                 
                 # estimate module temperture with ambient temperature and NOCT temp
                 T_Current = df.loc[index,'temperature'] + ((row_qabs_front/800)*(moduleDict['T_NOCT'] - 20))
@@ -1622,11 +1682,19 @@ class Electrical_simulation:
           
             for index, row in df_report.iterrows():
                 
-                row_qabs_front = df_report.loc[index,key_front]
-                row_qabs_back = df_report.loc[index,key_back]
+                if simulationDict['simulationMode'] == 5:
+                    row_qabs_front = 0
+                    T_Current = df.loc[index,'temperature'] + ((df_report.loc[index,key_back]/800)*(moduleDict['T_NOCT'] - 20))
+                else:
+                    row_qabs_front = df_report.loc[index,key_front]
+                    T_Current = df.loc[index,'temperature'] + ((row_qabs_front/800)*(moduleDict['T_NOCT'] - 20))
+                if simulationDict['simulationMode'] == 4:
+                    row_qabs_back = 0
+                else:
+                    row_qabs_back = df_report.loc[index,key_back]
                 
                 # estimate module temperture with ambient temperature and NOCT temp
-                T_Current = df.loc[index,'temperature'] + ((row_qabs_front/800)*(moduleDict['T_NOCT'] - 20))
+                
                 if np.isnan(T_Current):
                     T_Current = df.loc[index,'temperature']
                 
@@ -2051,9 +2119,14 @@ class Electrical_simulation:
                     
                     #row_qabs_front = row[key_front]
                     #row_qabs_back = row[key_back]
-                    
-                    row_qabs_front = df_report.loc[index,key_front]
-                    row_qabs_back = df_report.loc[index,key_back]
+                    if simulationDict['simulationMode'] == 5:
+                        row_qabs_front = 0
+                    else:
+                        row_qabs_front = df_report.loc[index,key_front]
+                    if simulationDict['simulationMode'] == 4:
+                        row_qabs_back = 0
+                    else:
+                        row_qabs_back = df_report.loc[index,key_back]
                     
                     # estimate module temperture with ambient temperature and NOCT temp
                     T_Current = df.loc[index,'temperature'] + ((row_qabs_front/800)*(moduleDict['T_NOCT'] - 20))
@@ -2163,7 +2236,10 @@ class Electrical_simulation:
                     #SG
                     #row_qabs_front = row[key_front_mono]
                     #T_Current = df.loc[index,'temperature']
-                    row_qabs_front = df_report.loc[index,key_front_mono]
+                    if simulationDict['simulationMode'] == 5:
+                        row_qabs_front = 0
+                    else:
+                        row_qabs_front = df_report.loc[index,key_front_mono]
                     
                     # estimate module temperture with ambient temperature and NOCT temp
                     T_Current = df.loc[index,'temperature'] + ((row_qabs_front/800)*(moduleDict['T_NOCT'] - 20))

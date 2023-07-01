@@ -112,7 +112,8 @@ class RayTrace:
             if simulationDict['singleAxisTracking'] == True:
                 demo.setGround(material = None)
             else:
-                sys.exit("The use of hourly Measured Albedo Values is not possible with fixed tilts at the moment")
+                demo.setGround(material = metdata.albedo)
+                #sys.exit("The use of hourly Measured Albedo Values is not possible with fixed tilts at the moment")
             
             # if material=None, then material = metdata.albedo 
             # metdata.albedo (datatype: np.ndarray) is colume of metdata = RadianceObj out of weatherfile with albedo values
@@ -164,30 +165,23 @@ class RayTrace:
             if simulationDict['singleAxisTracking'] == True:
 
                 # get SingleAxisTracking Data
-                trackerdict = demo.set1axis(metdata = metdata, limit_angle = simulationDict['limitAngle'], backtrack = simulationDict['backTracking'], 
-                            gcr = simulationDict['gcr'], cumulativesky = False)
+                trackerdict = demo.set1axis(metdata = metdata, limit_angle = simulationDict['limitAngle'], backtrack = simulationDict['backTracking'], gcr = simulationDict['gcr'], cumulativesky = False)
                 # make the sky
-                startdate = str(simulationDict['startHour'][0]) +'_'+str(simulationDict['startHour'][1]) +'_'+str(simulationDict['startHour'][2])+'_'+str(simulationDict['startHour'][3])
-                enddate = str(simulationDict['endHour'][0]) +'_'+str(simulationDict['endHour'][1]) +'_'+str(simulationDict['endHour'][2])+'_'+str(simulationDict['endHour'][3])
-                
-                trackerdict = demo.gendaylit1axis(startdate=startdate, enddate=enddate) 
-                # Make the Scene
-                trackerdict = demo.makeScene1axis(trackerdict = trackerdict, moduletype = simulationDict['module_type'], sceneDict = sceneDict)
-                
-                #demo.makeOct1axis()
-                #results_rtrace = demo.analysis1axis(customname="row_" + str(j+1), rowWanted = rowWanted, sensorsy = simulationDict['sensorsy'], onlyBackscan = onlyBackscan) 
-                
-                
-                
                 dtStart = datetime.datetime(simulationDict['startHour'][0], simulationDict['startHour'][1], simulationDict['startHour'][2], simulationDict['startHour'][3], tzinfo=dateutil.tz.tzoffset(None, simulationDict['utcOffset']*60*60))
                 beginning_of_year = datetime.datetime(dtStart.year, 1, 1, tzinfo=dtStart.tzinfo)
-                startHour = int((dtStart - beginning_of_year).total_seconds() // 3600)
-                
-                
+                startHour = int((dtStart - beginning_of_year).total_seconds() / 3600)
+
                 dtEnd = datetime.datetime(simulationDict['endHour'][0], simulationDict['endHour'][1], simulationDict['endHour'][2], simulationDict['endHour'][3], tzinfo=dateutil.tz.tzoffset(None, simulationDict['utcOffset']*60*60))
-                #beginning_of_year = datetime.datetime(dtEnd.year, 1, 1, tzinfo=dtEnd.tzinfo)
-                endHour = int((dtEnd - beginning_of_year).total_seconds() // 3600)
-                
+                endHour = int((dtEnd - beginning_of_year).total_seconds() / 3600)
+
+                trackerdict = demo.gendaylit1axis()
+
+                # Make the Scene
+                trackerdict = demo.makeScene1axis(trackerdict = trackerdict, moduletype = simulationDict['module_type'], sceneDict = sceneDict)
+
+                #demo.makeOct1axis()
+                #results_rtrace = demo.analysis1axis(customname="row_" + str(j+1), rowWanted = rowWanted, sensorsy = simulationDict['sensorsy'], onlyBackscan = onlyBackscan) 
+
                 ###############
                 #Begin raytracing procedure and save data in pd.dataframes
                 #df_rtraceFront: Dataframe with raytracing frontdata for all sensors - row-wise
@@ -214,8 +208,7 @@ class RayTrace:
                     x = time - startHour
                     
                     singleindex= dtStart + x*datetime.timedelta(hours=1) 
-                    print(singleindex)
-                    singleindex = singleindex.strftime('%Y_%m_%d_%H')
+                    singleindex = singleindex.strftime('%m_%d_%H')
                     
                     df_rtraceFront = pd.DataFrame()
                     df_rtraceBack = pd.DataFrame()
@@ -306,14 +299,12 @@ class RayTrace:
                 # print(df_rtraceBack)
                 # print(df_rtrace)
                 # print(df_reportRT)
-                
+
                 # Set timeindex for report
-                    
+                df_reportRT=df_reportRT.set_index(pd.date_range(start = dtStart - datetime.timedelta(minutes=60), end = dtEnd, freq='H', closed='right'))    
+                df_reportRT['timestamp'] = df_reportRT.index
                 df_reportRT.to_csv(resultsPath + "df_reportRT.csv")  
-                df_reportRT=df_reportRT.set_index(pd.date_range(start = dtStart - datetime.timedelta(minutes=30), end = dtEnd, freq='H', closed='right'))
-                
-                
-                
+
                 #demo.exportTrackerDict(trackerdict = demo.trackerdict, savefile = 'results\\test_reindexTrue.csv', reindex = False)
             
             
@@ -338,15 +329,17 @@ class RayTrace:
                 
         
                 solpos = metdata.solpos
-                #solpos.index[solpos['corrected_timestamp'] == dtStart].tolist()
-                
+
                 if simulationDict['localFile'] == False:
                     solpos.index = solpos.index.map(lambda dt: dt.replace(year=simulationDict['startHour'][0]) if pd.notnull(dt) else dt)
-                    solpos.index = pd.to_datetime(solpos.index) - datetime.timedelta(minutes=30)
+                    solpos.index = pd.to_datetime(solpos.index) + datetime.timedelta(minutes=30)
+        
                 else:
                     solpos.index = pd.to_datetime(solpos.index) + datetime.timedelta(minutes=30)
                     solpos.index = solpos.index.map(lambda dt: dt - pd.Timedelta(days=1) if dt.time() == datetime.time(0, 0) else dt)
-                
+                    new_date_range = pd.date_range(start = dtStart, periods=len(df), freq='H')
+                    solpos.index = new_date_range
+
                 # cut dataframe at start and end time
                 mask = (solpos.index >= dtStart) & (solpos.index <= dtEnd)
                 solpos = solpos.loc[mask]
@@ -375,7 +368,7 @@ class RayTrace:
                     #solpos = pvlib.irradiance.solarposition.get_solarposition(datetimetz,lat,lon,elev)
                     
                     #solpos = solpos.iloc[i]
-                    
+
                     sunalt = float(solpos.loc[i, 'elevation'])
                     sunaz = float(solpos.loc[i, 'azimuth'])-180
                     
@@ -468,13 +461,17 @@ class RayTrace:
                     i = i+1
                 
                 # Set timeindex for report
-                df_reportRT=df_reportRT.set_index(pd.date_range(start = dtStart - datetime.timedelta(minutes=60), end = dtEnd, freq='H', closed='right'))
+                df_reportRT=df_reportRT.set_index(pd.date_range(start = dtStart, periods=len(df_reportRT), freq='H'))
+                df_reportRT['timestamp'] = df_reportRT.index
                 df_reportRT.to_csv(Path(resultsPath + "/df_reportRT.csv")  )
+                if not 'corrected_timestamp' in df_reportRT.columns:
+                    df_reportRT['corrected_timestamp'] = pd.to_datetime(df_reportRT.index)
                 #print(df_rtraceFront)
                 #print(df_rtraceBack)
                 #print(df_rtrace)
-                print(df_reportRT)
-                
+        
+        
+            
         return df_reportRT
 
 
@@ -607,31 +604,32 @@ class ViewFactors:
             df = df.reset_index()
             
             df['time'] = df['corrected_timestamp'].dt.strftime('%Y_%m_%d_%H')
-            df = df.set_index('time')
+            #df = df.set_index('time')
             
             df = df.join(d['surf_tilt'])
+            
+            custom_tz = dateutil.tz.tzoffset(None, simulationDict['utcOffset']*60*60)
+            df['timestamp'] = pd.to_datetime(df['time'], format='%Y_%m_%d_%H').dt.tz_localize(custom_tz)
 
-            df['timestamp'] = df['corrected_timestamp'].dt.strftime('%Y-%m-%d %H:%M')
-            df['timestamp'] = pd.to_datetime(df['timestamp'])
+            #df['timestamp'] = df['time'].dt.strftime('%Y-%m-%d %H:%M')
+            #df['timestamp'] = pd.to_datetime(df['timestamp'])
+            
             #df['timestamp'] = df['timestamp'].dt.tz_localize(None)
             df = df.set_index('timestamp')
 
+
             surface_tilt = df['surf_tilt']
             print('view_factor dataframe at radiation handler:')
-            print(df.index)
             print(df)
         
         else:
 
             
             df = df.reset_index()
-            
+            custom_tz = dateutil.tz.tzoffset(None, simulationDict['utcOffset']*60*60)
             df['time'] = df['corrected_timestamp'].dt.strftime('%Y_%m_%d_%H')
-            df = df.set_index('time')
-            df['timestamp'] = df['corrected_timestamp'].dt.strftime('%Y-%m-%d %H:%M')
-            df['timestamp'] = pd.to_datetime(df['timestamp'], utc=True)
-            #df['timestamp'] = df['timestamp'].dt.tz_localize(None)
-            df = df.set_index('timestamp')
+            #df['timestamp'] = pd.to_datetime(df['time'], format='%Y_%m_%d_%H').dt.tz_localize(custom_tz)
+            df = df.set_index(pd.to_datetime(df['time'], format='%Y_%m_%d_%H').dt.tz_localize(custom_tz))
             
             surface_tilt = simulationParameter['surface_tilt']
         
@@ -1006,15 +1004,11 @@ class ViewFactors:
             Row_2_back_daily = []   # array to hold daily qabs back values of row 2
             cd = []             # array to hold hourly datetime
 
-            print(df_reportVF) 
-            #dtStart = datetime.date(simulationDict['startHour'][0], simulationDict['startHour'][1], simulationDict['startHour'][2])
-            #dtEnd = datetime.date(simulationDict['endHour'][0], simulationDict['endHour'][1], simulationDict['endHour'][2])
             
             dtStart = datetime.datetime(simulationDict['startHour'][0], simulationDict['startHour'][1], simulationDict['startHour'][2], simulationDict['startHour'][3], tzinfo=dateutil.tz.tzoffset(None, simulationDict['utcOffset']*60*60))
-            dtEnd = datetime.datetime(simulationDict['endHour'][0], simulationDict['endHour'][1], simulationDict['endHour'][2], simulationDict['endHour'][3], tzinfo=dateutil.tz.tzoffset(None, simulationDict['utcOffset']*60*60))
+            dtEnd = datetime.datetime(simulationDict['endHour'][0], simulationDict['endHour'][1], simulationDict['endHour'][2], simulationDict['endHour'][3], tzinfo=dateutil.tz.tzoffset(None, simulationDict['utcOffset']*60*60))#- datetime.timedelta(minutes=60)
             
             delta_days= dtEnd - dtStart
-            print("delta days", delta_days.days)
 
             for i in range(delta_days.days):
                 
@@ -1027,7 +1021,6 @@ class ViewFactors:
                 Row_1_back_hourly = []   # array to hold hourly qabs back values of row 1
                 Row_2_back_hourly = []   # array to hold hourly qabs back values of row 2
                 
-                #currentDate = datetime.datetime(simulationDict['startHour'][0], simulationDict['startHour'][1], simulationDict['startHour'][2], simulationDict['startHour'][3]) + pd.to_timedelta(i, unit='D') 
                 currentDate = datetime.datetime(simulationDict['startHour'][0], simulationDict['startHour'][1], simulationDict['startHour'][2], simulationDict['startHour'][3], tzinfo=dateutil.tz.tzoffset(None, simulationDict['utcOffset']*60*60))+ pd.to_timedelta(i, unit='D')
                 
                 for j in range(24):
@@ -1039,9 +1032,14 @@ class ViewFactors:
                     Row_0_front = df1.iloc[k]['row_0_qabs_front'] 
                     Row_1_front = df1.iloc[k]['row_1_qabs_front'] 
                     Row_2_front = df1.iloc[k]['row_2_qabs_front'] 
-                    Row_0_back = df1.iloc[k]['row_0_qabs_back'] 
-                    Row_1_back = df1.iloc[k]['row_1_qabs_back'] 
-                    Row_2_back = df1.iloc[k]['row_2_qabs_back']     
+                    if simulationDict['simulationMode'] ==4:
+                        Row_0_back = 0
+                        Row_1_back = 0
+                        Row_2_back = 0    
+                    else:
+                        Row_0_back = df1.iloc[k]['row_0_qabs_back'] 
+                        Row_1_back = df1.iloc[k]['row_1_qabs_back'] 
+                        Row_2_back = df1.iloc[k]['row_2_qabs_back']
                                
                     if Avg_front == 0:
                         Avg_front = np.nan
@@ -1093,7 +1091,6 @@ class ViewFactors:
             # create pandas dataframe to save the four arrays and give them headers
             df2 = pd.DataFrame({'datetime':cd, 'Average front surface irradiance': Avg_front_daily, 'Average rear surface irradiance': Avg_back_daily, 'Front surface irradiance row 1':Row_0_front_daily, 'Front surface irradiance row 2':Row_1_front_daily,'Front surface irradiance row 3':Row_2_front_daily,'Rear surface irradiance row 1':Row_0_back_daily, 'Rear surface irradiance row 2':Row_1_back_daily, 'Rear surface irradiance row 3':Row_2_back_daily})
             df2.set_index('datetime')
-            print(df2)
             return df2
         
         def plot_irradiance1(df2):
@@ -1172,8 +1169,6 @@ class ViewFactors:
             """
             
             
-            
-            
         else:
             report = engine.run_full_mode(fn_build_report=Segments_report_front)
             
@@ -1194,14 +1189,21 @@ class ViewFactors:
             f.savefig("row0-3_qinc.png", dpi = dpi)
             #plt.show()(sns)
             """
-        #df_reportVF=df_reportVF.set_index(pd.date_range(start = dtStart - datetime.timedelta(hours=1), end = dtEnd, freq='H', closed='right'))
-        df_reportVF=df_reportVF.set_index(pd.date_range(start = dtStart- datetime.timedelta(hours=1), end = dtEnd, freq='H', closed='right'))
         
+        custom_tz = dateutil.tz.tzoffset(None, simulationDict['utcOffset']*60*60)
+        df.index = df.index.tz_localize(None)
+        df.index = df.index.tz_localize(custom_tz)
+        if 'timestamp' not in df_reportVF.columns:
+            df_reportVF['timestamp'] = pd.to_datetime(df_reportVF.index)
+        else:
+            df_reportVF = df_reportVF.drop(columns='corrected_timestamp')
+            df_reportVF['timestamp'] = pd.to_datetime(df_reportVF.index)
+        #if not 'corrected_timestamp' in df_reportVF.columns:
+            #df_reportVF['corrected_timestamp'] = pd.to_datetime(df_reportVF.index)
+            #df_reportVF['timestamp'] = df_reportVF.index.strftime('%Y_%m_%d_%H')
         print("df_reportVF at end of RadiationHandler: ")
         print(df_reportVF)
 
-            
-        
             
 
         #df_reportVF.to_csv(resultsPath + "/radiation_qabs_results_" + datetime.now().strftime("%Y-%m-%d-%H-%M") + ".csv")
