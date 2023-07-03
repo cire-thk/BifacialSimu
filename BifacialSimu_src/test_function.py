@@ -548,7 +548,7 @@ if __name__ == '__main__':
         #heggelbach_h_22, heggelbach_d_22 = test_function(SimulationDict_Heggelbach, ModuleDict_Heggelbach, 'Heggelbach 2022', (2022, 4, 1, 5), (2022, 7, 31, 20), 0, heggelbach_real_path)
 
         #brazil_h, brazil_d = test_function(SimulationDict_Brazil_fixed, ModuleDict_Brazil, 'Brazil-fixed 2023 POA_conversion', (2023, 1, 1, 11), (2023, 1, 1, 13), 0, brazil_fixed_real_path)
-        brazil_h, brazil_d = test_function(SimulationDict_Brazil_tracked, ModuleDict_Brazil, 'Brazil tracked 2023 POA-conversion', (2023, 1, 1, 8), (2023, 1, 3, 18), 1, brazil_fixed_real_path)
+        brazil_h, brazil_d = test_function(SimulationDict_Brazil_tracked, ModuleDict_Brazil, 'Brazil tracked 2023 POA-conversion', (2023, 1, 1, 8), (2023, 1, 7, 18), 1, brazil_fixed_real_path)
 
         """simulate across year boundaries"""
 
