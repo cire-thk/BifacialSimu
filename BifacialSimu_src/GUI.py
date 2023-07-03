@@ -871,9 +871,9 @@ class Window(tk.Tk):
                   
                   data=pd.read_csv(resultsPath + "electrical_simulation" + datetime.datetime.now().strftime("%Y-%m-%d-%H-%M") + ".csv")
                   date=pd.read_csv(resultsPath + "/Data.csv")
-                  timestamp_start=date.timestamp [0]
+                  timestamp_start=date.time [0]
                  # print (timestamp_start)
-                  timestamp_end=len(date.timestamp)
+                  timestamp_end=len(date.time)
                  # timestamp_end=
                   idx=pd.date_range(timestamp_start, periods=timestamp_end, freq="1H")
                   
@@ -1976,9 +1976,9 @@ class Window(tk.Tk):
             
             data=pd.read_csv(resultsPath + "electrical_simulation" + datetime.datetime.now().strftime("%Y-%m-%d-%H-%M") + ".csv")
             date=pd.read_csv(resultsPath + "/Data.csv")
-            timestamp_start=date.timestamp [0]
+            timestamp_start=date.corrected_timestamp [0]
            # print (timestamp_start)
-            timestamp_end=len(date.timestamp)
+            timestamp_end=len(date.corrected_timestamp)
            # timestamp_end=
             idx=pd.date_range(timestamp_start, periods=timestamp_end, freq="1H")
             
