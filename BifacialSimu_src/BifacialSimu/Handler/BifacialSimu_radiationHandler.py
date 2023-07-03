@@ -59,6 +59,7 @@ from BifacialSimu_src.Vendor.pvfactors.viewfactors.aoimethods import faoi_fn_fro
 from BifacialSimu_src.Vendor.pvfactors.engine import PVEngine
 from BifacialSimu_src.Vendor.pvfactors import irradiance, geometry, viewfactors
 
+import ray
 from ray.util.multiprocessing import Pool
 
 ipython = get_ipython()
@@ -128,7 +129,6 @@ class RayTrace:
         
         ####################################################    
         
-            
 
         # DEFINE a Module type
         moduley = simulationDict['moduley']*simulationDict['nModsy']
@@ -161,14 +161,17 @@ class RayTrace:
                 octfile = demo.makeOct(demo.getfilelist())  
                 analysis = AnalysisObj(octfile, demo.basename)
                 frontscan, backscan = analysis.moduleAnalysis(scene)
-                results = analysis.analysis(octfile, demo.basename, frontscan, backscan, onlyBackscan = onlyBackscan)  
-        
+                results = analysis.analysis(octfile, demo.basename, frontscan, backscan, onlyBackscan = onlyBackscan)    
+            df_reportRT = results  
+
         #################
         # gendayLit
         # Single Axis Tracking
         else:
+            
             if simulationDict['singleAxisTracking'] == True:
-
+                
+                
                 # get SingleAxisTracking Data
                 trackerdict = demo.set1axis(metdata = metdata, limit_angle = simulationDict['limitAngle'], backtrack = simulationDict['backTracking'], gcr = simulationDict['gcr'], cumulativesky = False)
                 # make the sky
@@ -217,6 +220,7 @@ class RayTrace:
                     
                     df_rtrace = pd.DataFrame()
                     
+                    
                     def raytrace_row(j):
                         """" Multiprocessing function to simulate one row """
                         # =============================================================================
@@ -264,8 +268,11 @@ class RayTrace:
                     pool = Pool()
                     for result in pool.map(raytrace_row, range(simulationDict['nRows'])):
                         df_rtrace = df_rtrace.append(result)
+                    
                     pool.close()
                     pool.join()
+                    
+                    
                     
                     df_rtrace = df_rtrace.groupby(df_rtrace.index).mean() 
                 
@@ -301,8 +308,8 @@ class RayTrace:
                     
                     df_rtrace = df_rtrace.mean().to_frame().T   
                     df_reportRT = df_reportRT.append(df_rtrace)
-                    
-       
+                   
+                ray.shutdown()
                 # Set timeindex for report
                 df_reportRT = df_reportRT=df_reportRT.set_index(pd.date_range(start = dtStart, periods=len(df_reportRT), freq='H'))   
                 df_reportRT['timestamp'] = df_reportRT.index
@@ -314,6 +321,8 @@ class RayTrace:
             # Fixed tilt
                                    
             else:
+                
+                
                 scene = demo.makeScene(simulationDict['module_type'],sceneDict)
                 # Translate startHour und endHour in timeindexes
                 dtStart = datetime.datetime(simulationDict['startHour'][0], simulationDict['startHour'][1], simulationDict['startHour'][2], simulationDict['startHour'][3], tzinfo=dateutil.tz.tzoffset(None, simulationDict['utcOffset']*60*60))
@@ -377,7 +386,7 @@ class RayTrace:
                     octfile = demo.makeOct(demo.getfilelist())  
                     
                     
-                    analysis = AnalysisObj(octfile, demo.basename)                   
+                    analysis = AnalysisObj(octfile, demo.basename)
                     
                     def raytrace_row(j):
                         """"Multiprocessing function to simulate one row """
@@ -423,14 +432,14 @@ class RayTrace:
     
                             return df_rtrace
                     
+                    
                     pool = Pool()
                     for result in pool.map(raytrace_row, range(simulationDict['nRows'])):
                         df_rtrace = df_rtrace.append(result)
+                    
                     pool.close()
                     pool.join()
                     
-                    df_rtrace = df_rtrace.groupby(df_rtrace.index).mean()
-
                     
                     if octfile is not None:
                         for j in range(0, simulationDict['nRows']):
@@ -458,6 +467,8 @@ class RayTrace:
                     df_reportRT = df_reportRT.iloc[:1+i]
                     i = i+1
                 
+
+                ray.shutdown()
                 # Set timeindex for report
                 df_reportRT=df_reportRT.set_index(pd.date_range(start = dtStart, periods=len(df_reportRT), freq='H'))
                 df_reportRT['timestamp'] = df_reportRT.index
