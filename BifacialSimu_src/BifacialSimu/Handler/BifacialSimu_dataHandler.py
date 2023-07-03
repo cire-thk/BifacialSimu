@@ -93,7 +93,7 @@ class DataHandler:
                 pass
             metdata = demo.readEPW(epwfile, starttime= starttime, endtime=endtime) # read in the EPW weather data from above
 
-        else:
+        else:            
             metdata = demo.readTMY(simulationDict['weatherFile'], starttime= starttime, endtime=endtime)
 
         return metdata, demo
@@ -135,7 +135,6 @@ class DataHandler:
         df['corrected_timestamp'] = pd.to_datetime(df['corrected_timestamp'])
 
         # correct timestamp by replacing the year of the TMY file with the input year; setting UTC offset from weatherfile
-
         simulationDict['utcOffset'] = int(df['corrected_timestamp'][0].utcoffset().total_seconds()/3600) #set UTC offset from weatherfile
         df = df.drop(columns='corrected_timestamp')
         
