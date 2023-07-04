@@ -77,9 +77,7 @@ class DataHandler:
 
         starttime =  str(simulationDict['startHour'][1]) +'_'+ str(simulationDict['startHour'][2])+'_'+ str(simulationDict['startHour'][3]) 
         endtime = str(simulationDict['endHour'][1]) +'_'+ str(simulationDict['endHour'][2])+'_'+ str(simulationDict['endHour'][3])
-        endtime = pd.to_datetime(endtime, format='%m_%d_%H')
-        endtime += datetime.timedelta(minutes=60)
-        endtime = endtime.strftime('%m_%d_%H')
+        
         demo = BifacialSimu_radiationHandler.RayTrace.createDemo(simulationDict, resultsPath)
         
         if simulationDict['localFile'] == False:
@@ -91,10 +89,11 @@ class DataHandler:
                 epwfile = demo.getEPW(latitude,longitude) # pull TMY data for any global lat/lon
             except ConnectionError: # no connection to automatically pull data
                 pass
-            metdata = demo.readEPW(epwfile, starttime= starttime, endtime=endtime) # read in the EPW weather data from above
+            metdata = demo.readEPW(epwfile, starttime= starttime, endtime=endtime, label='center') # read in the EPW weather data from above
 
         else:            
-            metdata = demo.readTMY(simulationDict['weatherFile'], starttime= starttime, endtime=endtime)
+
+            metdata = demo.readWeatherFile(weatherFile=simulationDict['weatherFile'], starttime=starttime, endtime=endtime, label='center')
 
         return metdata, demo
     
@@ -113,7 +112,7 @@ class DataHandler:
         """
 
         df = metdata.solpos
-
+        print('DF at start of data handler',df)
         try:
             df['ghi'] = metdata.ghi
             df['dhi'] = metdata.dhi
@@ -129,19 +128,16 @@ class DataHandler:
             df['temperature'] = metdata.temp_air
             df['albedo'] = metdata.albedo
         
-        df['albedo'] = df['albedo'].apply(lambda x: simulationDict['albedo'] if x > 1 else x)        
-        
+        df['albedo'] = df['albedo'].apply(lambda x: simulationDict['albedo'] if x >= 1 or x <= 0 else x)
+
+        # setting UTC offset from weatherfile
         df = df.reset_index()
         df['corrected_timestamp'] = pd.to_datetime(df['corrected_timestamp'])
-
-        # correct timestamp by replacing the year of the TMY file with the input year; setting UTC offset from weatherfile
         simulationDict['utcOffset'] = int(df['corrected_timestamp'][0].utcoffset().total_seconds()/3600) #set UTC offset from weatherfile
-        df = df.drop(columns='corrected_timestamp')
-        
-        dtStart = datetime.datetime(simulationDict['startHour'][0], simulationDict['startHour'][1], simulationDict['startHour'][2], simulationDict['startHour'][3], tzinfo=dateutil.tz.tzoffset(None, simulationDict['utcOffset']*60*60))  
-        df['timestamp'] = pd.date_range(start = dtStart, periods=len(df), freq='H') 
+
+        df['timestamp'] = df['corrected_timestamp']
         df = df.set_index('timestamp')
-        df['corrected_timestamp'] = df.index
 
         df.to_csv(Path(resultsPath + "Dataframe_df.csv"))
+        
         return df

@@ -72,24 +72,24 @@ SimulationDict_Heggelbach = {
                 'spectralReflectancefile' : rootPath + '/ReflectivityData/interpolated_reflectivity.csv',
                 'cumulativeSky' : False, # Mode for RayTracing: CumulativeSky or hourly
                 'backTracking' : False,
-                'utcOffset': 2,#2,
+                'utcOffset': 2,
                 'tilt' : 20, #tilt of the PV surface [deg]
                 'singleAxisTracking' : False, # singleAxisTracking or not
                 'limitAngle' : 30, # limit Angle for singleAxisTracking
                 'hub_height' : 6.8, # Height of the rotation axis of the tracker [m]
                 'azimuth' : 232.5, #azimuth of the PV surface [deg] 90°: East, 135° : South-East, 180°:South
-                'nModsx' : 6, #number of modules in x-axis
+                'nModsx' : 10, #number of modules in x-axis
                 'nModsy' : 2, #number of modules in y-axis
-                'nRows' : 5, #number of rows
+                'nRows' : 10, #number of rows
                 'sensorsy' : 5, #number of sensors
-                'moduley' : 1.675,#1.675 ,#length of modules in y-axis
-                'modulex' : 1.001,#1.001, #length of modules in x-axis  
+                'moduley' : 1.675,#length of modules in y-axis
+                'modulex' : 1.001,#length of modules in x-axis  
                 'albedo' : 0.252, # Measured Albedo average value, if hourly isn't available
                 'frontReflect' : 0.03, #front surface reflectivity of PV rows
                 'BackReflect' : 0.05, #back surface reflectivity of PV rows
                 'longitude' : 9.136, 
                 'latitude' : 47.853,
-                'gcr' : 0.38,#0.35, #ground coverage ratio (module area / land use)
+                'gcr' : 0.38, #ground coverage ratio (module area / land use)
                 'module_type' : 'SW-Bisun-270-duo', #Name of Module                    
                 }
 
@@ -97,13 +97,13 @@ ModuleDict_Heggelbach = {
                 'bi_factor': 0.65, #bifacial factor
                 'n_front': 0.161, #module efficiency
                 'I_sc_f': 9.28, #Short-circuit current measured for front side illumination of the module at STC [A]
-                'I_sc_r': 0,#6.4, #Short-circuit current measured for rear side illumination of the module at STC [A]
+                'I_sc_r': 0, #Short-circuit current measured for rear side illumination of the module at STC [A]
                 'V_oc_f': 39, #Open-circuit voltage measured for front side illumination of module at STC [V]
-                'V_oc_r': 0,#38.4, #Open-circuit voltage measured for rear side illumination of module at STC [V]
+                'V_oc_r': 0, #Open-circuit voltage measured for rear side illumination of module at STC [V]
                 'V_mpp_f': 31.3, #Front Maximum Power Point Voltage [V]
-                'V_mpp_r': 0,#31.54, #Rear Maximum Power Point Voltage [V]
+                'V_mpp_r': 0,#Rear Maximum Power Point Voltage [V]
                 'I_mpp_f': 8.68, #Front Maximum Power Point Current [A]
-                'I_mpp_r': 0,#5.98, #Rear Maximum Power Point Current [A]
+                'I_mpp_r': 0, #Rear Maximum Power Point Current [A]
                 'P_mpp': 270, # Power at maximum power Point [W]
                 'T_koeff_P': -0.0043, #Temperature Coeffizient [1/°C]
                 'T_amb':20, #Ambient Temperature for measuring the Temperature Coeffizient [°C]
@@ -130,8 +130,8 @@ SimulationDict_Brazil_fixed = {
                 'nModsy' : 2, #number of modules in y-axis
                 'nRows' : 3, #number of rows
                 'sensorsy' : 5, #number of sensors
-                'moduley' : 2.384,#1.675 ,#length of modules in y-axis
-                'modulex' : 1.303,#1.001, #length of modules in x-axis  
+                'moduley' : 2.384,#length of modules in y-axis
+                'modulex' : 1.303, #length of modules in x-axis  
                 'albedo' : 0.145, # Measured Albedo average value, if hourly isn't available
                 'frontReflect' : 0.03, #front surface reflectivity of PV rows
                 'BackReflect' : 0.05, #back surface reflectivity of PV rows
@@ -157,8 +157,8 @@ SimulationDict_Brazil_tracked = {
                 'nModsy' : 1, #number of modules in y-axis
                 'nRows' : 5, #number of rows
                 'sensorsy' : 5, #number of sensors
-                'moduley' : 2.384,#1.675 ,#length of modules in y-axis
-                'modulex' : 1.303,#1.001, #length of modules in x-axis  
+                'moduley' : 2.384,#length of modules in y-axis
+                'modulex' : 1.303, #length of modules in x-axis  
                 'albedo' : 0.45, # Measured Albedo average value, if hourly isn't available
                 'frontReflect' : 0.03, #front surface reflectivity of PV rows
                 'BackReflect' : 0.05, #back surface reflectivity of PV rows
@@ -196,7 +196,7 @@ ModuleDict_Brazil = {
 def plot_lines(df, y_column, label, save_path, title, show=True):
     
     try:
-        plt.figure(figsize=(15,12),dpi=300)
+        plt.figure(figsize=(12,6),dpi=300)
             
     
         for variant in df['Variante'].unique():
@@ -368,7 +368,7 @@ def test_function(SimulationDict, ModuleDict, test_name, startHour, endHour, sin
                              gesamtergebnis_avg_df.loc[variante, 'delta_E_rel'] = (electrical_simulation_data['P_bi '].sum())/real_results.E_Wm2.sum() - 1
                              gesamtergebnis_avg_df.loc[variante, 'sim_runtime_s'] = timer_df.loc[variante, 'sim_runtime_s']
                              gesamtergebnis_avg_df.loc[variante, 'sim_runtime_m'] = timer_df.loc[variante, 'sim_runtime_s']/60
-                         
+                             gesamtergebnis_avg_df.loc[variante, 'Variante'] =  variante
                              combined_data = pd.merge(combined_data, electrical_simulation_data, left_index=True, right_index=True, how='inner')
                              combined_data['E_Wm2'] = combined_data['E_Wm2'].replace(0, np.nan)
                              combined_data['delta_E_rel'] = combined_data['P_bi '] / combined_data.E_Wm2 - 1
@@ -405,6 +405,7 @@ def test_function(SimulationDict, ModuleDict, test_name, startHour, endHour, sin
                                                  
                          gesamtergebnis_df = pd.concat([gesamtergebnis_df, combined_data])         
                          gesamtergebnis_df_d_avg = pd.concat([gesamtergebnis_df_d_avg, combined_data_d])
+                         
                  
          #%% Plot results        
                  #plot_lines(gesamtergebnis_df, 'P_bi ', r'Bifacial Power Output [$\mathrm{\frac{Wh}{m^2}}$]',  verzeichnis, name+'-all_variants', False)
@@ -418,7 +419,7 @@ def test_function(SimulationDict, ModuleDict, test_name, startHour, endHour, sin
              gesamtergebnis_df.to_csv(verzeichnis + '/'+ name + '-results_all_data.csv', index=True, encoding='utf-8-sig', na_rep='0')  
              gesamtergebnis_df_d_avg.to_csv(verzeichnis + '/'+ name + '-results_all_data_d_avg.csv', index=True, encoding='utf-8-sig', na_rep='0')                 
              gesamtergebnis_avg_df.to_csv(verzeichnis + '/'+ name + '-results_sum.csv', index=True, encoding='utf-8-sig', na_rep='0')
-             return gesamtergebnis_df, gesamtergebnis_df_d_avg
+             return gesamtergebnis_df, gesamtergebnis_df_d_avg, gesamtergebnis_avg_df
 
 #%% Test function - function to set albedo mode    
     def define_albedo(albedoMode):
@@ -512,10 +513,10 @@ def test_function(SimulationDict, ModuleDict, test_name, startHour, endHour, sin
             proc.join()
         
     time.sleep(0.2)
-    results_h, results_d = ergebnisausgabe(test_name, runtime_df)
+    results_h, results_d, results_avg = ergebnisausgabe(test_name, runtime_df)
     time.sleep(0.2)
     
-    return results_h, results_d
+    return results_h, results_d, results_avg
 
 #%% start test function
 
@@ -537,26 +538,20 @@ if __name__ == '__main__':
     
     try:
         """simulate 2 days"""
-        #SimulationDict_Heggelbach['weatherFile'] = rootPath + '/WeatherData/Heggelbach_Germany/Heggelbach_Germany_2021.csv'
-        #heggelbach_h_21, heggelbach_d_21 = test_function(SimulationDict_Heggelbach, ModuleDict_Heggelbach, 'Heggelbach 2021', (2021, 7, 2, 10), (2021, 7, 2, 12), 0, heggelbach_real_path)
         
-        #SimulationDict_Heggelbach['weatherFile'] = rootPath + '/WeatherData/Heggelbach_Germany/Heggelbach_Germany_2022.csv'
-        #heggelbach_h_22, heggelbach_d_22 = test_function(SimulationDict_Heggelbach, ModuleDict_Heggelbach, 'Heggelbach 2022', (2022, 4, 27, 11), (2022, 4, 27, 12), 0, heggelbach_real_path)
+        heggelbach_h_22, heggelbach_d_22, heggelbach_avg_22 = test_function(SimulationDict_Heggelbach, ModuleDict_Heggelbach, 'Heggelbach 2022', (2022, 6, 20, 0), (2022, 6, 25, 0), 0, heggelbach_real_path)
         
         """simulate year"""
-        heggelbach_h_22, heggelbach_d_22 = test_function(SimulationDict_Heggelbach, ModuleDict_Heggelbach, 'Heggelbach 2022', (2022, 8, 1, 9), (2022, 8, 7, 18), 0, heggelbach_real_path)
+        #heggelbach_h_22, heggelbach_d_22, heggelbach_avg_22 = test_function(SimulationDict_Heggelbach, ModuleDict_Heggelbach, 'Heggelbach 2022', (2022, 1, 1, 1), (2022, 12, 28, 0), 0, heggelbach_real_path)
 
         #brazil_fixed_h, brazil_fixed_d = test_function(SimulationDict_Brazil_fixed, ModuleDict_Brazil, 'Brazil-fixed 2023 POA_conversion', (2023, 1, 1, 11), (2023, 1, 1, 13), 0, brazil_fixed_real_path)
-        brazil_tracked_h, brazil_tracked_d = test_function(SimulationDict_Brazil_tracked, ModuleDict_Brazil, 'Brazil tracked 2023 POA-conversion', (2023, 1, 1, 9), (2023, 1, 7, 18), 1, brazil_tracked_real_path)        
+        #brazil_tracked_h, brazil_tracked_d, brazil_tracked_avg = test_function(SimulationDict_Brazil_tracked, ModuleDict_Brazil, 'Brazil tracked 2023 POA-conversion', (2023, 1, 1, 11), (2023, 1, 28, 12), 1, brazil_tracked_real_path)        
         
         #SimulationDict_Heggelbach['weatherFile'] = rootPath + '/WeatherData/Heggelbach_Germany/Heggelbach_Germany_2017.csv'
-        #heggelbach_h_17, heggelbach_d_17 = test_function(SimulationDict_Heggelbach, ModuleDict_Heggelbach, 'Heggelbach 2017', (2017, 1, 1, 5), (2017, 12, 31, 20), 0, heggelbach_real_path)
         
         #SimulationDict_Heggelbach['weatherFile'] = rootPath + '/WeatherData/Heggelbach_Germany/Heggelbach_Germany_2018.csv'
-        #heggelbach_h_18, heggelbach_d_18 = test_function(SimulationDict_Heggelbach, ModuleDict_Heggelbach, 'Heggelbach 2018', (2018, 1, 1, 5), (2018, 6, 30, 20), 0, heggelbach_real_path)
         
         #SimulationDict_Heggelbach['weatherFile'] = rootPath + '/WeatherData/Heggelbach_Germany/Heggelbach_Germany_2021.csv'
-        #heggelbach_h_21, heggelbach_d_21 = test_function(SimulationDict_Heggelbach, ModuleDict_Heggelbach, 'Heggelbach 2021', (2021, 1, 1, 5), (2021, 6, 30, 20), 0, heggelbach_real_path)
 
         """simulate across year boundaries"""
         
@@ -566,12 +561,13 @@ if __name__ == '__main__':
         #plot_lines(heggelbach_h_18, 'P_bi ', r'Bifacial Power Output [$\mathrm{\frac{W}{m^2}}$]', resultspath, 'Heggelbach 2018 - Hourly Bifacial Power Output', True)
         #plot_lines(heggelbach_h_21, 'P_bi ', r'Bifacial Power Output [$\mathrm{\frac{W}{m^2}}$]', resultspath, 'Heggelbach 2021 - Hourly Bifacial Power Output', True)
         plot_lines(heggelbach_h_22, 'P_bi ', r'Bifacial Power Output [$\mathrm{\frac{W}{m^2}}$]', resultspath, 'Heggelbach 2022 - Hourly Bifacial Power Output', True)
-        plot_lines(brazil_tracked_h, 'P_bi ', r'Bifacial Power Output [$\mathrm{\frac{W}{m^2}}$]', resultspath, 'Brazil tracked - Hourly Bifacial Power Output', True)
+        #plot_lines(brazil_tracked_h, 'P_bi ', r'Bifacial Power Output [$\mathrm{\frac{W}{m^2}}$]', resultspath, 'Brazil tracked - Hourly Bifacial Power Output', True)
         
         #plot_boxplots(heggelbach_d_17, ['delta_E_abs', 'delta_Q_front_abs', 'delta_Q_rear_abs' ], r'Energy yield per m$^2$  [$\mathrm{\frac{Wh}{m^2*d}}$]', resultspath, 'Heggelbach 2017 - Absolute Energy Difference - Daily', True)
         #plot_boxplots(heggelbach_d_18, ['delta_E_abs', 'delta_Q_front_abs', 'delta_Q_rear_abs' ], r'Energy yield per m$^2$  [$\mathrm{\frac{Wh}{m^2*d}}$]', resultspath, 'Heggelbach 2018 - Absolute Energy Difference - Daily', True)
         #plot_boxplots(heggelbach_d_21, ['delta_E_abs', 'delta_Q_front_abs', 'delta_Q_rear_abs' ], r'Energy yield per m$^2$  [$\mathrm{\frac{Wh}{m^2*d}}$]', resultspath, 'Heggelbach 2021 - Absolute Energy Difference - Daily', True)
         #plot_boxplots(heggelbach_d_22, ['delta_E_abs', 'delta_Q_front_abs', 'delta_Q_rear_abs' ], r'Energy yield per m$^2$  [$\mathrm{\frac{Wh}{m^2*d}}$]', resultspath, 'Heggelbach 2022 - Absolute Energy Difference - Daily', True)
+        plot_boxplots(heggelbach_avg_22, ['delta_E_rel', 'delta_E_rad_front_rel', 'delta_E_rad_rear_rel' ], r'Energy yield per m$^2$  [$\mathrm{\frac{Wh}{m^2}}$]', resultspath, 'Heggelbach 2022 - Relative Energy Difference - Full timeframe', True)
         #plot_boxplots(brazil_tracked_d, ['delta_E_abs', 'delta_Q_front_abs', 'delta_Q_rear_abs' ], r'Energy yield per m$^2$  [$\mathrm{\frac{Wh}{m^2*d}}$]', resultspath, 'Brazil tracked - Absolute Energy Difference - Daily', True)
         
     except Exception as err:     
