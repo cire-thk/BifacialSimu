@@ -208,11 +208,10 @@ class RayTrace:
                                 df_rtraceBack = pd.DataFrame({key_back: [np.NaN]})
                                 
                             df_rtrace = pd.concat([df_rtraceFront, df_rtraceBack], axis=1)
-                        
-                        print('\n!!!!!!!!!!!!!RESULTS-CUMSKY!!!!!!!!!!!!\n', df_rtrace)    
+                          
                         return df_rtrace
                                     
-                pool = Pool()
+                pool = Pool(processes = int(os.cpu_count()/1.4))
                 for result in pool.map(raytrace_row, range(simulationDict['nRows'])):
                     df_rtrace = pd.concat([df_rtrace, result], axis=1)
                 
@@ -252,7 +251,6 @@ class RayTrace:
             df_rtrace = df_rtrace.mean().to_frame().T
             df_reportRT = df_reportRT.append(df_rtrace)
 
-            print('\n!!!!!!!!!!!!!df_reportRT-CUMSKY!!!!!!!!!!!!\n', df_reportRT)
         #################
         # gendayLit
         # Single Axis Tracking
@@ -354,7 +352,7 @@ class RayTrace:
      
                             return df_rtrace
                     
-                    pool = Pool()
+                    pool = Pool(processes = int(os.cpu_count()/1.4))
                     for result in pool.map(raytrace_row, range(simulationDict['nRows'])):
                         df_rtrace = df_rtrace.append(result)
                     
@@ -497,7 +495,7 @@ class RayTrace:
     
                             return df_rtrace
                                         
-                    pool = Pool()
+                    pool = Pool(processes = int(os.cpu_count()/1.4))
                     for result in pool.map(raytrace_row, range(simulationDict['nRows'])):
                         df_rtrace = df_rtrace.append(result)
                     

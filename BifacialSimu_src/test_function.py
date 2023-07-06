@@ -21,6 +21,7 @@ import numpy as np
 import matplotlib.pyplot as plt
 from matplotlib.ticker import FuncFormatter
 import seaborn as sns
+import matplotlib
 
 
 #from BifacialSimu_src import globals
@@ -50,7 +51,7 @@ class ShutdownThread(threading.Thread):
                     return
                 s = 60-s
                 minutes  = self.time_to_abort - m
-                print(+f'\rSystem sleep in: {minutes} minutes {s} seconds! Enter anything to abort: ')
+                print(f'\rSystem sleep in: {minutes} minutes {s} seconds! Enter anything to abort: ')
                 time.sleep(1)
                 #print('\rEnter anything to abort!')
                 #time.sleep(0.5)
@@ -200,8 +201,11 @@ def plot_lines(df, y_column, label, save_path, title, show=True):
             
     
         for variant in df['Variante'].unique():
-            temp_df = df[df['Variante'] == variant]
+            #temp_df = df[df['Variante'] == variant]
+            #plt.plot(temp_df.index, temp_df[y_column], label=variant)
+            temp_df = df[df['Variante'] == variant].sort_index()
             plt.plot(temp_df.index, temp_df[y_column], label=variant)
+        
         
         avg_line = df.groupby(df.index)[y_column].mean()  # Durchschnittskurve für alle Varianten
         plt.plot(avg_line.index, avg_line, label='Simulation Average', linestyle='--', linewidth=2, color='darkred')   
@@ -223,29 +227,41 @@ def plot_lines(df, y_column, label, save_path, title, show=True):
     except Exception as err:
         print('Plot Error:',err)        
 
-def plot_boxplots(df, y_columns, y_label, save_path, title, show=True):
-        
+
+
+def plot_boxplots(df, y_columns, y_label, save_path, title, show=True, relative=False):
+    
+    # Definition of formatter function
+    def to_percent(y, position):
+        s = "{:.1f}".format(100 * y)
+        if matplotlib.rcParams['text.usetex'] is True:
+            return s + r'$\%$'
+        else:
+            return s + '%'
+    
+    # Formatter
+    formatter = FuncFormatter(to_percent)
+    
     try:
         n = len(y_columns)
         
         fig, axs = plt.subplots(n, 1, figsize=(15,12*n), dpi=300)
     
-    
         for i, y_column in enumerate(y_columns):
             sns.boxplot(x='Variante', y=y_column, data=df, palette='Set3', ax=axs[i])
             mean = df[y_column].mean()
             axs[i].axhline(mean, color='r', linestyle='--')
-            #axs[i].text(0.95, mean, f'Mean: {mean:.2f}', verticalalignment='bottom', horizontalalignment='right', color='r', fontsize=8)
-            
             axs[i].set_ylabel(y_label, fontsize=6)
             axs[i].set_xlabel('', fontsize=2)
             axs[i].set_title(f"{title} - {y_column}", fontsize=8)
             
             axs[i].tick_params(axis='x', labelsize=6)
             axs[i].tick_params(axis='y', labelsize=6)
+            
+            # Set y-axis to be in percentage format if relative is True
+            if relative:
+                axs[i].yaxis.set_major_formatter(formatter)
     
-    
-        # Save the figure
         plt.tight_layout()
         plt.savefig(save_path + '/Boxplot-' + title.replace('/', '_') + '.png', format='png')
     
@@ -254,7 +270,50 @@ def plot_boxplots(df, y_columns, y_label, save_path, title, show=True):
         else:
             plt.close()
     except Exception as err:
-        print('Plot Error:',err)      
+        print('Plot Error:', err)
+
+def plot_bars(df, y_columns, y_label, save_path, title, show=True, relative=False):
+    
+    # Definition of formatter function
+    def to_percent(y, position):
+        s = "{:.1f}".format(100 * y)
+        if matplotlib.rcParams['text.usetex'] is True:
+            return s + r'$\%$'
+        else:
+            return s + '%'
+    
+    # Formatter
+    formatter = FuncFormatter(to_percent)
+    
+    try:
+        n = len(y_columns)
+        
+        fig, axs = plt.subplots(n, 1, figsize=(15,12*n), dpi=300)
+    
+        for i, y_column in enumerate(y_columns):
+            sns.barplot(x='Variante', y=y_column, data=df, palette='Set3', ax=axs[i])
+            mean = df[y_column].mean()
+            axs[i].axhline(mean, color='r', linestyle='--')
+            axs[i].set_ylabel(y_label, fontsize=6)
+            axs[i].set_xlabel('', fontsize=2)
+            axs[i].set_title(f"{title} - {y_column}", fontsize=8)
+            
+            axs[i].tick_params(axis='x', labelsize=6)
+            axs[i].tick_params(axis='y', labelsize=6)
+            
+            # Set y-axis to be in percentage format if relative is True
+            if relative:
+                axs[i].yaxis.set_major_formatter(formatter)
+    
+        plt.tight_layout()
+        plt.savefig(save_path + '/Barchart-' + title.replace('/', '_') + '.png', format='png')
+    
+        if show:
+            plt.show()
+        else:
+            plt.close()
+    except Exception as err:
+        print('Plot Error:', err)
      
 def test_function(SimulationDict, ModuleDict, test_name, startHour, endHour, singleAxisTrackingMode,  real_results_path):
 
@@ -449,7 +508,7 @@ def test_function(SimulationDict, ModuleDict, test_name, startHour, endHour, sin
     procs = []
     runtime_df = pd.DataFrame()
     
-    for simMode in range(3):       
+    for simMode in range(2,3):       
         if singleAxisTrackingMode ==1 and simMode !=2:
             continue
         
@@ -539,13 +598,13 @@ if __name__ == '__main__':
     try:
         """simulate 2 days"""
         
-        heggelbach_h_22, heggelbach_d_22, heggelbach_avg_22 = test_function(SimulationDict_Heggelbach, ModuleDict_Heggelbach, 'Heggelbach 2022', (2022, 6, 20, 0), (2022, 6, 25, 0), 0, heggelbach_real_path)
+        heggelbach_h_22, heggelbach_d_22, heggelbach_avg_22 = test_function(SimulationDict_Heggelbach, ModuleDict_Heggelbach, 'Heggelbach 2022', (2022, 1, 1, 9), (2022, 1, 4, 20), 0, heggelbach_real_path)
         
         """simulate year"""
         #heggelbach_h_22, heggelbach_d_22, heggelbach_avg_22 = test_function(SimulationDict_Heggelbach, ModuleDict_Heggelbach, 'Heggelbach 2022', (2022, 1, 1, 1), (2022, 12, 28, 0), 0, heggelbach_real_path)
 
         #brazil_fixed_h, brazil_fixed_d = test_function(SimulationDict_Brazil_fixed, ModuleDict_Brazil, 'Brazil-fixed 2023 POA_conversion', (2023, 1, 1, 11), (2023, 1, 1, 13), 0, brazil_fixed_real_path)
-        #brazil_tracked_h, brazil_tracked_d, brazil_tracked_avg = test_function(SimulationDict_Brazil_tracked, ModuleDict_Brazil, 'Brazil tracked 2023 POA-conversion', (2023, 1, 1, 11), (2023, 1, 28, 12), 1, brazil_tracked_real_path)        
+        #brazil_tracked_h, brazil_tracked_d, brazil_tracked_avg = test_function(SimulationDict_Brazil_tracked, ModuleDict_Brazil, 'Brazil tracked 2023 POA-conversion', (2023, 1, 1, 8), (2023, 1, 1, 18), 1, brazil_tracked_real_path)        
         
         #SimulationDict_Heggelbach['weatherFile'] = rootPath + '/WeatherData/Heggelbach_Germany/Heggelbach_Germany_2017.csv'
         
@@ -567,12 +626,14 @@ if __name__ == '__main__':
         #plot_boxplots(heggelbach_d_18, ['delta_E_abs', 'delta_Q_front_abs', 'delta_Q_rear_abs' ], r'Energy yield per m$^2$  [$\mathrm{\frac{Wh}{m^2*d}}$]', resultspath, 'Heggelbach 2018 - Absolute Energy Difference - Daily', True)
         #plot_boxplots(heggelbach_d_21, ['delta_E_abs', 'delta_Q_front_abs', 'delta_Q_rear_abs' ], r'Energy yield per m$^2$  [$\mathrm{\frac{Wh}{m^2*d}}$]', resultspath, 'Heggelbach 2021 - Absolute Energy Difference - Daily', True)
         #plot_boxplots(heggelbach_d_22, ['delta_E_abs', 'delta_Q_front_abs', 'delta_Q_rear_abs' ], r'Energy yield per m$^2$  [$\mathrm{\frac{Wh}{m^2*d}}$]', resultspath, 'Heggelbach 2022 - Absolute Energy Difference - Daily', True)
-        plot_boxplots(heggelbach_avg_22, ['delta_E_rel', 'delta_E_rad_front_rel', 'delta_E_rad_rear_rel' ], r'Energy yield per m$^2$  [$\mathrm{\frac{Wh}{m^2}}$]', resultspath, 'Heggelbach 2022 - Relative Energy Difference - Full timeframe', True)
+        #plot_boxplots(heggelbach_avg_22, ['delta_E_rel', 'delta_E_rad_front_rel', 'delta_E_rad_rear_rel' ], r'Energy yield per m$^2$  [$\mathrm{\frac{Wh}{m^2}}$]', resultspath, 'Heggelbach 2022 - Relative Energy Difference - Full timeframe', True, True)
+        #plot_bars(heggelbach_avg_22, ['delta_E_rel', 'delta_E_rad_front_rel', 'delta_E_rad_rear_rel' ], r'Energy yield per m$^2$  [$\mathrm{\frac{Wh}{m^2}}$]', resultspath, 'Heggelbach 2022 - Relative Energy Difference - Full timeframe', True, True)
         #plot_boxplots(brazil_tracked_d, ['delta_E_abs', 'delta_Q_front_abs', 'delta_Q_rear_abs' ], r'Energy yield per m$^2$  [$\mathrm{\frac{Wh}{m^2*d}}$]', resultspath, 'Brazil tracked - Absolute Energy Difference - Daily', True)
         
     except Exception as err:     
        print("Error:",err)
 
+    
     """Initiate system sleep when simulation is complete""" 
     if system_shutdown == True:    
         
