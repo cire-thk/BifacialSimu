@@ -59,6 +59,7 @@ from BifacialSimu_src.Vendor.pvfactors.viewfactors.aoimethods import faoi_fn_fro
 from BifacialSimu_src.Vendor.pvfactors.engine import PVEngine
 from BifacialSimu_src.Vendor.pvfactors import irradiance, geometry, viewfactors
 
+import ray
 from ray.util.multiprocessing import Pool
 
 ipython = get_ipython()
@@ -128,7 +129,6 @@ class RayTrace:
         
         ####################################################    
         
-            
 
         # DEFINE a Module type
         moduley = simulationDict['moduley']*simulationDict['nModsy']
@@ -142,6 +142,8 @@ class RayTrace:
         # Cumulativ Sky
         
         if simulationDict['cumulativeSky'] == True:
+            dtStart = datetime.datetime(simulationDict['startHour'][0], simulationDict['startHour'][1], simulationDict['startHour'][2], simulationDict['startHour'][3], tzinfo=dateutil.tz.tzoffset(None, simulationDict['utcOffset']*60*60))
+            
             if simulationDict['singleAxisTracking'] == True:
                 # get SingleAxisTracking Data
                 trackerdict = demo.set1axis(metdata = metdata, limit_angle = simulationDict['limitAngle'], backtrack = simulationDict['backTracking'], 
@@ -153,6 +155,7 @@ class RayTrace:
                 # make oct file
                 trackerdict = demo.makeOct1axis(trackerdict = trackerdict)
                 results = demo.analysis1axis(trackerdict, onlyBackscan = onlyBackscan)
+                
                 #demo.exportTrackerDict(trackerdict = demo.trackerdict, savefile = 'results\\test_reindexTrue.csv', reindex = False)
             else:
                 scene = demo.makeScene(simulationDict['module_type'],sceneDict)
@@ -160,17 +163,104 @@ class RayTrace:
                 
                 octfile = demo.makeOct(demo.getfilelist())  
                 analysis = AnalysisObj(octfile, demo.basename)
-                frontscan, backscan = analysis.moduleAnalysis(scene)
-                results = analysis.analysis(octfile, demo.basename, frontscan, backscan, onlyBackscan = onlyBackscan)  
+   
+                df_rtrace = pd.DataFrame()
+                df_reportRT = pd.DataFrame()
+                
+                def raytrace_row(j):
+                    """"Multiprocessing function to simulate one row """
+                    # =============================================================================
+                    #                     Check Simulation Break Flag
+                    # =============================================================================
+                    if globals.thread_break == True:
+                        print("Simulation was Stopped!")
+                        messagebox.showinfo("Simulation Stopped!", "The simulation was successfully terminated!")
+                        return 'Simulation was Stopped!'
+                    else:
+                        df_rtraceFront  = pd.DataFrame()
+                        df_rtraceBack  = pd.DataFrame()
+                        
+                        key_front = "row_" + str(j) + "_qinc_front"
+                        key_back = "row_" + str(j) + "_qinc_back"
+                        
+                        rowWanted = j
+                        
+                        if octfile != None:
+                            
+                            frontscan, backscan = analysis.moduleAnalysis(scene, rowWanted=rowWanted, sensorsy=  simulationDict['sensorsy'])
+                            results_rtrace = analysis.analysis(octfile, "row_" + str(j), frontscan, backscan, onlyBackscan = onlyBackscan)
+
+                            if onlyBackscan == False:
+
+                                df_rtraceFront[key_front] = pd.Series(analysis.Wm2Front) *8
+                                df_rtraceBack[key_back] = pd.Series(analysis.Wm2Back) *8
         
+                            else:
+                                df_rtraceBack[key_back] = pd.Series(analysis.Wm2Back)  
+                                                           
+                            df_rtrace = pd.concat([df_rtraceFront, df_rtraceBack], axis=1)
+                            
+                        else:
+                            if onlyBackscan == False:
+                                df_rtraceFront[key_front] = pd.Series([np.NaN])
+                                df_rtraceBack[key_back] = pd.Series([np.NaN])
+                            else:
+                                df_rtraceBack = pd.DataFrame({key_back: [np.NaN]})
+                                
+                            df_rtrace = pd.concat([df_rtraceFront, df_rtraceBack], axis=1)
+                          
+                        return df_rtrace
+                                    
+                pool = Pool(processes = int(os.cpu_count()/1.4))
+                for result in pool.map(raytrace_row, range(simulationDict['nRows'])):
+                    df_rtrace = pd.concat([df_rtrace, result], axis=1)
+                
+                pool.close()
+                pool.join()
+                
+                for j in range(0, simulationDict['nRows']):
+                    
+                    # =============================================================================
+                    #                     Check Simulation Break Flag
+                    # =============================================================================
+                    if globals.thread_break == True:
+                        print("Simulation was Stopped!")
+                        messagebox.showinfo("Simulation Stopped!", "The simulation was successfully terminated!")
+                        break
+                    
+                    else:
+                        
+                        key_front = "row_" + str(j) + "_qinc_front"
+                        key_back = "row_" + str(j) + "_qinc_back"
+                        
+                        key_front_abs = "row_" + str(j) + "_qabs_front"
+                        key_back_abs = "row_" + str(j) + "_qabs_back"
+                        
+                        
+                        if onlyBackscan == False:
+                            df_rtrace[key_front] = np.mean(df_rtrace[key_front])       
+                            df_rtrace[key_back] = np.mean(df_rtrace[key_back])
+                            
+                            df_rtrace[key_front_abs] = df_rtrace[key_front] * (1-simulationDict['frontReflect'])   
+                            df_rtrace[key_back_abs] = df_rtrace[key_back] * (1-simulationDict['BackReflect'])
+                        else:
+                            df_rtrace[key_back] = np.mean(df_rtrace[key_back])
+                            df_rtrace[key_back_abs] = df_rtrace[key_back] * (1-simulationDict['BackReflect'])
+                
+                
+            df_rtrace = df_rtrace.mean().to_frame().T
+            df_reportRT = df_reportRT.append(df_rtrace)
+
         #################
         # gendayLit
         # Single Axis Tracking
         else:
+            
             if simulationDict['singleAxisTracking'] == True:
 
                 # get SingleAxisTracking Data
                 trackerdict = demo.set1axis(metdata = metdata, limit_angle = simulationDict['limitAngle'], backtrack = simulationDict['backTracking'], gcr = simulationDict['gcr'], cumulativesky = False)
+    
                 # make the sky
                 dtStart = datetime.datetime(simulationDict['startHour'][0], simulationDict['startHour'][1], simulationDict['startHour'][2], simulationDict['startHour'][3], tzinfo=dateutil.tz.tzoffset(None, simulationDict['utcOffset']*60*60))
                 beginning_of_year = datetime.datetime(dtStart.year, 1, 1, tzinfo=dtStart.tzinfo)
@@ -217,6 +307,7 @@ class RayTrace:
                     
                     df_rtrace = pd.DataFrame()
                     
+                    
                     def raytrace_row(j):
                         """" Multiprocessing function to simulate one row """
                         # =============================================================================
@@ -261,9 +352,10 @@ class RayTrace:
      
                             return df_rtrace
                     
-                    pool = Pool()
+                    pool = Pool(processes = int(os.cpu_count()/1.4))
                     for result in pool.map(raytrace_row, range(simulationDict['nRows'])):
                         df_rtrace = df_rtrace.append(result)
+                    
                     pool.close()
                     pool.join()
                     
@@ -301,19 +393,15 @@ class RayTrace:
                     
                     df_rtrace = df_rtrace.mean().to_frame().T   
                     df_reportRT = df_reportRT.append(df_rtrace)
-                    
-       
-                # Set timeindex for report
-                df_reportRT = df_reportRT=df_reportRT.set_index(pd.date_range(start = dtStart, periods=len(df_reportRT), freq='H'))   
-                df_reportRT['timestamp'] = df_reportRT.index
-                df_reportRT.to_csv(resultsPath + "df_reportRT.csv")   
-            
+                   
+                ray.shutdown()     
             
             #################
             # gendayLit
             # Fixed tilt
                                    
             else:
+                
                 scene = demo.makeScene(simulationDict['module_type'],sceneDict)
                 # Translate startHour und endHour in timeindexes
                 dtStart = datetime.datetime(simulationDict['startHour'][0], simulationDict['startHour'][1], simulationDict['startHour'][2], simulationDict['startHour'][3], tzinfo=dateutil.tz.tzoffset(None, simulationDict['utcOffset']*60*60))
@@ -324,26 +412,11 @@ class RayTrace:
                 endHour = int((dtEnd - beginning_of_year).total_seconds() // 3600)
                 
                 df = dataFrame
-                mask = (df.corrected_timestamp >= dtStart) & (df.corrected_timestamp <= dtEnd) 
-                df_gendaylit= df.loc[mask]
+                df_gendaylit= df
                 df_gendaylit = df_gendaylit.reset_index()
-                
-        
+
                 solpos = metdata.solpos
 
-                if simulationDict['localFile'] == False:
-                    solpos.index = solpos.index.map(lambda dt: dt.replace(year=simulationDict['startHour'][0]) if pd.notnull(dt) else dt)
-                    solpos.index = pd.to_datetime(solpos.index) + datetime.timedelta(minutes=30)
-        
-                else:
-                    solpos.index = pd.to_datetime(solpos.index) + datetime.timedelta(minutes=30)
-                    solpos.index = solpos.index.map(lambda dt: dt - pd.Timedelta(days=1) if dt.time() == datetime.time(0, 0) else dt)
-                    new_date_range = pd.date_range(start = dtStart, periods=len(df), freq='H')
-                    solpos.index = new_date_range
-
-                # cut dataframe at start and end time
-                mask = (solpos.index >= dtStart) & (solpos.index <= dtEnd)
-                solpos = solpos.loc[mask]
                 solpos.reset_index(drop=True, inplace=True)
                 
                 df_reportRT = pd.DataFrame()
@@ -376,8 +449,7 @@ class RayTrace:
                     
                     octfile = demo.makeOct(demo.getfilelist())  
                     
-                    
-                    analysis = AnalysisObj(octfile, demo.basename)                   
+                    analysis = AnalysisObj(octfile, demo.basename)
                     
                     def raytrace_row(j):
                         """"Multiprocessing function to simulate one row """
@@ -422,16 +494,14 @@ class RayTrace:
                                 df_rtrace = pd.concat([df_rtraceFront, df_rtraceBack], axis=1)
     
                             return df_rtrace
-                    
-                    pool = Pool()
+                                        
+                    pool = Pool(processes = int(os.cpu_count()/1.4))
                     for result in pool.map(raytrace_row, range(simulationDict['nRows'])):
                         df_rtrace = df_rtrace.append(result)
+                    
                     pool.close()
                     pool.join()
-                    
-                    df_rtrace = df_rtrace.groupby(df_rtrace.index).mean()
-
-                    
+          
                     if octfile is not None:
                         for j in range(0, simulationDict['nRows']):
                     
@@ -440,8 +510,7 @@ class RayTrace:
                             
                             key_front_abs = "row_" + str(j) + "_qabs_front"
                             key_back_abs = "row_" + str(j) + "_qabs_back"
-                            
-                            
+                                    
                             if onlyBackscan == False:
                                 df_rtrace[key_front] = np.mean(df_rtrace[key_front])       
                                 df_rtrace[key_back] = np.mean(df_rtrace[key_back])
@@ -452,25 +521,21 @@ class RayTrace:
                                 df_rtrace[key_back] = np.mean(df_rtrace[key_back])
                                 df_rtrace[key_back_abs] = df_rtrace[key_back] * (1-simulationDict['BackReflect'])
                                
-                        df_reportRT = df_reportRT.append(df_rtrace)
-
+                        df_reportRT = df_reportRT.append(df_rtrace)       
                     df_reportRT = df_reportRT.append(df_rtrace)
                     df_reportRT = df_reportRT.iloc[:1+i]
-                    i = i+1
-                
-                # Set timeindex for report
-                df_reportRT=df_reportRT.set_index(pd.date_range(start = dtStart, periods=len(df_reportRT), freq='H'))
-                df_reportRT['timestamp'] = df_reportRT.index
-                df_reportRT.to_csv(Path(resultsPath + "/df_reportRT.csv")  )
-                if not 'corrected_timestamp' in df_reportRT.columns:
-                    df_reportRT['corrected_timestamp'] = pd.to_datetime(df_reportRT.index)
-                    
-                #print(df_rtraceFront)
-                #print(df_rtraceBack)
-                #print(df_rtrace)
+                      
+                    i = i+1        
+
+                ray.shutdown()
         
-        
-            
+        # Set timeindex for report        
+        df_reportRT=df_reportRT.set_index(pd.date_range(start = dtStart, periods=len(df_reportRT), freq='H'))
+        df_reportRT['timestamp'] = df_reportRT.index
+        df_reportRT.to_csv(Path(resultsPath + "/df_reportRT.csv")  )
+        if not 'corrected_timestamp' in df_reportRT.columns:
+            df_reportRT['corrected_timestamp'] = pd.to_datetime(df_reportRT.index)
+
         return df_reportRT
 
 
@@ -603,19 +668,13 @@ class ViewFactors:
             df = df.reset_index()
             
             df['time'] = df['corrected_timestamp'].dt.strftime('%Y_%m_%d_%H')
-            #df = df.set_index('time')
             
             df = df.join(d['surf_tilt'])
             
             custom_tz = dateutil.tz.tzoffset(None, simulationDict['utcOffset']*60*60)
             df['timestamp'] = pd.to_datetime(df['time'], format='%Y_%m_%d_%H').dt.tz_localize(custom_tz)
 
-            #df['timestamp'] = df['time'].dt.strftime('%Y-%m-%d %H:%M')
-            #df['timestamp'] = pd.to_datetime(df['timestamp'])
-            
-            #df['timestamp'] = df['timestamp'].dt.tz_localize(None)
             df = df.set_index('timestamp')
-
 
             surface_tilt = df['surf_tilt']
             print('view_factor dataframe at radiation handler:')
@@ -623,7 +682,6 @@ class ViewFactors:
         
         else:
 
-            
             df = df.reset_index()
             custom_tz = dateutil.tz.tzoffset(None, simulationDict['utcOffset']*60*60)
             df['time'] = df['corrected_timestamp'].dt.strftime('%Y_%m_%d_%H')
@@ -633,22 +691,6 @@ class ViewFactors:
             surface_tilt = simulationParameter['surface_tilt']
         
         
-        dtStart = datetime.datetime(simulationDict['startHour'][0], simulationDict['startHour'][1], simulationDict['startHour'][2], simulationDict['startHour'][3], tzinfo=dateutil.tz.tzoffset(None, simulationDict['utcOffset']*60*60))
-        #beginning_of_year = datetime.datetime(dtStart.year, 1, 1, tzinfo=dtStart.tzinfo)
-        #startHour = int((dtStart - beginning_of_year).total_seconds() // 3600)
-        
-        
-        dtEnd = datetime.datetime(simulationDict['endHour'][0], simulationDict['endHour'][1], simulationDict['endHour'][2], simulationDict['endHour'][3], tzinfo=dateutil.tz.tzoffset(None, simulationDict['utcOffset']*60*60))
-        #beginning_of_year = datetime.datetime(dtEnd.year, 1, 1, tzinfo=dtEnd.tzinfo)
-        #endHour = int((dtEnd - beginning_of_year).total_seconds() // 3600)
-
-        
-        ######### Cutting the dataframe to the required input timeframe
-        if simulationDict['cumulativeSky'] == False:
-            #df = df.iloc[startHour:endHour]
-            mask = (df.corrected_timestamp >= dtStart) & (df.corrected_timestamp <= dtEnd)
-            df = df.loc[mask]
-
         ####################################################
         
         # Function to calculate variable albedo according 'PV BIFACIAL YIELD SIMULATION WITH A VARIABLE ALBEDO MODEL' from Matthieu Chiodetti et.al.
@@ -1189,21 +1231,20 @@ class ViewFactors:
             #plt.show()(sns)
             """
         
-        custom_tz = dateutil.tz.tzoffset(None, simulationDict['utcOffset']*60*60)
-        df.index = df.index.tz_localize(None)
-        df.index = df.index.tz_localize(custom_tz)
+        dtStart = datetime.datetime(simulationDict['startHour'][0], simulationDict['startHour'][1], simulationDict['startHour'][2], simulationDict['startHour'][3], tzinfo=dateutil.tz.tzoffset(None, simulationDict['utcOffset']*60*60))
+        
+
+        df = df.set_index(pd.date_range(start = dtStart, periods=len(df), freq='H'))
+        df_reportVF = df_reportVF.set_index(pd.date_range(start = dtStart, periods=len(df), freq='H'))
+
         if 'timestamp' not in df_reportVF.columns:
-            df_reportVF['timestamp'] = pd.to_datetime(df_reportVF.index)
-        else:
-            df_reportVF = df_reportVF.drop(columns='corrected_timestamp')
-            df_reportVF['timestamp'] = pd.to_datetime(df_reportVF.index)
-        #if not 'corrected_timestamp' in df_reportVF.columns:
-            #df_reportVF['corrected_timestamp'] = pd.to_datetime(df_reportVF.index)
-            #df_reportVF['timestamp'] = df_reportVF.index.strftime('%Y_%m_%d_%H')
+            df_reportVF['timestamp'] = df_reportVF.index
+        if 'corrected_timestamp' not in df_reportVF.columns:
+            df_reportVF['corrected_timestamp'] = df_reportVF.index
+        
+        
         print("df_reportVF at end of RadiationHandler: ")
         print(df_reportVF)
-
-            
 
         #df_reportVF.to_csv(resultsPath + "/radiation_qabs_results_" + datetime.now().strftime("%Y-%m-%d-%H-%M") + ".csv")
         
