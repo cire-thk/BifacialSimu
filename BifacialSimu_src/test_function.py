@@ -31,7 +31,7 @@ from multiprocessing import Process
 import threading
 
 
-system = 'win'
+
 timestamp = datetime.now().strftime("%Y-%m-%d %H.%M") 
 rootPath = os.getcwd().replace(os.sep, '/')
 resultspath = Controller.DataHandler().setDirectories()
@@ -153,7 +153,7 @@ SimulationDict_Brazil_tracked = {
                 'tilt' : 20, #tilt of the PV surface [deg]
                 'limitAngle' : 58, # limit Angle for singleAxisTracking
                 'hub_height' : 1.42, # Height of the rotation axis of the tracker [m]
-                'azimuth' : 90, #azimuth of the PV surface [deg] 90°: East, 135° : South-East, 180°:South
+                'azimuth' : 120, #azimuth of the PV surface [deg] 90°: East, 135° : South-East, 180°:South
                 'nModsx' : 26, #number of modules in x-axis
                 'nModsy' : 1, #number of modules in y-axis
                 'nRows' : 5, #number of rows
@@ -505,14 +505,13 @@ def test_function(SimulationDict, ModuleDict, test_name, startHour, endHour, sin
             
 #%% Test function - Start of iterating processes    
     
-    procs = []
     runtime_df = pd.DataFrame()
     
-    for simMode in range(2,3):       
-        if singleAxisTrackingMode ==1 and simMode !=2:
+    for simMode in range(3):       
+        if singleAxisTrackingMode ==1 and SimulationDict['cumulativeSky'] == True:
             continue
         
-        for backTrackingMode in range(2): #
+        for backTrackingMode in range(1): #
             if backTrackingMode ==1 and singleAxisTrackingMode !=1:
                 continue
             
@@ -524,63 +523,55 @@ def test_function(SimulationDict, ModuleDict, test_name, startHour, endHour, sin
                     
                     for electricalMode in range(1):
                         
-                        name = 'SM'+ str(simMode+1) + '-EL'+str(electricalMode) + '-BT'+str(backTrackingMode) + '-AL'+str(albedoMode) + '-TR'+str(singleAxisTrackingMode) + '-LF'+str(localFile)
-                                            
-                        SimulationDict["simulationMode"] = simMode+1
-                        SimulationDict["localFile"] = bool(localFile)                     
-                        SimulationDict["ElectricalMode_simple"] = electricalMode                    
-                        SimulationDict["backTrackingMode"] = bool(backTrackingMode)                   
-                        SimulationDict["singleAxisTracking"] = bool(singleAxisTrackingMode)
-                        define_albedo(albedoMode)
-                        
-                        if electricalMode == 1:
-                            ModuleDict['I_sc_r'] = ModuleDict['I_sc_f'] * ModuleDict['bi_factor']
-                            ModuleDict['V_oc_r'] = ModuleDict['V_oc_f'] * ModuleDict['bi_factor']
-                            ModuleDict['V_mpp_r'] = ModuleDict['V_mpp_f'] * ModuleDict['bi_factor']
-                            ModuleDict['I_mpp_r'] = ModuleDict['I_mpp_f'] * ModuleDict['bi_factor']
+                        for cumSky in range(2):
+                            if cumSky ==1 and simMode not in {2, 5}:
+                                continue
                             
-                        else:
-                            ModuleDict['I_sc_r'] = 0
-                            ModuleDict['V_oc_r'] = 0
-                            ModuleDict['V_mpp_r'] = 0
-                            ModuleDict['I_mpp_r'] = 0
-                        
-                        if system == 'linux':
-                            if simMode == 2 or simMode == 4:
-                                proc = Process(target=test_thread, args=(name, timestamp, ))
-                                proc.start()
-                                procs.append(proc)
-                            else:
-                                proc = Process(target=test_thread, args=(name, timestamp, ))
-                                proc.start()
-                                proc.join()
-                        else:           
-                            start_time = time.time()
-
-                            try:
-                                test_thread(name, timestamp)
-                            except Exception as err:
-                                print(err)
+                            name = 'SM'+ str(simMode+1) + '-EL'+str(electricalMode) + '-BT'+str(backTrackingMode) + '-AL'+str(albedoMode) + '-TR'+str(singleAxisTrackingMode) + '-LF'+str(localFile)
+                            if cumSky ==1:
+                                name += '-CS'+str(cumSky)
+                            
+                            SimulationDict["simulationMode"] = simMode+1
+                            SimulationDict["localFile"] = bool(localFile)                     
+                            SimulationDict["ElectricalMode_simple"] = electricalMode                    
+                            SimulationDict["backTrackingMode"] = bool(backTrackingMode)                   
+                            SimulationDict["singleAxisTracking"] = bool(singleAxisTrackingMode)
+                            SimulationDict["cumulativeSky"] = bool(cumSky)  
+                            define_albedo(albedoMode)
+                            
+                            if electricalMode == 1:
+                                ModuleDict['I_sc_r'] = ModuleDict['I_sc_f'] * ModuleDict['bi_factor']
+                                ModuleDict['V_oc_r'] = ModuleDict['V_oc_f'] * ModuleDict['bi_factor']
+                                ModuleDict['V_mpp_r'] = ModuleDict['V_mpp_f'] * ModuleDict['bi_factor']
+                                ModuleDict['I_mpp_r'] = ModuleDict['I_mpp_f'] * ModuleDict['bi_factor']
                                 
+                            else:
+                                ModuleDict['I_sc_r'] = 0
+                                ModuleDict['V_oc_r'] = 0
+                                ModuleDict['V_mpp_r'] = 0
+                                ModuleDict['I_mpp_r'] = 0
+                            
+                            start_time = time.time()
+    
+                            try:
+                               test_thread(name, timestamp)
+                            except Exception as err:
+                               print(err)
+                               
                             end_time = time.time() 
                             runtime_df.loc[name, 'sim_runtime_s'] = end_time-start_time
     
-                            time.sleep(0.5)
-    
-    if system == 'linux':
-        for proc in procs:
-            proc.join()
+                            time.sleep(0.1) 
+                                  
         
-    time.sleep(0.2)
     results_h, results_d, results_avg = ergebnisausgabe(test_name, runtime_df)
-    time.sleep(0.2)
     
     return results_h, results_d, results_avg
 
 #%% start test function
 
 
-print('\nSystem sleep when simulation is completed? [y/n]: ')
+print('\nSystem sleep when simulation is completed? [y]: ')
 system_shutdown = input()
 if system_shutdown.lower() == 'y':
     system_shutdown = True 
@@ -598,16 +589,16 @@ if __name__ == '__main__':
     try:
         """simulate 2 days"""
         
-        heggelbach_h_22, heggelbach_d_22, heggelbach_avg_22 = test_function(SimulationDict_Heggelbach, ModuleDict_Heggelbach, 'Heggelbach 2022', (2022, 1, 1, 9), (2022, 1, 4, 20), 0, heggelbach_real_path)
+        heggelbach_h_22, heggelbach_d_22, heggelbach_avg_22 = test_function(SimulationDict_Heggelbach, ModuleDict_Heggelbach, 'Heggelbach 2022', (2022, 7, 1, 8), (2022, 7, 7, 21), 0, heggelbach_real_path)
         
         """simulate year"""
         #heggelbach_h_22, heggelbach_d_22, heggelbach_avg_22 = test_function(SimulationDict_Heggelbach, ModuleDict_Heggelbach, 'Heggelbach 2022', (2022, 1, 1, 1), (2022, 12, 28, 0), 0, heggelbach_real_path)
 
         #brazil_fixed_h, brazil_fixed_d = test_function(SimulationDict_Brazil_fixed, ModuleDict_Brazil, 'Brazil-fixed 2023 POA_conversion', (2023, 1, 1, 11), (2023, 1, 1, 13), 0, brazil_fixed_real_path)
-        #brazil_tracked_h, brazil_tracked_d, brazil_tracked_avg = test_function(SimulationDict_Brazil_tracked, ModuleDict_Brazil, 'Brazil tracked 2023 POA-conversion', (2023, 1, 1, 8), (2023, 1, 1, 18), 1, brazil_tracked_real_path)        
+        #brazil_tracked_h, brazil_tracked_d, brazil_tracked_avg = test_function(SimulationDict_Brazil_tracked, ModuleDict_Brazil, 'Brazil tracked 2023 POA-conversion', (2023, 1, 1, 7), (2023, 1, 5, 18), 1, brazil_tracked_real_path)        
         
         #SimulationDict_Heggelbach['weatherFile'] = rootPath + '/WeatherData/Heggelbach_Germany/Heggelbach_Germany_2017.csv'
-        
+        #heggelbach_h_17, heggelbach_d_17, heggelbach_avg_17 = test_function(SimulationDict_Heggelbach, ModuleDict_Heggelbach, 'Heggelbach 2017', (2017, 1, 1, 1), (2017, 1, 5, 0), 0, heggelbach_real_path)
         #SimulationDict_Heggelbach['weatherFile'] = rootPath + '/WeatherData/Heggelbach_Germany/Heggelbach_Germany_2018.csv'
         
         #SimulationDict_Heggelbach['weatherFile'] = rootPath + '/WeatherData/Heggelbach_Germany/Heggelbach_Germany_2021.csv'
@@ -627,7 +618,7 @@ if __name__ == '__main__':
         #plot_boxplots(heggelbach_d_21, ['delta_E_abs', 'delta_Q_front_abs', 'delta_Q_rear_abs' ], r'Energy yield per m$^2$  [$\mathrm{\frac{Wh}{m^2*d}}$]', resultspath, 'Heggelbach 2021 - Absolute Energy Difference - Daily', True)
         #plot_boxplots(heggelbach_d_22, ['delta_E_abs', 'delta_Q_front_abs', 'delta_Q_rear_abs' ], r'Energy yield per m$^2$  [$\mathrm{\frac{Wh}{m^2*d}}$]', resultspath, 'Heggelbach 2022 - Absolute Energy Difference - Daily', True)
         #plot_boxplots(heggelbach_avg_22, ['delta_E_rel', 'delta_E_rad_front_rel', 'delta_E_rad_rear_rel' ], r'Energy yield per m$^2$  [$\mathrm{\frac{Wh}{m^2}}$]', resultspath, 'Heggelbach 2022 - Relative Energy Difference - Full timeframe', True, True)
-        #plot_bars(heggelbach_avg_22, ['delta_E_rel', 'delta_E_rad_front_rel', 'delta_E_rad_rear_rel' ], r'Energy yield per m$^2$  [$\mathrm{\frac{Wh}{m^2}}$]', resultspath, 'Heggelbach 2022 - Relative Energy Difference - Full timeframe', True, True)
+        plot_bars(heggelbach_avg_22, ['delta_E_rel', 'delta_E_rad_front_rel', 'delta_E_rad_rear_rel' ], r'Energy yield per m$^2$  [$\mathrm{\frac{Wh}{m^2}}$]', resultspath, 'Heggelbach 2022 - Relative Energy Difference - Full timeframe', True, True)
         #plot_boxplots(brazil_tracked_d, ['delta_E_abs', 'delta_Q_front_abs', 'delta_Q_rear_abs' ], r'Energy yield per m$^2$  [$\mathrm{\frac{Wh}{m^2*d}}$]', resultspath, 'Brazil tracked - Absolute Energy Difference - Daily', True)
         
     except Exception as err:     

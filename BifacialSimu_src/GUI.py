@@ -416,28 +416,35 @@ class Window(tk.Tk):
                 or len(Entry_day_end.get()) == 0 
                 or len(Entry_hour_end.get()) == 0) :
                 messagebox.showwarning("Simulation Control", "Please insert a Start and End Date \n in the format: [yyyy mm dd hh]!")
-                exit
+                sys.exit()
             if int (Entry_month_start.get()) <=0 or int (Entry_month_start.get()) >12:
                 messagebox.showwarning("Simulation Control", "Please insert a Start Month between 1 and 12!")
-                exit
+                sys.exit()
             if int(Entry_day_start.get()) <1 or int(Entry_day_start.get()) >31:
                 messagebox.showwarning("Simulation Control", "Please insert a Start Day between 1 and 31!")
-                exit
+                sys.exit()
             if int(Entry_hour_start.get()) <0 or int(Entry_hour_start.get()) >=24:
                 messagebox.showwarning("Simulation Control", "Please insert a Start Hour between 0 and 23!")
-                exit
+                sys.exit()
             if int (Entry_month_end.get()) <=0 or int (Entry_month_end.get()) >12:
                 messagebox.showwarning("Simulation Control", "Please insert a End Month between 1 and 12!")
-                exit
+                sys.exit()
                 
             if int(Entry_day_end.get()) <1 or int(Entry_day_end.get()) >31:
                 messagebox.showwarning("Simulation Control", "Please insert a End Day between 1 and 31!")
-                exit
+                sys.exit()
                     
             if int(Entry_hour_end.get()) <0 or int(Entry_hour_end.get()) >=24:
                 messagebox.showwarning("Simulation Control", "Please insert a End Hour between 0 and 23!")
-                exit
-                    
+                sys.exit()
+            if int(Entry_year_start.get()) !=  int(Entry_year_end.get()):
+                messagebox.showwarning("Simulation Control", "The period must be in one year. If you want to simulate year changes or multiple years, you should split the simulation and run it one after the other!")
+                sys.exit()
+            if int(Entry_month_start.get()) >  int(Entry_month_end.get()):
+                messagebox.showwarning("Simulation Control", "The period must be in one year. If you want to simulate year changes, you should split the simulation and run it one after the other!")
+                sys.exit()
+            
+            
             if (len(Entry_year_start.get()) != 0
                 and len(Entry_month_start.get()) != 0 and 1 <= int (Entry_month_start.get()) <= 12
                 and len(Entry_day_start.get()) != 0 and 1<= int(Entry_day_start.get()) <=31
@@ -460,7 +467,7 @@ class Window(tk.Tk):
                    #SimulationDict["endHour"]=(Enddate.year, Enddate.month, Enddate.day, Enddate.hour)
             else:
                 messagebox.showwarning("Simulation Control", "Please insert a Start and End Date \n in the format: [yyyy mm dd hh]!")
-                exit
+                sys.exit()
                 
             
 # =============================================================================
@@ -1274,12 +1281,12 @@ class Window(tk.Tk):
                 Label_LimitAngle.config(state="normal")
                 Entry_LimitAngle.config(state="normal")
                 Label_LimitAnglePar.config(state="normal")
-                Label_HubHeight.config(state="disabled")
-                Entry_HubHeight.config(state="disabled")
-                Label_HubHeightPar.config(state="disabled")
-                Label_ClearanceHeight.config(state="normal")
-                Entry_ClearanceHeight.config(state="normal")
-                Label_ClearanceHeightPar.config(state="normal")
+                Label_HubHeight.config(state="normal")
+                Entry_HubHeight.config(state="normal")
+                Label_HubHeightPar.config(state="normal")
+                Label_ClearanceHeight.config(state="disabled")
+                Entry_ClearanceHeight.config(state="disabled")
+                Label_ClearanceHeightPar.config(state="disabled")
                 
                 
                 

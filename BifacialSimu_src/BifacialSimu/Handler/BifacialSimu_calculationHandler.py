@@ -73,6 +73,7 @@ class Electrical_simulation:
     simulate_simpleBifacial: Simple electrical simulation mode that doesn't need rear module parameters. 
                 Applies bifaciality factor to calculate rear efficiency and fill factor.
     """
+       
     
     ##### Function to combine radiation reports from Viewfactors and Raytracing if needed
     def build_simulationReport(df_reportVF, df_reportRT, simulationDict, resultsPath):
@@ -114,6 +115,9 @@ class Electrical_simulation:
         
         # Build a final simutlation report
         df_report = Electrical_simulation.build_simulationReport(df_reportVF, df_reportRT, simulationDict, resultsPath)
+        
+        if simulationDict['cumulativeSky'] == True:
+            simulationDict['nRows']=1
         
         ####################################################
         # Variables required for electrical simulation
@@ -203,7 +207,7 @@ class Electrical_simulation:
         if 'timestamp' not in df.columns:
             df['timestamp'] = df.index
 
-
+    
 
         # Loop to calculate the Bifacial Output power for every row in every hour
         for i in tqdm(range(0, simulationDict['nRows'])):
@@ -474,6 +478,9 @@ class Electrical_simulation:
         # Build a final simulation report
         df_report = Electrical_simulation.build_simulationReport(df_reportVF, df_reportRT, simulationDict, resultsPath)
         
+        if simulationDict['cumulativeSky'] == True:
+            simulationDict['nRows']=1
+        
         ####################################################
         # Variables required for electrical simulation
         
@@ -742,10 +749,11 @@ class Electrical_simulation:
         df: helper DataFrame containing temperature for electrical simulation
         """
         
-        
-        
         # Build a final simutlation report
         df_report = Electrical_simulation.build_simulationReport(df_reportVF, df_reportRT, simulationDict, resultsPath)
+        
+        if simulationDict['cumulativeSky'] == True:
+            simulationDict['nRows']=1
         
         ####################################################
         # Variables required for electrical simulation
@@ -1379,6 +1387,9 @@ class Electrical_simulation:
         
         # Build a final simutlation report
         df_report = Electrical_simulation.build_simulationReport(df_reportVF, df_reportRT, simulationDict, resultsPath)
+        
+        if simulationDict['cumulativeSky'] == True:
+            simulationDict['nRows']=1
         
         ####################################################
         # Variables required for electrical simulation

@@ -108,19 +108,6 @@ class RayTrace:
         
         ####################################################
         
-        # Set albedo from sim parameters
-        if simulationDict['fixAlbedo'] ==True:
-            # Measured Albedo average fix value
-            demo.setGround(simulationDict['albedo'])
-            
-        else:
-            # hourly spectral albedo or hourly measured albedo
-            if simulationDict['singleAxisTracking'] == True:
-                demo.setGround(material = None)
-            else:
-                #demo.setGround(material = metdata.albedo)
-                sys.exit("The use of hourly Measured Albedo Values is not possible with fixed tilts at the moment")
-            
             # if material=None, then material = metdata.albedo 
             # metdata.albedo (datatype: np.ndarray) is colume of metdata = RadianceObj out of weatherfile with albedo values
             # weatherfile must contain hourly measured albedo, if simulationDict['hourlymeasuredAlbedo'] = True
@@ -132,402 +119,262 @@ class RayTrace:
 
         # DEFINE a Module type
         moduley = simulationDict['moduley']*simulationDict['nModsy']
-        demo.makeModule(name=simulationDict['module_type'],x=simulationDict['modulex'], y=moduley)
      
         # Make the Scene
-        
         sceneDict = {'tilt': simulationDict['tilt'],'gcr': simulationDict['gcr'],'clearance_height':simulationDict['clearance_height'],'hub_height':simulationDict['hub_height'], 'azimuth':simulationDict['azimuth'], 'nModsx': simulationDict['nModsx'], 'nRows': simulationDict['nRows']} 
+        
+        dtStart = datetime.datetime(simulationDict['startHour'][0], simulationDict['startHour'][1], simulationDict['startHour'][2], simulationDict['startHour'][3], tzinfo=dateutil.tz.tzoffset(None, simulationDict['utcOffset']*60*60))
+        dtEnd = datetime.datetime(simulationDict['endHour'][0], simulationDict['endHour'][1], simulationDict['endHour'][2], simulationDict['endHour'][3], tzinfo=dateutil.tz.tzoffset(None, simulationDict['utcOffset']*60*60))
+        hours = dtEnd - dtStart 
+        hours = int(hours.total_seconds() / 3600) +1
         
         #################
         # Cumulativ Sky
         
         if simulationDict['cumulativeSky'] == True:
-            dtStart = datetime.datetime(simulationDict['startHour'][0], simulationDict['startHour'][1], simulationDict['startHour'][2], simulationDict['startHour'][3], tzinfo=dateutil.tz.tzoffset(None, simulationDict['utcOffset']*60*60))
+            
+            if simulationDict['fixAlbedo'] ==True:
+                # Measured Albedo average fix value
+                demo.setGround(simulationDict['albedo'])
+                
+            else:
+                # hourly spectral albedo or hourly measured albedo
+                if simulationDict['singleAxisTracking'] == True:
+                    demo.setGround(material = None)
+                else:
+                    #demo.setGround(material = metdata.albedo)
+                    sys.exit("The use of hourly Measured Albedo Values is not possible with fixed tilts at the moment")
             
             if simulationDict['singleAxisTracking'] == True:
                 # get SingleAxisTracking Data
                 trackerdict = demo.set1axis(metdata = metdata, limit_angle = simulationDict['limitAngle'], backtrack = simulationDict['backTracking'], 
                             gcr = simulationDict['gcr'], cumulativesky = True)
-               # make the sky
-                trackerdict = demo.genCumSky1axis(trackerdict = trackerdict)
+               
                 # Make the Scene
                 trackerdict = demo.makeScene1axis(trackerdict = trackerdict, moduletype = simulationDict['module_type'], sceneDict = sceneDict) 
+                # make the sky
+                #trackerdict = demo.genCumSky1axis(trackerdict = trackerdict)
+                demo.genCumSky1axis(demo.epwfile)
                 # make oct file
                 trackerdict = demo.makeOct1axis(trackerdict = trackerdict)
-                results = demo.analysis1axis(trackerdict, onlyBackscan = onlyBackscan)
+                print('\n trackerdict \n', trackerdict)
                 
+                results = demo.analysis1axis(trackerdict, onlyBackscan = onlyBackscan)
+                print('\n results \n', results)
                 #demo.exportTrackerDict(trackerdict = demo.trackerdict, savefile = 'results\\test_reindexTrue.csv', reindex = False)
-            else:
+            
+            else: # CumSky fixed tilt
+                
                 scene = demo.makeScene(simulationDict['module_type'],sceneDict)
-                demo.genCumSky(demo.epwfile) # entire year.
+                demo.genCumSky(demo.epwfile) # entire timeframe
                 
                 octfile = demo.makeOct(demo.getfilelist())  
                 analysis = AnalysisObj(octfile, demo.basename)
-   
-                df_rtrace = pd.DataFrame()
-                df_reportRT = pd.DataFrame()
-                
-                def raytrace_row(j):
-                    """"Multiprocessing function to simulate one row """
-                    # =============================================================================
-                    #                     Check Simulation Break Flag
-                    # =============================================================================
-                    if globals.thread_break == True:
-                        print("Simulation was Stopped!")
-                        messagebox.showinfo("Simulation Stopped!", "The simulation was successfully terminated!")
-                        return 'Simulation was Stopped!'
-                    else:
-                        df_rtraceFront  = pd.DataFrame()
-                        df_rtraceBack  = pd.DataFrame()
-                        
-                        key_front = "row_" + str(j) + "_qinc_front"
-                        key_back = "row_" + str(j) + "_qinc_back"
-                        
-                        rowWanted = j
-                        
-                        if octfile != None:
-                            
-                            frontscan, backscan = analysis.moduleAnalysis(scene, rowWanted=rowWanted, sensorsy=  simulationDict['sensorsy'])
-                            results_rtrace = analysis.analysis(octfile, "row_" + str(j), frontscan, backscan, onlyBackscan = onlyBackscan)
-
-                            if onlyBackscan == False:
-
-                                df_rtraceFront[key_front] = pd.Series(analysis.Wm2Front) *8
-                                df_rtraceBack[key_back] = pd.Series(analysis.Wm2Back) *8
+                frontscan, backscan = analysis.moduleAnalysis(scene)
+                results = analysis.analysis(octfile, demo.basename, frontscan, backscan, onlyBackscan = onlyBackscan)  
+ 
+            
+            df_reportRT_sum = pd.DataFrame({
+                                        'row_0_qabs_front': [np.mean(results[0]['Wm2'])],
+                                        'row_0_qabs_back': [np.mean(results[1]['Wm2'])]
+                                    })
+            
+            df_reportRT = pd.DataFrame(columns=['row_0_qabs_front', 'row_0_qabs_back'])
+            df_reportRT_sum /= hours
+            
+            for hour in range(hours):
+                df_reportRT = df_reportRT.append(df_reportRT_sum, ignore_index=True)
         
-                            else:
-                                df_rtraceBack[key_back] = pd.Series(analysis.Wm2Back)  
-                                                           
-                            df_rtrace = pd.concat([df_rtraceFront, df_rtraceBack], axis=1)
-                            
-                        else:
-                            if onlyBackscan == False:
-                                df_rtraceFront[key_front] = pd.Series([np.NaN])
-                                df_rtraceBack[key_back] = pd.Series([np.NaN])
-                            else:
-                                df_rtraceBack = pd.DataFrame({key_back: [np.NaN]})
-                                
-                            df_rtrace = pd.concat([df_rtraceFront, df_rtraceBack], axis=1)
-                          
-                        return df_rtrace
-                                    
-                pool = Pool(processes = int(os.cpu_count()/1.4))
-                for result in pool.map(raytrace_row, range(simulationDict['nRows'])):
-                    df_rtrace = pd.concat([df_rtrace, result], axis=1)
-                
-                pool.close()
-                pool.join()
-                
-                for j in range(0, simulationDict['nRows']):
-                    
-                    # =============================================================================
-                    #                     Check Simulation Break Flag
-                    # =============================================================================
-                    if globals.thread_break == True:
-                        print("Simulation was Stopped!")
-                        messagebox.showinfo("Simulation Stopped!", "The simulation was successfully terminated!")
-                        break
-                    
-                    else:
-                        
-                        key_front = "row_" + str(j) + "_qinc_front"
-                        key_back = "row_" + str(j) + "_qinc_back"
-                        
-                        key_front_abs = "row_" + str(j) + "_qabs_front"
-                        key_back_abs = "row_" + str(j) + "_qabs_back"
-                        
-                        
-                        if onlyBackscan == False:
-                            df_rtrace[key_front] = np.mean(df_rtrace[key_front])       
-                            df_rtrace[key_back] = np.mean(df_rtrace[key_back])
-                            
-                            df_rtrace[key_front_abs] = df_rtrace[key_front] * (1-simulationDict['frontReflect'])   
-                            df_rtrace[key_back_abs] = df_rtrace[key_back] * (1-simulationDict['BackReflect'])
-                        else:
-                            df_rtrace[key_back] = np.mean(df_rtrace[key_back])
-                            df_rtrace[key_back_abs] = df_rtrace[key_back] * (1-simulationDict['BackReflect'])
-                
-                
-            df_rtrace = df_rtrace.mean().to_frame().T
-            df_reportRT = df_reportRT.append(df_rtrace)
-
         #################
         # gendayLit
-        # Single Axis Tracking
         else:
-            
-            if simulationDict['singleAxisTracking'] == True:
 
-                # get SingleAxisTracking Data
-                trackerdict = demo.set1axis(metdata = metdata, limit_angle = simulationDict['limitAngle'], backtrack = simulationDict['backTracking'], gcr = simulationDict['gcr'], cumulativesky = False)
-    
-                # make the sky
-                dtStart = datetime.datetime(simulationDict['startHour'][0], simulationDict['startHour'][1], simulationDict['startHour'][2], simulationDict['startHour'][3], tzinfo=dateutil.tz.tzoffset(None, simulationDict['utcOffset']*60*60))
-                beginning_of_year = datetime.datetime(dtStart.year, 1, 1, tzinfo=dtStart.tzinfo)
-                startHour = int((dtStart - beginning_of_year).total_seconds() / 3600)
-
-                dtEnd = datetime.datetime(simulationDict['endHour'][0], simulationDict['endHour'][1], simulationDict['endHour'][2], simulationDict['endHour'][3], tzinfo=dateutil.tz.tzoffset(None, simulationDict['utcOffset']*60*60))
-                endHour = int((dtEnd - beginning_of_year).total_seconds() / 3600)
-
-                trackerdict = demo.gendaylit1axis()
-
-                # Make the Scene
-                trackerdict = demo.makeScene1axis(trackerdict = trackerdict, moduletype = simulationDict['module_type'], sceneDict = sceneDict)
-
-                #demo.makeOct1axis()
-                #results_rtrace = demo.analysis1axis(customname="row_" + str(j+1), rowWanted = rowWanted, sensorsy = simulationDict['sensorsy'], onlyBackscan = onlyBackscan) 
-
-                ###############
-                #Begin raytracing procedure and save data in pd.dataframes
-                #df_rtraceFront: Dataframe with raytracing frontdata for all sensors - row-wise
-                #df_rtraceBack: Dataframe with raytracing reardata for all sensors - row-wise
-                #df_rtrace: All raytracing data for all sensors - row-wise
-                #df_reportRT: Dataframe report to be used for electrical simulation, contains mean values for each row
-                
-                # make oct file
-                
-                df_reportRT = pd.DataFrame()
-                i=0
-                demo.makeOct1axis()
-                
-                for time in range(startHour, endHour+1):
-                    
-# =============================================================================
-#                     Check Simulation Break Flag
-# =============================================================================
-                    if globals.thread_break == True:
-                       print("Simulation was Stopped!")
-                       messagebox.showinfo("Simulation Stopped!", "The simulation was successfully terminated!")
-                       break
-                    
-                    x = time - startHour
-                   
-                    singleindex= dtStart + x*datetime.timedelta(hours=1) 
-                    singleindex = singleindex.strftime('%m_%d_%H')
-                    
-                    df_rtrace = pd.DataFrame()
-                    
-                    
-                    def raytrace_row(j):
-                        """" Multiprocessing function to simulate one row """
-                        # =============================================================================
-                        #                     Check Simulation Break Flag
-                        # =============================================================================
-                        if globals.thread_break == True:
-                            print("Simulation was Stopped!")
-                            messagebox.showinfo("Simulation Stopped!", "The simulation was successfully terminated!")
-                            return 'Simulation was Stopped!'
-                        else:
-                            df_rtraceFront  = pd.DataFrame()
-                            df_rtraceBack  = pd.DataFrame()
-                            df_rtrace = pd.DataFrame()
-                            
-                            key_front = "row_" + str(j) + "_qinc_front"
-                            key_back = "row_" + str(j) + "_qinc_back"
-                            
-                            rowWanted = j
-                            
-                            #try if there is data (day) at this time or not (night)
-                            try:    
-                                results_rtrace = demo.analysis1axis(customname="row_" + str(j), rowWanted = rowWanted, sensorsy = simulationDict['sensorsy'], onlyBackscan = onlyBackscan, singleindex = singleindex) 
-                                if onlyBackscan == False:
-        
-                                    df_rtraceFront[key_front] = demo.Wm2Front
-                                    df_rtraceBack[key_back] = demo.Wm2Back
-                                    df_rtrace = pd.concat([df_rtraceFront, df_rtraceBack], axis=1)
-        
-                                else:
-                                    df_rtraceBack[key_back] = demo.Wm2Back 
-                                
-                            except:
-    
-                                if onlyBackscan == False:
-                                    df_rtraceFront = pd.DataFrame({key_front: [np.NaN]})
-                                    df_rtraceBack = pd.DataFrame({key_back: [np.NaN]})
-                                    df_rtrace_all = pd.concat([df_rtraceFront, df_rtraceBack], axis=1)
-                                    df_rtrace = df_rtrace.append(df_rtrace_all)
-                                else:
-                                    df_rtraceBack = pd.DataFrame({key_back: [np.NaN]})
-                                    df_rtrace = df_rtrace.append(df_rtraceBack)
-     
-                            return df_rtrace
-                    
-                    pool = Pool(processes = int(os.cpu_count()/1.4))
-                    for result in pool.map(raytrace_row, range(simulationDict['nRows'])):
-                        df_rtrace = df_rtrace.append(result)
-                    
-                    pool.close()
-                    pool.join()
-                    
-                    df_rtrace = df_rtrace.groupby(df_rtrace.index).mean() 
-                
-                    for j in range(0, simulationDict['nRows']):
-                        
-                        # =============================================================================
-                        #                     Check Simulation Break Flag
-                        # =============================================================================
-                        if globals.thread_break == True:
-                            print("Simulation was Stopped!")
-                            messagebox.showinfo("Simulation Stopped!", "The simulation was successfully terminated!")
-                            break
-                        
-                        else:
-                            
-                            key_front = "row_" + str(j) + "_qinc_front"
-                            key_back = "row_" + str(j) + "_qinc_back"
-                            
-                            key_front_abs = "row_" + str(j) + "_qabs_front"
-                            key_back_abs = "row_" + str(j) + "_qabs_back"
-                            
-                            
-                            if onlyBackscan == False:
-                                df_rtrace[key_front] = np.mean(df_rtrace[key_front])       
-                                df_rtrace[key_back] = np.mean(df_rtrace[key_back])
-                                
-                                df_rtrace[key_front_abs] = df_rtrace[key_front] * (1-simulationDict['frontReflect'])   
-                                df_rtrace[key_back_abs] = df_rtrace[key_back] * (1-simulationDict['BackReflect'])
-                            else:
-                                df_rtrace[key_back] = np.mean(df_rtrace[key_back])
-                                df_rtrace[key_back_abs] = df_rtrace[key_back] * (1-simulationDict['BackReflect'])
-                         
-                    
-                    df_rtrace = df_rtrace.mean().to_frame().T   
-                    df_reportRT = df_reportRT.append(df_rtrace)
-                   
-                ray.shutdown()     
-            
-            #################
-            # gendayLit
-            # Fixed tilt
-                                   
-            else:
-                
-                scene = demo.makeScene(simulationDict['module_type'],sceneDict)
-                # Translate startHour und endHour in timeindexes
-                dtStart = datetime.datetime(simulationDict['startHour'][0], simulationDict['startHour'][1], simulationDict['startHour'][2], simulationDict['startHour'][3], tzinfo=dateutil.tz.tzoffset(None, simulationDict['utcOffset']*60*60))
-                beginning_of_year = datetime.datetime(dtStart.year, 1, 1, tzinfo=dtStart.tzinfo)
-                startHour = int((dtStart - beginning_of_year).total_seconds() // 3600)
-                
-                dtEnd = datetime.datetime(simulationDict['endHour'][0], simulationDict['endHour'][1], simulationDict['endHour'][2], simulationDict['endHour'][3], tzinfo=dateutil.tz.tzoffset(None, simulationDict['utcOffset']*60*60))
-                endHour = int((dtEnd - beginning_of_year).total_seconds() // 3600)
-                
-                df = dataFrame
-                df_gendaylit= df
-                df_gendaylit = df_gendaylit.reset_index()
-
-                solpos = metdata.solpos
-
-                solpos.reset_index(drop=True, inplace=True)
-                
-                df_reportRT = pd.DataFrame()
-                i=0
-                
-                for time in range(startHour, endHour+1):
+            ###############
+            #Begin raytracing procedure and save data in pd.dataframes
+            #df_rtraceFront: Dataframe with raytracing frontdata for all sensors - row-wise
+            #df_rtraceBack: Dataframe with raytracing reardata for all sensors - row-wise
+            #df_rtrace: All raytracing data for all sensors - row-wise
+            #df_reportRT: Dataframe report to be used for electrical simulation, contains mean values for each row
  
-                    # =============================================================================
-                    #                     Check Simulation Break Flag
-                    # =============================================================================
-                    if globals.thread_break == True:
-                        messagebox.showinfo("Simulation Stopped!", "The simulation was successfully terminated!")
-                        break
-                    #dataframes to insert results
-                    df_rtraceFront = pd.DataFrame()
-                    df_rtraceBack = pd.DataFrame()
-                    df_rtrace = pd.DataFrame()
-                    
-                    # get solar position zenith and azimuth based on site metadata
-                    sunalt = float(solpos.loc[i, 'elevation'])
-                    sunaz = float(solpos.loc[i, 'azimuth'])-180
+            solpos = metdata.solpos
+            solpos.reset_index(drop=True, inplace=True)
 
+            def raytrace_hour(args):
+                """ Ray multiprocessing function; simulates one hour with bifacial radiance"""
+            # =============================================================================
+            #                     Check Simulation Break Flag
+            # =============================================================================
+                if globals.thread_break == True:
+                   print("Simulation was Stopped!")
+                   raise Exception('\nSimulation was stopped by user!\n')
+                
+                time, SimulationDict = args
+                SimulationDict['simulationName']='raytrace_'+str(time)
+                
+                starttime =  dtStart + datetime.timedelta(hours=time)
+                endtime = starttime + datetime.timedelta(hours=1)
+                starttime = starttime.strftime('%m_%d_%H')
+                endtime = endtime.strftime('%m_%d_%H')
+                
+                demo = RayTrace.createDemo(SimulationDict, resultsPath)
+                metdata = demo.readWeatherFile(weatherFile=SimulationDict['weatherFile'], starttime=starttime, endtime=endtime, label='center')
+                
+                if simulationDict['fixAlbedo'] ==True:
+                    # Measured Albedo average fix value
+                    demo.setGround(simulationDict['albedo'])
+                    
+                else:
+                    # hourly spectral albedo or hourly measured albedo
+                    if simulationDict['singleAxisTracking'] == True:
+                        demo.setGround(material = None)
+                    else:
+                        #demo.setGround(material = metdata.albedo)
+                        sys.exit("The use of hourly Measured Albedo Values is not possible with fixed tilts at the moment")
+                
+                if simulationDict['singleAxisTracking'] == True:
+                    trackerdict = demo.set1axis(metdata = metdata, limit_angle = SimulationDict['limitAngle'], backtrack = SimulationDict['backTracking'], gcr = SimulationDict['gcr'], cumulativesky = False)
+                    trackerdict = demo.gendaylit1axis()
+                    trackerdict = demo.makeScene1axis(trackerdict = trackerdict, moduletype = simulationDict['module_type'], sceneDict = sceneDict)
+                    demo.makeOct1axis()
+                    singleindex= dtStart + time*datetime.timedelta(hours=1) 
+                    singleindex = singleindex.strftime('%m_%d_%H')
+                
+                else: #fixed tilt
+                    scene = demo.makeScene(SimulationDict['module_type'],sceneDict)    
+                    df = dataFrame
+                    df_gendaylit= df
+                    df_gendaylit = df_gendaylit.reset_index()
+                    
+                    sunalt = float(solpos.loc[time, 'elevation'])
+                    sunaz = float(solpos.loc[time, 'azimuth'])-180
+    
                     #get dhi and dni out of dataframe
-                    dni = df_gendaylit.loc[i, 'dni']
-                    dhi = df_gendaylit.loc[i, 'dhi']
+                    dni = df_gendaylit.loc[time, 'dni']
+                    dhi = df_gendaylit.loc[time, 'dhi']
                     
                     #simulate sky with gendaylit
                     demo.gendaylit2manual(dni, dhi, sunalt, sunaz)
                     demo.getfilelist()
                     
                     octfile = demo.makeOct(demo.getfilelist())  
-                    
                     analysis = AnalysisObj(octfile, demo.basename)
+                
+                df_reportRT = pd.DataFrame()
+                df_rtrace = pd.DataFrame()
+                
+                #iterate trough rows and save data into dataframes
+                for j in range(SimulationDict['nRows']):
+                    # =============================================================================
+                    #                     Check Simulation Break Flag
+                    # =============================================================================
+                    if globals.thread_break == True:
+                       print("Simulation was Stopped!")
+                       raise Exception('\nSimulation was stopped by user!\n')
                     
-                    def raytrace_row(j):
-                        """"Multiprocessing function to simulate one row """
-                        # =============================================================================
-                        #                     Check Simulation Break Flag
-                        # =============================================================================
-                        if globals.thread_break == True:
-                            print("Simulation was Stopped!")
-                            messagebox.showinfo("Simulation Stopped!", "The simulation was successfully terminated!")
-                            return 'Simulation was Stopped!'
-                        else:
-                            df_rtraceFront  = pd.DataFrame()
-                            df_rtraceBack  = pd.DataFrame()
-                            
-                            key_front = "row_" + str(j) + "_qinc_front"
-                            key_back = "row_" + str(j) + "_qinc_back"
-                            
-                            rowWanted = j
-                            
-                            if octfile != None:
-                                
-                                frontscan, backscan = analysis.moduleAnalysis(scene, rowWanted=rowWanted, sensorsy=  simulationDict['sensorsy'])
-                                results_rtrace = analysis.analysis(octfile, "row_" + str(j), frontscan, backscan, onlyBackscan = onlyBackscan)
-    
-                                if onlyBackscan == False:
-    
-                                    df_rtraceFront[key_front] = pd.Series(analysis.Wm2Front) 
-                                    df_rtraceBack[key_back] = pd.Series(analysis.Wm2Back) 
-            
-                                else:
-                                    df_rtraceBack[key_back] = pd.Series(analysis.Wm2Back)  
-                                                               
-                                df_rtrace = pd.concat([df_rtraceFront, df_rtraceBack], axis=1)
-                                
-                            else:
-                                if onlyBackscan == False:
-                                    df_rtraceFront[key_front] = pd.Series([np.NaN])
-                                    df_rtraceBack[key_back] = pd.Series([np.NaN])
-                                else:
-                                    df_rtraceBack = pd.DataFrame({key_back: [np.NaN]})
-                                    
-                                df_rtrace = pd.concat([df_rtraceFront, df_rtraceBack], axis=1)
-    
-                            return df_rtrace
-                                        
-                    pool = Pool(processes = int(os.cpu_count()/1.4))
-                    for result in pool.map(raytrace_row, range(simulationDict['nRows'])):
-                        df_rtrace = df_rtrace.append(result)
+                    key_front = "row_" + str(j) + "_qinc_front"
+                    key_back = "row_" + str(j) + "_qinc_back"
                     
-                    pool.close()
-                    pool.join()
-          
-                    if octfile is not None:
-                        for j in range(0, simulationDict['nRows']):
+                    df_rtraceFront  = pd.DataFrame()
+                    df_rtraceBack  = pd.DataFrame()
                     
-                            key_front = "row_" + str(j) + "_qinc_front"
-                            key_back = "row_" + str(j) + "_qinc_back"
-                            
-                            key_front_abs = "row_" + str(j) + "_qabs_front"
-                            key_back_abs = "row_" + str(j) + "_qabs_back"
-                                    
-                            if onlyBackscan == False:
-                                df_rtrace[key_front] = np.mean(df_rtrace[key_front])       
-                                df_rtrace[key_back] = np.mean(df_rtrace[key_back])
-                                
-                                df_rtrace[key_front_abs] = df_rtrace[key_front] * (1-simulationDict['frontReflect'])   
-                                df_rtrace[key_back_abs] = df_rtrace[key_back] * (1-simulationDict['BackReflect'])
-                            else:
-                                df_rtrace[key_back] = np.mean(df_rtrace[key_back])
-                                df_rtrace[key_back_abs] = df_rtrace[key_back] * (1-simulationDict['BackReflect'])
-                               
-                        df_reportRT = df_reportRT.append(df_rtrace)       
-                    df_reportRT = df_reportRT.append(df_rtrace)
-                    df_reportRT = df_reportRT.iloc[:1+i]
-                      
-                    i = i+1        
+                    rowWanted = j
+                    
+                    #try if there is data (day) at this time or not (night)
+                    try: 
+                        # analyse raytracing demo per row and hour
+                        if simulationDict['singleAxisTracking'] == True:
+                            results_rtrace = demo.analysis1axis(customname="row_" + str(j), rowWanted = rowWanted, sensorsy = simulationDict['sensorsy'], onlyBackscan = onlyBackscan, singleindex = singleindex) 
+                        else: # fixed tilt
+                            frontscan, backscan = analysis.moduleAnalysis(scene, rowWanted=rowWanted, sensorsy=  SimulationDict['sensorsy'])
+                            results_rtrace = analysis.analysis(octfile, "row_" + str(j), frontscan, backscan, onlyBackscan = onlyBackscan)
 
-                ray.shutdown()
+                        if onlyBackscan == False:
+                            if simulationDict['singleAxisTracking'] == True:
+                                df_rtraceFront[key_front] = demo.Wm2Front
+                                df_rtraceBack[key_back] = demo.Wm2Back
+                            else:
+                                df_rtraceFront[key_front] = pd.Series(analysis.Wm2Front) 
+                                df_rtraceBack[key_back] = pd.Series(analysis.Wm2Back) 
+
+                        else:
+                            if simulationDict['singleAxisTracking'] == True:
+                                df_rtraceBack[key_back] = demo.Wm2Back   
+                            else:
+                                df_rtraceBack[key_back] = pd.Series(analysis.Wm2Back)
+                        
+                    except: # set to NaN if no data available
+
+                            if onlyBackscan == False:
+                                df_rtraceFront = pd.DataFrame({key_front: [np.NaN]})
+                                df_rtraceBack = pd.DataFrame({key_back: [np.NaN]})
+
+                            else:
+                                df_rtraceBack = pd.DataFrame({key_back: [np.NaN]})
+ 
+                    df_rtrace = df_rtrace.append(pd.concat([df_rtraceFront, df_rtraceBack], axis=1))     
+ 
+                # calculate averages and absolute energy
+                for j in range(0, simulationDict['nRows']):
+                    
+                    # =============================================================================
+                    #                     Check Simulation Break Flag
+                    # =============================================================================
+                    if globals.thread_break == True:
+                       print("Simulation was Stopped!")
+                       raise Exception('\nSimulation was stopped by user!\n')
+                    
+                    key_front = "row_" + str(j) + "_qinc_front"
+                    key_back = "row_" + str(j) + "_qinc_back"
+                    
+                    key_front_abs = "row_" + str(j) + "_qabs_front"
+                    key_back_abs = "row_" + str(j) + "_qabs_back"
+                    
+                    
+                    if onlyBackscan == False:
+                        df_rtrace[key_front] = np.mean(df_rtrace[key_front])       
+                        df_rtrace[key_back] = np.mean(df_rtrace[key_back])
+                        
+                        df_rtrace[key_front_abs] = df_rtrace[key_front] * (1-simulationDict['frontReflect'])   
+                        df_rtrace[key_back_abs] = df_rtrace[key_back] * (1-simulationDict['BackReflect'])
+                    else:
+                        df_rtrace[key_back] = np.mean(df_rtrace[key_back])
+                        df_rtrace[key_back_abs] = df_rtrace[key_back] * (1-simulationDict['BackReflect'])
+
+                    df_reportRT = df_reportRT.append(df_rtrace)             
+                    df_reportRT = df_reportRT.mean().to_frame().T      
+
+                return df_reportRT
+            
+            # start ray multiprocessing pool; limit CPU threads 
+            pool = Pool(processes = int(os.cpu_count()/1.4))
+            
+            #hours = dtEnd - dtStart 
+            #hours = int(hours.total_seconds() / 3600) +1
+            args_list = [(hour, simulationDict) for hour in range(hours)]
+            results = pool.map(raytrace_hour, args_list)
+           
+            pool.close()
+            pool.join() 
+            
+            # append POOL results to RayTracing report
+            df_reportRT = pd.DataFrame()
+            for result in results:
+                df_reportRT = df_reportRT.append(result)    
+                
+
+        # shutdown ray instance
+        ray.shutdown()
+        
+        # remove .oct files from results folder
+        for i in range(hours):
+            singleindex= dtStart + i*datetime.timedelta(hours=1) 
+            singleindex = singleindex.strftime('%m_%d_%H')
+            file_path_oct = resultsPath + 'raytrace_'+ str(i) + '.oct'
+            file_path_oct_tracking = '1axis_' + singleindex + '.oct'
+            if os.path.isfile(file_path_oct):
+                os.remove(file_path_oct)
+            if os.path.isfile(file_path_oct_tracking):    
+                os.remove(file_path_oct_tracking) 
         
         # Set timeindex for report        
         df_reportRT=df_reportRT.set_index(pd.date_range(start = dtStart, periods=len(df_reportRT), freq='H'))
@@ -659,24 +506,19 @@ class ViewFactors:
                              columns=['dhi','ghi','theta','surf_tilt','surf_azm','ground_clearance'])
 
             d['time'] = d.index
-            # print('tracking dataframe at radiation handler:')
-            # print(d)
             d.to_csv(resultsPath + 'd.csv') 
-            
 
             #append variable tilt to data Frame
-            df = df.reset_index()
-            
-            df['time'] = df['corrected_timestamp'].dt.strftime('%Y_%m_%d_%H')
+            df = df.reset_index()           
+            df['time'] = df['corrected_timestamp'].dt.strftime('%m_%d_%H')
+            df = df.set_index('time')
             
             df = df.join(d['surf_tilt'])
             
-            custom_tz = dateutil.tz.tzoffset(None, simulationDict['utcOffset']*60*60)
-            df['timestamp'] = pd.to_datetime(df['time'], format='%Y_%m_%d_%H').dt.tz_localize(custom_tz)
-
-            df = df.set_index('timestamp')
-
-            surface_tilt = df['surf_tilt']
+            # set time index
+            dtStart = datetime.datetime(simulationDict['startHour'][0], simulationDict['startHour'][1], simulationDict['startHour'][2], simulationDict['startHour'][3], tzinfo=dateutil.tz.tzoffset(None, simulationDict['utcOffset']*60*60))
+            df = df.set_index(pd.date_range(start = dtStart, periods=len(df), freq='H'))
+            
             print('view_factor dataframe at radiation handler:')
             print(df)
         
@@ -685,12 +527,8 @@ class ViewFactors:
             df = df.reset_index()
             custom_tz = dateutil.tz.tzoffset(None, simulationDict['utcOffset']*60*60)
             df['time'] = df['corrected_timestamp'].dt.strftime('%Y_%m_%d_%H')
-            #df['timestamp'] = pd.to_datetime(df['time'], format='%Y_%m_%d_%H').dt.tz_localize(custom_tz)
             df = df.set_index(pd.to_datetime(df['time'], format='%Y_%m_%d_%H').dt.tz_localize(custom_tz))
-            
-            surface_tilt = simulationParameter['surface_tilt']
-        
-        
+
         ####################################################
         
         # Function to calculate variable albedo according 'PV BIFACIAL YIELD SIMULATION WITH A VARIABLE ALBEDO MODEL' from Matthieu Chiodetti et.al.
@@ -760,7 +598,10 @@ class ViewFactors:
         df['zenith'] =  np.deg2rad(df.zenith)
         df['azimuth'] =  np.deg2rad(df.azimuth)
         
-        df['surface_tilt'] = surface_tilt
+        if simulationDict['singleAxisTracking'] == True:
+            df['surface_tilt'] = df['surf_tilt']
+        else:
+            df['surface_tilt'] = simulationParameter['surface_tilt']
 
         df['surface_azimuth'] = surface_azimuth
         
@@ -1282,9 +1123,9 @@ class ViewFactors:
         view_factors_results = save_view_factor(4, 12, vf_matrix, df.index)
         
         
-        f = plt.Figure(figsize=(10, 3))
-        ax = f.subplots()
-        pvarray.plot_at_idx(0, ax, with_surface_index=True)
+        #f = plt.Figure(figsize=(10, 3))
+        #ax = f.subplots()
+        #pvarray.plot_at_idx(0, ax, with_surface_index=True)
         #plt.show()()
         
         return df_reportVF, df, view_factors_results
