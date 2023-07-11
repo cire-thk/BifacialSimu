@@ -1685,7 +1685,7 @@ class Window(tk.Tk):
                         delta_t = 0 
                         
                     # Calculate new value of soiling_accumulation
-                    soiling_accumulation = ((PM2_5 + PM10)*(10**(-6))) * wind_speed * delta_t * cos(radians(angle))  # Coello 
+                    soiling_accumulation = ((PM2_5 + PM10)*(10**(-9))) * wind_speed * delta_t * cos(radians(angle))  # Coello 
                     # add the value of soiling_accumulation to the list of values_soiling_accumulation
                     values_soiling_accumulation.append(soiling_accumulation)
                     

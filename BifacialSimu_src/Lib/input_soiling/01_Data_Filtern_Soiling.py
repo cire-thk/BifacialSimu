@@ -275,7 +275,7 @@ with open('filtered_wetter_data.csv', mode='r', newline='', encoding='utf-8') as
 
 
 ###########################################################################################################################################################################################
-#this code retrieves the previously saved tables and calculates the average value for each identical combination [Country,City]. 
+#this part of the code retrieves the previously saved tables and calculates the average value for each identical combination [Country,City]. 
 #Finally, a csv table of each data will be saved. 
 
 import pandas as pd
@@ -438,7 +438,7 @@ df_precipitation_filtered_rows_means.to_csv('precipitation_means.csv', index=Fal
 
 
 ###########################################################################################################################################################################################
-#In this Code the PM10, PM2,5, precipitation and wind speed values are inserted in a common file. 
+#In this part of the Code the PM10, PM2,5, precipitation and wind speed values are inserted in a common file. 
 #At the end a Table is obtained with all the values needed to calculate the Soiling according to the location. 
 
 import pandas as pd

@@ -236,114 +236,58 @@ class Electrical_simulation:
                 else:
                     temp = temp +1
 
-#                if simulationDict["mathematicalSoilingrate"] == True:
-#                    soilrate = simulationDict["hourlySoilrate"]
+                if simulationDict["mathematicalSoilingrate"] == True:
+                    soilrate = simulationDict["hourlySoilrate"]
 
-#                    for i in range(len(soilrate)):
+                    for i in range(len(soilrate)):
 
                         
-#                        row_qabs_front = df_report.loc[index,key_front] * (1 - soilrate[i])
-#                        row_qabs_back = df_report.loc[index,key_back] * (1 - (soilrate[i]/(8.8)))
-#                        T_Current = df.loc[index,'temperature']
+                        row_qabs_front = df_report.loc[index,key_front] * (1 - soilrate[i])
+                        row_qabs_back = df_report.loc[index,key_back] * (1 - (soilrate[i]/(8.8)))
+                        T_Current = df.loc[index,'temperature']
                         
                         
                         #print("front: " + str(row_qabs_front))
                         #print("back: " + str(row_qabs_back))
                         
-#                        if math.isnan(row_qabs_front) or row_qabs_front < 0.0:
-#                            row_qabs_front = 0
+                        if math.isnan(row_qabs_front) or row_qabs_front < 0.0:
+                            row_qabs_front = 0
                             
-#                        if math.isnan(row_qabs_back) or row_qabs_back < 0.0:
-#                            row_qabs_back = 0
+                        if math.isnan(row_qabs_back) or row_qabs_back < 0.0:
+                            row_qabs_back = 0
 
                         
-#                        if row_qabs_back + row_qabs_front > 0.0:
+                        if row_qabs_back + row_qabs_front > 0.0:
                             
-#                            I_sc_f = I_sc_f0 * (1 + T_koeff_I * (T_Current - T_amb))     
-#                            I_sc_r = I_sc_r0 * (1 + T_koeff_I * (T_Current - T_amb))
+                            I_sc_f = I_sc_f0 * (1 + T_koeff_I * (T_Current - T_amb))     
+                            I_sc_r = I_sc_r0 * (1 + T_koeff_I * (T_Current - T_amb))
                             
-#                            V_oc_f = V_oc_f0 * (1 + T_koeff_V * (T_Current - T_amb))
-#                            V_oc_r = V_oc_r0 * (1 + T_koeff_V * (T_Current - T_amb))
+                            V_oc_f = V_oc_f0 * (1 + T_koeff_V * (T_Current - T_amb))
+                            V_oc_r = V_oc_r0 * (1 + T_koeff_V * (T_Current - T_amb))
                             
-#                            FF_f = FF_f0 * ((1 + T_koeff_P * (T_Current-T_amb)) / ((1 + T_koeff_I * (T_Current - T_amb)) * (1 + T_koeff_V * (T_Current - T_amb))))
-#                            FF_r = FF_r0 * ((1 + T_koeff_P * (T_Current-T_amb)) / ((1 + T_koeff_I * (T_Current - T_amb)) * (1 + T_koeff_V * (T_Current - T_amb))))
+                            FF_f = FF_f0 * ((1 + T_koeff_P * (T_Current-T_amb)) / ((1 + T_koeff_I * (T_Current - T_amb)) * (1 + T_koeff_V * (T_Current - T_amb))))
+                            FF_r = FF_r0 * ((1 + T_koeff_P * (T_Current-T_amb)) / ((1 + T_koeff_I * (T_Current - T_amb)) * (1 + T_koeff_V * (T_Current - T_amb))))
                             
-#                            I_sc_b = (row_qabs_front / q_stc_front) * I_sc_f + (row_qabs_back / q_stc_rear) * I_sc_r
-#                            R_I_sc_b = I_sc_b / I_sc_f
-#                            V_oc_b = V_oc_f + ((V_oc_r - V_oc_f) * np.log(R_I_sc_b) / np.log(I_sc_r / I_sc_f))
+                            I_sc_b = (row_qabs_front / q_stc_front) * I_sc_f + (row_qabs_back / q_stc_rear) * I_sc_r
+                            R_I_sc_b = I_sc_b / I_sc_f
+                            V_oc_b = V_oc_f + ((V_oc_r - V_oc_f) * np.log(R_I_sc_b) / np.log(I_sc_r / I_sc_f))
                             
-#                            pFF = ((I_sc_r0/I_sc_f0) * FF_f0 - (FF_r0 * (V_oc_r0 / V_oc_f0))) / ((I_sc_r0/I_sc_f0) - (V_oc_r0 / V_oc_f0))
-#                            FF_b = pFF - (R_I_sc_b * (V_oc_f0 / V_oc_b) * (pFF - FF_f0))
+                            pFF = ((I_sc_r0/I_sc_f0) * FF_f0 - (FF_r0 * (V_oc_r0 / V_oc_f0))) / ((I_sc_r0/I_sc_f0) - (V_oc_r0 / V_oc_f0))
+                            FF_b = pFF - (R_I_sc_b * (V_oc_f0 / V_oc_b) * (pFF - FF_f0))
                         
-#                            P_bi = FF_b * V_oc_b * I_sc_b
+                            P_bi = FF_b * V_oc_b * I_sc_b
                             #print("Power: " + str(P_bi))
                     
-#                            sum_energy_b += P_bi # Sum up the energy of every row in every hour
+                            sum_energy_b += P_bi # Sum up the energy of every row in every hour
                     
-#                        else:
-#                            P_bi=0
+                        else:
+                            P_bi=0
                         
-#                        P_bi_hourly.append(P_bi)
+                        P_bi_hourly.append(P_bi)
                         
-                    # Append P_bi_hourly array to arrays
-#                    P_bi_hourly_arrays.append(P_bi_hourly)
-                    
-                #
-                if simulationDict["monthlySoilingrate"] == True:
-                          
-                    soilrate = simulationDict["variableSoilrate"][int(df_time_soiling['month'][x])]
-                    
-                x = x+1
-                
-                # calculate front row power output including the soiling rate determined in GUI                               
-                row_qabs_front = df_report.loc[index,key_front] * (1 - (soilrate*(temp)/(24)))   
-                # calculate back row power output including the decreased soiling for backside of PV module                                 
-                row_qabs_back = df_report.loc[index,key_back] * (1 - (soilrate*(temp)/(24*8.8)))
-                
-                T_Current = df.loc[index,'temperature']
-                
-                
-                #print("front: " + str(row_qabs_front))
-                #print("back: " + str(row_qabs_back))
-                
-                if math.isnan(row_qabs_front) or row_qabs_front < 0.0:
-                    row_qabs_front = 0
-                    
-                if math.isnan(row_qabs_back) or row_qabs_back < 0.0:
-                    row_qabs_back = 0
+                    #Append P_bi_hourly array to arrays
+                    P_bi_hourly_arrays.append(P_bi_hourly)
 
-                
-                if row_qabs_back + row_qabs_front > 0.0:
-                    
-                    I_sc_f = I_sc_f0 * (1 + T_koeff_I * (T_Current - T_amb))     
-                    I_sc_r = I_sc_r0 * (1 + T_koeff_I * (T_Current - T_amb))
-                    
-                    V_oc_f = V_oc_f0 * (1 + T_koeff_V * (T_Current - T_amb))
-                    V_oc_r = V_oc_r0 * (1 + T_koeff_V * (T_Current - T_amb))
-                    
-                    FF_f = FF_f0 * ((1 + T_koeff_P * (T_Current-T_amb)) / ((1 + T_koeff_I * (T_Current - T_amb)) * (1 + T_koeff_V * (T_Current - T_amb))))
-                    FF_r = FF_r0 * ((1 + T_koeff_P * (T_Current-T_amb)) / ((1 + T_koeff_I * (T_Current - T_amb)) * (1 + T_koeff_V * (T_Current - T_amb))))
-                    
-                    I_sc_b = (row_qabs_front / q_stc_front) * I_sc_f + (row_qabs_back / q_stc_rear) * I_sc_r
-                    R_I_sc_b = I_sc_b / I_sc_f
-                    V_oc_b = V_oc_f + ((V_oc_r - V_oc_f) * np.log(R_I_sc_b) / np.log(I_sc_r / I_sc_f))
-                    
-                    pFF = ((I_sc_r0/I_sc_f0) * FF_f0 - (FF_r0 * (V_oc_r0 / V_oc_f0))) / ((I_sc_r0/I_sc_f0) - (V_oc_r0 / V_oc_f0))
-                    FF_b = pFF - (R_I_sc_b * (V_oc_f0 / V_oc_b) * (pFF - FF_f0))
-                
-                    P_bi = FF_b * V_oc_b * I_sc_b
-                    #print("Power: " + str(P_bi))
-            
-                    sum_energy_b += P_bi # Sum up the energy of every row in every hour
-            
-                else:
-                    P_bi=0
-                
-                P_bi_hourly.append(P_bi)
-                
-            # Append P_bi_hourly array to arrays
-            P_bi_hourly_arrays.append(P_bi_hourly)
-        
         P_bi_hourly_average = []
         
         for i in tqdm(range(0, len(P_bi_hourly_arrays[0]))):
@@ -421,63 +365,34 @@ class Electrical_simulation:
                 else:
                     temp = temp +1
 
-#                if simulationDict["mathematicalSoilingrate"] == True:
-#                    soilrate = simulationDict["hourlySoilrate"]
+                if simulationDict["mathematicalSoilingrate"] == True:
+                    soilrate = simulationDict["hourlySoilrate"]
 
-#                    for i in range(len(soilrate)):
+                    for i in range(len(soilrate)):
                         #                        
                         #SG
-#                        row_qabs_front = df_report.loc[index,key_front_mono] * (1 - soilrate[i])
-#                        T_Current = df.loc[index,'temperature']
+                        row_qabs_front = df_report.loc[index,key_front_mono] * (1 - soilrate[i])
+                        T_Current = df.loc[index,'temperature']
 
-#                        if math.isnan(row_qabs_front):
-#                            row_qabs_front = 0 
+                        if math.isnan(row_qabs_front):
+                            row_qabs_front = 0 
                         
-#                        if  row_qabs_front > 0.0:
+                        if  row_qabs_front > 0.0:
                       
-#                            V_oc_f = V_oc_f0 * (1 + T_koeff_V * (T_Current - T_amb) + moduleDict['zeta'] * np.log(row_qabs_front / q_stc_front))
-#                            I_sc_f = I_sc_f0 * (1 + T_koeff_I * (T_Current - T_amb)) * (row_qabs_front / q_stc_front)
-#                            P_m = FF_f0 * V_oc_f * I_sc_f
+                            V_oc_f = V_oc_f0 * (1 + T_koeff_V * (T_Current - T_amb) + moduleDict['zeta'] * np.log(row_qabs_front / q_stc_front))
+                            I_sc_f = I_sc_f0 * (1 + T_koeff_I * (T_Current - T_amb)) * (row_qabs_front / q_stc_front)
+                            P_m = FF_f0 * V_oc_f * I_sc_f
                         
                             #print("Power: " + str(P_bi))
                      
-#                            sum_energy_m += P_m # Sum up the energy of every row in every hour
-#                        else:
-#                            P_m = 0
+                            sum_energy_m += P_m # Sum up the energy of every row in every hour
+                        else:
+                            P_m = 0
                             
-#                        P_m_hourly.append(P_m)
+                        P_m_hourly.append(P_m)
                     
                     # Append P_m_hourly array to arrays
-#                    P_m_hourly_arrays.append(P_m_hourly)
-                #
-                #
-                if simulationDict["monthlySoilingrate"] == True:
-                    soilrate = simulationDict["variableSoilrate"][int(df_time_soiling['month'][x])]
-                x = x+1
-
-                row_qabs_front = df_report.loc[index,key_front_mono] * (1 - ((soilrate*(temp))/(24)))
-                T_Current = df.loc[index,'temperature']
-
-                if math.isnan(row_qabs_front):
-                    row_qabs_front = 0 
-                
-                if  row_qabs_front > 0.0:
-              
-                    V_oc_f = V_oc_f0 * (1 + T_koeff_V * (T_Current - T_amb) + moduleDict['zeta'] * np.log(row_qabs_front / q_stc_front))
-                    I_sc_f = I_sc_f0 * (1 + T_koeff_I * (T_Current - T_amb)) * (row_qabs_front / q_stc_front)
-                    P_m = FF_f0 * V_oc_f * I_sc_f
-                
-                    #print("Power: " + str(P_bi))
-             
-                    sum_energy_m += P_m # Sum up the energy of every row in every hour
-                else:
-                    P_m = 0
-                    
-                P_m_hourly.append(P_m)
-            
-            # Append P_m_hourly array to arrays
-            P_m_hourly_arrays.append(P_m_hourly)
-        #   
+                    P_m_hourly_arrays.append(P_m_hourly)
 
         P_m_hourly_average = []
         
