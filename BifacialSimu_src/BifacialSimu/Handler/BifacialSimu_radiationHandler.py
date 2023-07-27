@@ -132,7 +132,7 @@ class RayTrace:
         # Cumulativ Sky
         
         if simulationDict['cumulativeSky'] == True:
-            
+            demo.makeModule(name=simulationDict['module_type'],x=simulationDict['modulex'], y=moduley)
             if simulationDict['fixAlbedo'] ==True:
                 # Measured Albedo average fix value
                 demo.setGround(simulationDict['albedo'])
@@ -218,6 +218,7 @@ class RayTrace:
                 
                 demo = RayTrace.createDemo(SimulationDict, resultsPath)
                 metdata = demo.readWeatherFile(weatherFile=SimulationDict['weatherFile'], starttime=starttime, endtime=endtime, label='center')
+                demo.makeModule(name=simulationDict['module_type'],x=simulationDict['modulex'], y=moduley)
                 
                 if simulationDict['fixAlbedo'] ==True:
                     # Measured Albedo average fix value

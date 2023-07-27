@@ -515,11 +515,11 @@ def test_function(SimulationDict, ModuleDict, test_name, startHour, endHour, sin
             if backTrackingMode ==1 and singleAxisTrackingMode !=1:
                 continue
             
-            for albedoMode in range(1): # 
+            for albedoMode in range(2): # 
                 if albedoMode ==1 and simMode in {0, 2, 4}:
                     continue
                 
-                for localFile in range(1,2):
+                for localFile in range(2):
                     
                     for electricalMode in range(1):
                         
