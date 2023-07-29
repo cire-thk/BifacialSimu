@@ -256,10 +256,8 @@ class Electrical_simulation:
                     R_I_sc_b = I_sc_b / I_sc_f
                     V_oc_b = V_oc_f + ((V_oc_r - V_oc_f) * np.log(R_I_sc_b) / np.log(I_sc_r / I_sc_f))
 
-                    if ((I_sc_r0/I_sc_f0) - (V_oc_r0 / V_oc_f0)) != 0:
-                        pFF = ((I_sc_r0/I_sc_f0) * FF_f0 - (FF_r0 * (V_oc_r0 / V_oc_f0))) / ((I_sc_r0/I_sc_f0) - (V_oc_r0 / V_oc_f0))
-                    else:
-                        pFF = 1
+                    pFF = ((I_sc_r0/I_sc_f0) * FF_f0 - (FF_r0 * (V_oc_r0 / V_oc_f0))) / ((I_sc_r0/I_sc_f0) - (V_oc_r0 / V_oc_f0))
+                    
                     #print('\npFF',pFF)
                     FF_b = pFF - (R_I_sc_b * (V_oc_f0 / V_oc_b) * (pFF - FF_f0))
                     #print('\nFF_b',FF_b)
