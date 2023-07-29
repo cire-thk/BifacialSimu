@@ -126,13 +126,15 @@ class RayTrace:
         dtStart = datetime.datetime(simulationDict['startHour'][0], simulationDict['startHour'][1], simulationDict['startHour'][2], simulationDict['startHour'][3], tzinfo=dateutil.tz.tzoffset(None, simulationDict['utcOffset']*60*60))
         dtEnd = datetime.datetime(simulationDict['endHour'][0], simulationDict['endHour'][1], simulationDict['endHour'][2], simulationDict['endHour'][3], tzinfo=dateutil.tz.tzoffset(None, simulationDict['utcOffset']*60*60))
         hours = dtEnd - dtStart 
-        hours = int(hours.total_seconds() / 3600) +1
+        hours = int(hours.total_seconds() / 3600) #+1
         
         #################
         # Cumulativ Sky
         
         if simulationDict['cumulativeSky'] == True:
+            
             demo.makeModule(name=simulationDict['module_type'],x=simulationDict['modulex'], y=moduley)
+            
             if simulationDict['fixAlbedo'] ==True:
                 # Measured Albedo average fix value
                 demo.setGround(simulationDict['albedo'])
@@ -218,7 +220,6 @@ class RayTrace:
                 
                 demo = RayTrace.createDemo(SimulationDict, resultsPath)
                 metdata = demo.readWeatherFile(weatherFile=SimulationDict['weatherFile'], starttime=starttime, endtime=endtime, label='center')
-                demo.makeModule(name=simulationDict['module_type'],x=simulationDict['modulex'], y=moduley)
                 
                 if simulationDict['fixAlbedo'] ==True:
                     # Measured Albedo average fix value
@@ -232,10 +233,10 @@ class RayTrace:
                         #demo.setGround(material = metdata.albedo)
                         sys.exit("The use of hourly Measured Albedo Values is not possible with fixed tilts at the moment")
                 
-                if simulationDict['singleAxisTracking'] == True:
+                if SimulationDict['singleAxisTracking'] == True:
                     trackerdict = demo.set1axis(metdata = metdata, limit_angle = SimulationDict['limitAngle'], backtrack = SimulationDict['backTracking'], gcr = SimulationDict['gcr'], cumulativesky = False)
                     trackerdict = demo.gendaylit1axis()
-                    trackerdict = demo.makeScene1axis(trackerdict = trackerdict, moduletype = simulationDict['module_type'], sceneDict = sceneDict)
+                    trackerdict = demo.makeScene1axis(trackerdict = trackerdict, moduletype = SimulationDict['module_type'], sceneDict = sceneDict)
                     demo.makeOct1axis()
                     singleindex= dtStart + time*datetime.timedelta(hours=1) 
                     singleindex = singleindex.strftime('%m_%d_%H')

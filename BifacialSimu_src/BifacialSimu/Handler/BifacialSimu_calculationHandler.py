@@ -241,7 +241,6 @@ class Electrical_simulation:
                     
                 if math.isnan(row_qabs_back) or row_qabs_back < 0.0:
                     row_qabs_back = 0
-
                 
                 if row_qabs_back + row_qabs_front > 0.0:
                     
@@ -877,7 +876,7 @@ class Electrical_simulation:
                
         #Rs and Rp calculation for the front side. They are calculated at STC. The algorythm tries to match the Mpp of the Module parameters
         #by adjusting Rs and calculating Rp based on Rs.
-        for xf in range (1000000):
+        for xf in range (1000000): 
            
             
            #If the calculation takes too many iterations, an error message will show up.
