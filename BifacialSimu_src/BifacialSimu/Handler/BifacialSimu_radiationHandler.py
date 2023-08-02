@@ -129,7 +129,7 @@ class RayTrace:
         hours = int(hours.total_seconds() / 3600) #+1
         
         #################
-        # Cumulativ Sky
+        #%% Cumulativ Sky
         
         if simulationDict['cumulativeSky'] == True:
             
@@ -147,22 +147,34 @@ class RayTrace:
                     #demo.setGround(material = metdata.albedo)
                     sys.exit("The use of hourly Measured Albedo Values is not possible with fixed tilts at the moment")
             
+            
             if simulationDict['singleAxisTracking'] == True:
                 # get SingleAxisTracking Data
                 trackerdict = demo.set1axis(metdata = metdata, limit_angle = simulationDict['limitAngle'], backtrack = simulationDict['backTracking'], 
                             gcr = simulationDict['gcr'], cumulativesky = True)
                
+                #demo.genCumSky1axis(demo.epwfile)
+                trackerdict = demo.genCumSky1axis()
+                
+                
                 # Make the Scene
                 trackerdict = demo.makeScene1axis(trackerdict = trackerdict, moduletype = simulationDict['module_type'], sceneDict = sceneDict) 
                 # make the sky
                 #trackerdict = demo.genCumSky1axis(trackerdict = trackerdict)
-                demo.genCumSky1axis(demo.epwfile)
+                #demo.genCumSky1axis(demo.epwfile)
                 # make oct file
+                
                 trackerdict = demo.makeOct1axis(trackerdict = trackerdict)
                 print('\n trackerdict \n', trackerdict)
                 
+                trackerdict = demo.analysis1axis(trackerdict)
                 results = demo.analysis1axis(trackerdict, onlyBackscan = onlyBackscan)
                 print('\n results \n', results)
+                
+                df_reportRT_sum = pd.DataFrame({
+                                            'row_0_qabs_front': [np.mean(results['Wm2Front'])],
+                                            'row_0_qabs_back': [np.mean(results['Wm2Back'])]
+                                        })
                 #demo.exportTrackerDict(trackerdict = demo.trackerdict, savefile = 'results\\test_reindexTrue.csv', reindex = False)
             
             else: # CumSky fixed tilt
@@ -176,19 +188,19 @@ class RayTrace:
                 results = analysis.analysis(octfile, demo.basename, frontscan, backscan, onlyBackscan = onlyBackscan)  
  
             
-            df_reportRT_sum = pd.DataFrame({
-                                        'row_0_qabs_front': [np.mean(results[0]['Wm2'])],
-                                        'row_0_qabs_back': [np.mean(results[1]['Wm2'])]
-                                    })
+                df_reportRT_sum = pd.DataFrame({
+                                            'row_0_qabs_front': [np.mean(results[0]['Wm2'])],
+                                            'row_0_qabs_back': [np.mean(results[1]['Wm2'])]
+                                        })
             
             df_reportRT = pd.DataFrame(columns=['row_0_qabs_front', 'row_0_qabs_back'])
             df_reportRT_sum /= hours
             
             for hour in range(hours):
-                df_reportRT = df_reportRT.append(df_reportRT_sum, ignore_index=True)
-        
+                #df_reportRT = df_reportRT.append(df_reportRT_sum, ignore_index=True)
+                df_reportRT = pd.concat([df_reportRT, df_reportRT_sum], ignore_index=True)
         #################
-        # gendayLit
+        #%% gendayLit
         else:
 
             ###############
@@ -200,6 +212,7 @@ class RayTrace:
  
             solpos = metdata.solpos
             solpos.reset_index(drop=True, inplace=True)
+            
 
             def raytrace_hour(args):
                 """ Ray multiprocessing function; simulates one hour with bifacial radiance"""
@@ -214,12 +227,12 @@ class RayTrace:
                 SimulationDict['simulationName']='raytrace_'+str(time)
                 
                 starttime =  dtStart + datetime.timedelta(hours=time)
-                endtime = starttime + datetime.timedelta(hours=1)
                 starttime = starttime.strftime('%m_%d_%H')
-                endtime = endtime.strftime('%m_%d_%H')
+                #endtime = starttime #+ datetime.timedelta(hours=1)
+                #endtime = endtime.strftime('%m_%d_%H')
                 
                 demo = RayTrace.createDemo(SimulationDict, resultsPath)
-                metdata = demo.readWeatherFile(weatherFile=SimulationDict['weatherFile'], starttime=starttime, endtime=endtime, label='center')
+                metdata = demo.readWeatherFile(weatherFile=SimulationDict['weatherFile'], starttime=starttime, endtime=starttime, label='center')
                 
                 if simulationDict['fixAlbedo'] ==True:
                     # Measured Albedo average fix value
@@ -234,10 +247,13 @@ class RayTrace:
                         sys.exit("The use of hourly Measured Albedo Values is not possible with fixed tilts at the moment")
                 
                 if SimulationDict['singleAxisTracking'] == True:
+                    
                     trackerdict = demo.set1axis(metdata = metdata, limit_angle = SimulationDict['limitAngle'], backtrack = SimulationDict['backTracking'], gcr = SimulationDict['gcr'], cumulativesky = False)
                     trackerdict = demo.gendaylit1axis()
                     trackerdict = demo.makeScene1axis(trackerdict = trackerdict, moduletype = SimulationDict['module_type'], sceneDict = sceneDict)
+                    
                     demo.makeOct1axis()
+                    
                     singleindex= dtStart + time*datetime.timedelta(hours=1) 
                     singleindex = singleindex.strftime('%m_%d_%H')
                 
@@ -286,21 +302,22 @@ class RayTrace:
                         # analyse raytracing demo per row and hour
                         if simulationDict['singleAxisTracking'] == True:
                             results_rtrace = demo.analysis1axis(customname="row_" + str(j), rowWanted = rowWanted, sensorsy = simulationDict['sensorsy'], onlyBackscan = onlyBackscan, singleindex = singleindex) 
+                        
                         else: # fixed tilt
-                            frontscan, backscan = analysis.moduleAnalysis(scene, rowWanted=rowWanted, sensorsy=  SimulationDict['sensorsy'])
+                            frontscan, backscan = analysis.moduleAnalysis(scene, rowWanted=rowWanted, sensorsy =  SimulationDict['sensorsy'])
                             results_rtrace = analysis.analysis(octfile, "row_" + str(j), frontscan, backscan, onlyBackscan = onlyBackscan)
 
                         if onlyBackscan == False:
                             if simulationDict['singleAxisTracking'] == True:
-                                df_rtraceFront[key_front] = demo.Wm2Front
-                                df_rtraceBack[key_back] = demo.Wm2Back
+                                df_rtraceFront[key_front] = pd.Series(results_rtrace[singleindex]['Wm2Front'])
+                                df_rtraceBack[key_back] = pd.Series(results_rtrace[singleindex]['Wm2Back'])
                             else:
                                 df_rtraceFront[key_front] = pd.Series(analysis.Wm2Front) 
                                 df_rtraceBack[key_back] = pd.Series(analysis.Wm2Back) 
 
                         else:
                             if simulationDict['singleAxisTracking'] == True:
-                                df_rtraceBack[key_back] = demo.Wm2Back   
+                                df_rtraceBack[key_back] = pd.Series(results_rtrace[singleindex]['Wm2Back'])  
                             else:
                                 df_rtraceBack[key_back] = pd.Series(analysis.Wm2Back)
                         
@@ -313,8 +330,9 @@ class RayTrace:
                             else:
                                 df_rtraceBack = pd.DataFrame({key_back: [np.NaN]})
  
-                    df_rtrace = df_rtrace.append(pd.concat([df_rtraceFront, df_rtraceBack], axis=1))     
- 
+                    #df_rtrace = df_rtrace.append(pd.concat([df_rtraceFront, df_rtraceBack], axis=1))     
+                    df_rtrace = pd.concat([df_rtrace, pd.concat([df_rtraceFront, df_rtraceBack], axis=1)])
+                    
                 # calculate averages and absolute energy
                 for j in range(0, simulationDict['nRows']):
                     
@@ -342,16 +360,15 @@ class RayTrace:
                         df_rtrace[key_back] = np.mean(df_rtrace[key_back])
                         df_rtrace[key_back_abs] = df_rtrace[key_back] * (1-simulationDict['BackReflect'])
 
-                    df_reportRT = df_reportRT.append(df_rtrace)             
+ 
+                    df_reportRT = pd.concat([df_reportRT, df_rtrace])
                     df_reportRT = df_reportRT.mean().to_frame().T      
 
                 return df_reportRT
             
-            # start ray multiprocessing pool; limit CPU threads 
+            #%% start ray multiprocessing pool; limit CPU threads 
             pool = Pool(processes = int(os.cpu_count()/1.4))
-            
-            #hours = dtEnd - dtStart 
-            #hours = int(hours.total_seconds() / 3600) +1
+
             args_list = [(hour, simulationDict) for hour in range(hours)]
             results = pool.map(raytrace_hour, args_list)
            
@@ -361,12 +378,11 @@ class RayTrace:
             # append POOL results to RayTracing report
             df_reportRT = pd.DataFrame()
             for result in results:
-                df_reportRT = df_reportRT.append(result)    
+                df_reportRT = pd.concat([df_reportRT, result])
                 
+            # shutdown ray instance
+            ray.shutdown()
 
-        # shutdown ray instance
-        ray.shutdown()
-        
         # remove .oct files from results folder
         for i in range(hours):
             singleindex= dtStart + i*datetime.timedelta(hours=1) 

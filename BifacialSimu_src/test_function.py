@@ -200,12 +200,12 @@ SimulationDict_Golden = {
                 'utcOffset': -7,
                 'tilt' : 25,#25, #tilt of the PV surface [deg]
                 'singleAxisTracking' : False, # singleAxisTracking or not
-                'limitAngle' : 25,#30, # limit Angle for singleAxisTracking
-                'hub_height' : 1.3, # Height of the rotation axis of the tracker [m]
+                'limitAngle' : 60,#30, # limit Angle for singleAxisTracking
+                'hub_height' : 1.5, # Height of the rotation axis of the tracker [m]
                 'azimuth' : 180, #azimuth of the PV surface [deg] 90°: East, 135° : South-East, 180°:South
-                'nModsx' : 7, #number of modules in x-axis
+                'nModsx' : 19, #number of modules in x-axis
                 'nModsy' : 1, #number of modules in y-axis
-                'nRows' : 3, #number of rows
+                'nRows' : 5, #number of rows
                 'sensorsy' : 5, #number of sensors
                 'moduley' : 1.98,#length of modules in y-axis
                 'modulex' : 0.992,#length of modules in x-axis  
@@ -214,7 +214,7 @@ SimulationDict_Golden = {
                 'BackReflect' : 0.05, #back surface reflectivity of PV rows
                 'longitude' : -105.172, 
                 'latitude' : 39.739,
-                'gcr' : 0.45, #ground coverage ratio (module area / land use)
+                'gcr' : 0.35, #ground coverage ratio (module area / land use)
                 'module_type' : 'NREL', #Name of Module                    
                 }
 
@@ -557,7 +557,7 @@ def test_function(SimulationDict, ModuleDict, test_name, startHour, endHour, sin
         if singleAxisTrackingMode ==1 and SimulationDict['cumulativeSky'] == True:
             continue
         
-        for backTrackingMode in range(1): #
+        for backTrackingMode in range(2): #
             if backTrackingMode ==1 and simMode not in {0, 2, 4}:
                 continue
             
@@ -567,7 +567,7 @@ def test_function(SimulationDict, ModuleDict, test_name, startHour, endHour, sin
                 
                 for localFile in range(1,2):
                     
-                    for electricalMode in range(1):
+                    for electricalMode in range(2):
                         
                         for cumSky in range(1):
                             if cumSky ==1 and simMode not in {2, 5}:
@@ -626,8 +626,8 @@ if __name__ == '__main__':
         #heggelbach_h_22, heggelbach_d_22, heggelbach_avg_22 = test_function(SimulationDict_Heggelbach, ModuleDict_Heggelbach, 'Heggelbach 2022', (2022, 7, 1, 8), (2022, 7, 7, 21), 0, heggelbach_real_path)
         
         """simulate year"""
-        #heggelbach_h_22, heggelbach_d_22, heggelbach_avg_22 = test_function(SimulationDict_Heggelbach, ModuleDict_Heggelbach, 'Heggelbach 2022', (2022, 1, 1, 1), (2022, 12, 28, 0), 0, heggelbach_real_path)
-        golden_21_h, golden_21_d, golden_21_avg = test_function(SimulationDict_Golden, ModuleDict_Golden, 'Golden 2021', (2021, 1, 1, 6), (2021, 12, 31, 22), 0, golden_real_path)
+        #heggelbach_h_22, heggelbach_d_22, heggelbach_avg_22 = test_function(SimulationDict_Heggelbach, ModuleDict_Heggelbach, 'Heggelbach 2022', (2022, 1, 1, 1), (2022, 12, 31, 22), 0, heggelbach_real_path)
+        golden_21_h, golden_21_d, golden_21_avg = test_function(SimulationDict_Golden, ModuleDict_Golden, 'Golden 2021-Tracking', (2021, 1, 1, 0), (2021, 12, 31, 23), 1, golden_real_path)
 
         #brazil_fixed_h, brazil_fixed_d = test_function(SimulationDict_Brazil_fixed, ModuleDict_Brazil, 'Brazil-fixed 2023 POA_conversion', (2023, 1, 1, 11), (2023, 1, 1, 13), 0, brazil_fixed_real_path)
         #brazil_tracked_h, brazil_tracked_d, brazil_tracked_avg = test_function(SimulationDict_Brazil_tracked, ModuleDict_Brazil, 'Brazil tracked 2023 POA-conversion', (2023, 1, 1, 7), (2023, 3, 27, 20), 1, brazil_tracked_real_path)        
