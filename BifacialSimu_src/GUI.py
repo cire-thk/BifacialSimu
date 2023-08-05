@@ -157,6 +157,7 @@ SimulationDict = {
 'monthlySoilingrate' : False,
 'mathematicalSoilingrate' : False,
 'hourlySoilrate' : [], 
+'city': "Duala, CM",
 #'daily_Soiling_mass' : 0.1, # daily soiling accumulation on the PV-Panels. [g/m³]
 }
 
@@ -1629,25 +1630,116 @@ class Window(tk.Tk):
                 # set distance entry with distance from simulation location to nearest weatherstation from given data with geodesic      
                 Entry_distance.insert(0, round(GD((SimulationDict["latitude"],SimulationDict["longitude"]),cities[indexout]).km, 2))
                 new_soilingrate = new_soilingrate.set_index('City, Country')
+
+                #######################################################################################
+                city_name = Entry_weatherstation.get()  # get the city, country name from 'Entry_weatherstation' 
+                SimulationDict["city"] = city_name
+                print (SimulationDict["city"])
+                city_data_directory = (rootPath + '\Lib\input_soiling\city_data_2')
+                file_path = os.path.join(city_data_directory, f"{city_name}.csv")
+                if os.path.exists(file_path):
+                    # The CSV file for the specified city exists, so we can import it as a DataFrame
+                    df_city = pd.read_csv(file_path)
+                    # Perform any further operations with the DataFrame as needed
+                else:
+                    # The CSV file for the specified city does not exist in the "city_data" folder
+                    # Handle the case where the city data is not available
+                    messagebox.showinfo("Error", f"Data for {city_name} are not yet in the database; please choose the Soiling mode 3 (Soiling Rate from weather data) to simulate for this city.")
+
+                # Assuming you have already imported the CSV file and the DataFrame is named 'df_city'
+                # Calculate the soilingrate for each row
+                t = 86400 #time in s (daily)
+                a = SimulationDict["tilt"] #tilt angle of th pv-moduls
                 
+                #Function to calculate the soiling_accumulation
+                def calculate_soiling_accumulation(row):
+                    if row['precipitation'] >= 3:  #row['humidity'] >= 75 or
+                        return 0
+                    else:
+                        return round(((row['pm25'] + row['pm10']) * (10 **-9)) * row['wind-speed'] * t * math.cos(math.radians(a)), 6)
+
+                df_city['soiling_accumulation'] = df_city.apply(calculate_soiling_accumulation, axis=1)
+
+                # Display the new DataFrame with the 'soiling_accumulation' column
+                #print(df_city)
+
+                # Initialize the cumulative soiling_accumulation rate column with NaN values
+                df_city['cum_soiling_accumulation'] = np.nan
+                df_city['soilingrate'] = np.nan
+                
+                # Initialize variables
+                values_soiling_accumulation = []
+                values_soilingrate_hegazy = []
+                
+                # Calculate the cumulative soiling rate
+                cumulative_soiling_accumulation = 0
+                for index, row in df_city.iterrows():
+                    if row['soiling_accumulation'] == 0:
+                        cumulative_soiling_accumulation = 0
+                    else:
+                        cumulative_soiling_accumulation += row['soiling_accumulation']
+                    df_city.at[index, 'cum_soiling_accumulation'] = cumulative_soiling_accumulation
+                    
+                    # add the value of cumulative_soiling_accumulation to the list of values_soiling_accumulation
+                    values_soiling_accumulation.append(cumulative_soiling_accumulation)
+                    
+                    #calculate the soilingrate_value for the location using the hegazy model
+                    rs_hegazy = ((34.37 * math.erf(0.17*(cumulative_soiling_accumulation**0.8473))) / 100) #hegazy
+                    #rs_hegazy_neu = 1 - rs_hegazy
+                    # add the value of Soiling to the list of values_soiling_hegazy
+                    values_soilingrate_hegazy.append(rs_hegazy)
+                    
+                    df_city.at[index, 'soilingrate'] = rs_hegazy
+                    
+                # Print the new DataFrame with the "cum_soiling_accumulation" column
+                #print(df_city)
+
+                # Extract the first 10 rows of the DataFrame
+                #first_10_days = df.head(20)
+
+                # Print the values of "soiling_accumulation" for the first 10 days
+                #print(first_10_days['soiling_accumulation'])
+                #print(first_10_days['cum_soiling_accumulation'])
+
+                #save the new Table in the "city_data_soiling_accumulation" folder.
+                # Create the directory "city_data_soiling_accumulation" if it doesn't exist
+                output_directory = (rootPath + '\BifacialSimu\Handler\city_data_soiling_accumulation') 
+                if not os.path.exists(output_directory):
+                    os.makedirs(output_directory)
+
+                # Save the DataFrame as a CSV file
+                file_path = os.path.join(output_directory, f"{city_name}.csv")
+                df_city.to_csv(file_path, index=False)
+
+                #print(f"DataFrame saved as '{Entry_weatherstation}.csv' in the 'city_data_soiling_accumulation' folder.")
+                
+                Soiling_hegazy_new = round((sum(values_soilingrate_hegazy) / len (values_soilingrate_hegazy)), 6)
+                print('average of daily Soilingrate for the location indicated:',Soiling_hegazy_new, "%/d")
+                SimulationDict["fixSoilrate"] = Soiling_hegazy_new
+                
+                #reset value in the Entry_Soilrate
+                Entry_Soilrate.delete(0, END)
+                Entry_Soilrate.insert(0, SimulationDict["fixSoilrate"])
+                
+                ######################################################################################
                 #value needed to calculate the dirt accumullation  value for the location found
-                PM2_5 = new_soilingrate['PM2_5'].iloc[indexout]
-                PM10 = new_soilingrate['PM10'].iloc[indexout]
-                wind_speed = new_soilingrate['wind_speed'].iloc[indexout]
+#               PM2_5 = new_soilingrate['PM2_5'].iloc[indexout]
+#               PM10 = new_soilingrate['PM10'].iloc[indexout]
+#               wind_speed = new_soilingrate['wind_speed'].iloc[indexout]
                 
                 #print('pm2.5:', PM2_5)
                 #print('pm10:', PM10)
                 #print('wind_speed:', wind_speed)
                 
                 #to calculate the Duration of the simulation 
-                Startdate = datetime.datetime(int(Entry_year_start.get()), int(Entry_month_start.get()), int(Entry_day_start.get()), int(Entry_hour_start.get())) #defining as Date
-                Enddate = datetime.datetime(int(Entry_year_end.get()), int(Entry_month_end.get()), int(Entry_day_end.get()), int(Entry_hour_end.get()))
+#               Startdate = datetime.datetime(int(Entry_year_start.get()), int(Entry_month_start.get()), int(Entry_day_start.get()), int(Entry_hour_start.get())) #defining as Date
+#               Enddate = datetime.datetime(int(Entry_year_end.get()), int(Entry_month_end.get()), int(Entry_day_end.get()), int(Entry_hour_end.get()))
                 
                 # Duration of the simulation (in months)
-                simulation_duration = Enddate - Startdate #total in days an hours
-                seconds = simulation_duration.total_seconds() #in seconds
+#               simulation_duration = (Enddate - Startdate)  #total in days an hours
+#               seconds = (simulation_duration.total_seconds()) + 86400  #in seconds
                 #day = seconds / 86400 #accumulation per day
-                hours = seconds / 3600 #accumulation per hour
+#               hours = seconds / 3600 #accumulation per hour
                 
                 #print('Start of The simulation:', Startdate)
                 #print('End of The simulation:', Enddate)
@@ -1657,59 +1749,59 @@ class Window(tk.Tk):
                 #print("simulation_duration per day:", day, 'd')
 
                 # Define day_until_clean_second as the time until the next cleaning (in seconds)
-                day_until_clean = float(Entry_clean.get()) #cleaning occurs every 15 days
-                day_until_clean_second = 86400 * day_until_clean  # in seconds; Assume cleaning occurs every 15 days
-                print("cleaning every:", day_until_clean, 'days')
+#               day_until_clean = float(Entry_clean.get()) #cleaning occurs every 15 days
+#               day_until_clean_second = 86400 * day_until_clean  # in seconds; Assume cleaning occurs every 15 days
+#               print("cleaning every:", day_until_clean, 'days')
                 #print("cleaning every:", day_until_clean_second, 'seconds')
                 
                 
                 ########calculate the dirt accumullation  value for the location found#######
                 # Initialize variables
-                delta_t = 0 #timessteps
-                soiling_accumulation = 0 #soiling_accumulation
-                times = []
-                values_soiling_accumulation = []
-                values_soiling_hegazy = []
-                values_soiling_you_saiz = []
-                values_soiling_conceicao = []
+#               delta_t = 0 #timessteps
+#               soiling_accumulation = 0 #soiling_accumulation
+#               times = []
+#               values_soiling_accumulation = []
+#               values_soiling_hegazy = []
+#               values_soiling_you_saiz = []
+#               values_soiling_conceicao = []
                 
-                angle = SimulationDict["tilt"] # tilt angle
+#               angle = SimulationDict["tilt"] # tilt angle
                 
                 #simulation loop
-                for t in range(int(hours)):
+#               for t in range(int(hours)):
                 #for t in range(int(day)):
                     
                     # if the period day_until_clean_second is reached, reset soiling_accumulation and delta_t
-                    if delta_t == day_until_clean_second:
-                        soiling_accumulation = 0
-                        delta_t = 0 
+#                   if delta_t == day_until_clean_second:
+#                       soiling_accumulation = 0
+#                       delta_t = 0 
                         
                     # Calculate new value of soiling_accumulation
-                    soiling_accumulation = ((PM2_5 + PM10)*(10**(-9))) * wind_speed * delta_t * cos(radians(angle))  # Coello 
+#                   soiling_accumulation = ((PM2_5 + PM10)*(10**(-9))) * wind_speed * delta_t * cos(radians(angle))  # Coello 
                     # add the value of soiling_accumulation to the list of values_soiling_accumulation
-                    values_soiling_accumulation.append(soiling_accumulation)
+#                   values_soiling_accumulation.append(soiling_accumulation)
                     
                     
                     #calculate the soilingvvalue for the location using the hegazy model
-                    rs_hegazy = ((34.37 * math.erf(0.17*(soiling_accumulation**0.8473))) / 100) #hegazy
+#                   rs_hegazy = ((34.37 * math.erf(0.17*(soiling_accumulation**0.8473))) / 100) #hegazy
                     #rs_hegazy_neu = 1 - rs_hegazy
                     # add the value of Soiling to the list of values_soiling_hegazy
-                    values_soiling_hegazy.append(rs_hegazy)
+#                   values_soiling_hegazy.append(rs_hegazy)
                     
                     
                     #You_Saiz model
-                    rs_you_saiz = ((0.0385 * soiling_accumulation)) #“You/Saiz”.
+#                   rs_you_saiz = ((0.0385 * soiling_accumulation)) #“You/Saiz”.
                     #rs_you_saiz_neu = 1 - (rs_you_saiz)                    
                     # add the value of Soiling_rs_you_saiz to the list of values_soiling_you_saiz
-                    values_soiling_you_saiz.append(rs_you_saiz)
+#                   values_soiling_you_saiz.append(rs_you_saiz)
                     
                     #conceicao model
-                    rs_conceicao = ((0.2545 * soiling_accumulation))                     
+#                   rs_conceicao = ((0.2545 * soiling_accumulation))                     
                     # add the value of Soiling_rs_conceicao to the list of values_soiling_conceicao
-                    values_soiling_conceicao.append(rs_conceicao)
+#                   values_soiling_conceicao.append(rs_conceicao)
                     
                     # add the current hour to the time list in hours
-                    times.append(t)
+#                   times.append(t)
                     
                     #Print current values of soiling_accumulation and delta_t
                     #print('Index_location:', indexout)
@@ -1722,17 +1814,17 @@ class Window(tk.Tk):
                     #print('rs_conceicao:', rs_conceicao)
 
                     #increment the  hourly / daily time interval
-                    delta_t += 3600 #hourly
+#                   delta_t += 3600 #hourly
                     #delta_t += 86400 #daily
 
 
                 # Creating the csv table with Soiling data of the Location with the Index(indexout)
-                with open('Soiling{}.csv'.format(indexout), mode='w', newline='') as file:
-                    writer = csv.writer(file)
-                    writer.writerow(['Hours', 'soiling_accumulation', 'rs_hegazy', 'rs_you_saiz', 'rs_conceicao' ])  # Column headings
-                    for i in range(len(times)):
-                        writer.writerow([times[i], values_soiling_accumulation[i], values_soiling_hegazy[i], values_soiling_you_saiz[i], values_soiling_conceicao[i] ])  # Adding data to the table
-                
+#               with open('Soiling{}.csv'.format(indexout), mode='w', newline='') as file:
+#                   writer = csv.writer(file)
+#                   writer.writerow(['Hours', 'soiling_accumulation', 'rs_hegazy', 'rs_you_saiz', 'rs_conceicao' ])  # Column headings
+#                   for i in range(len(times)):
+#                       writer.writerow([times[i], values_soiling_accumulation[i], values_soiling_hegazy[i], values_soiling_you_saiz[i], values_soiling_conceicao[i] ])  # Adding data to the table
+               
                 #  plot the soiling_accumulation graph
                 #plt.plot(times, values_soiling_accumulation)
                 #plt.xlabel('Day [d]')
@@ -1742,12 +1834,12 @@ class Window(tk.Tk):
                 #plt.show()
 
                 #  plot the soiling_hegazy graph
-                plt.plot(times, values_soiling_hegazy)
+#               plt.plot(times, values_soiling_hegazy)
                 #plt.xlabel('Day [d]')
-                plt.xlabel('Hours [h]')
-                plt.ylabel('Soiling')
-                plt.title('Evolution of the values_soiling_hegazy during la simulation')
-                plt.show()
+#               plt.xlabel('Hours [h]')
+#               plt.ylabel('Soiling')
+#               plt.title("Evolution of the clogging rate over the year")
+#               plt.show()
 
                 #  plot the values_soiling_you_saiz graph
                 #plt.plot(times, values_soiling_you_saiz)
@@ -1769,82 +1861,82 @@ class Window(tk.Tk):
                 # When radiobutton 'Soiling Rate from theorical Model' active, set new soilingrate
                 #insert the new soiling value to the variable in simulation dictionary. 
                 
-                SimulationDict["hourlySoilrate"] = values_soiling_hegazy
+#               SimulationDict["hourlySoilrate"] = values_soiling_hegazy
                 #SimulationDict["fixSoilrate"] = SimulationDict["hourlySoilrate"]
                 #print("Soiling rate hegazy:", SimulationDict["hourlySoilrate"])
                 
-                Soiling_hegazy_new = round((sum(values_soiling_hegazy) / len (values_soiling_hegazy)), 6)
-                print('average for the location indicated as a function of the length of the simulation:',Soiling_hegazy_new)
-                SimulationDict["fixSoilrate"] = Soiling_hegazy_new
+#               Soiling_hegazy_new = round((sum(values_soiling_hegazy) / len (values_soiling_hegazy)), 6)
+#               print('average for the location indicated as a function of the length of the simulation:',Soiling_hegazy_new)
+#               SimulationDict["fixSoilrate"] = Soiling_hegazy_new
                 
                 #reset value in the Entry_Soilrate
-                Entry_Soilrate.delete(0, END)
-                Entry_Soilrate.insert(0, SimulationDict["fixSoilrate"])
+#               Entry_Soilrate.delete(0, END)
+#               Entry_Soilrate.insert(0, SimulationDict["fixSoilrate"])
                 
-                if Soiling_hegazy_new == 0:
+#               if Soiling_hegazy_new == 0:
                     # Load csv file with soiling rates from over 500 locations  and convert to pandas dataframe
-                    soilingrate_Weatherdata = pd.read_csv(rootPath + '\Lib\input_soiling\soilingrate_coordinates_monthly_2022.csv',  encoding ='latin-1')
-                    soilingrate_Weatherdata = pd.DataFrame(soilingrate_Weatherdata)
-                    print(soilingrate_Weatherdata)
+#                   soilingrate_Weatherdata = pd.read_csv(rootPath + '\Lib\input_soiling\soilingrate_coordinates_monthly_2022.csv',  encoding ='latin-1')
+#                   soilingrate_Weatherdata = pd.DataFrame(soilingrate_Weatherdata)
+#                   print(soilingrate_Weatherdata)
                     
-                    cities = [] # Array to collect pairs of latitude and longitude for each location
-                    soilingrate_Weatherdata = soilingrate_Weatherdata.reset_index() # Create index with range of numbers starting with '0'
+#                   cities = [] # Array to collect pairs of latitude and longitude for each location
+#                   soilingrate_Weatherdata = soilingrate_Weatherdata.reset_index() # Create index with range of numbers starting with '0'
                     #print(soilingrate_Weatherdata)
                    
                     # Collcect all pairs of coordinates from soiling_Weatherdata in cities[]
                     # for count in soilingrate_Weatherdata.index:
-                    count = 0    
-                    while count < len(soilingrate_Weatherdata['City, Country']):
-                        coord = (soilingrate_Weatherdata["lat"][count], soilingrate_Weatherdata["lng"][count])
+#                   count = 0    
+#                   while count < len(soilingrate_Weatherdata['City, Country']):
+#                       coord = (soilingrate_Weatherdata["lat"][count], soilingrate_Weatherdata["lng"][count])
                         #print(coord)
-                        cities.append(coord)
+#                       cities.append(coord)
                         #print(cities)
-                        count = count + 12
+#                       count = count + 12
                         
                     # Find nearest location to given latitude and longitude from SimulationDict
-                    nearest_location = closest(cities, (SimulationDict["latitude"],SimulationDict["longitude"]))
-                    indexout = cities.index(nearest_location)
-                    print('Lat and long', nearest_location)
-                    print('Index city in the excelsheet:', indexout) 
+#                   nearest_location = closest(cities, (SimulationDict["latitude"],SimulationDict["longitude"]))
+#                   indexout = cities.index(nearest_location)
+#                   print('Lat and long', nearest_location)
+#                   print('Index city in the excelsheet:', indexout) 
                     
                     
                     # clear weatherstation and distance entries         
-                    Entry_weatherstation.delete(0, END)
-                    Entry_distance.delete(0, END)
+#                   Entry_weatherstation.delete(0, END)
+#                   Entry_distance.delete(0, END)
                               
                     # set weatherstation entry with nearest location from soilingrate_Weatherdata
-                    Entry_weatherstation.insert(0, soilingrate_Weatherdata['City, Country'].values[indexout*12])
+#                   Entry_weatherstation.insert(0, soilingrate_Weatherdata['City, Country'].values[indexout*12])
                         
                     # set distance entry with distance from simulation location to nearest weatherstation from given data with geodesic      
-                    Entry_distance.insert(0, round(GD((SimulationDict["latitude"],SimulationDict["longitude"]),cities[indexout]).km, 2))
-                    soilingrate_Weatherdata = soilingrate_Weatherdata.set_index('City, Country')
+#                   Entry_distance.insert(0, round(GD((SimulationDict["latitude"],SimulationDict["longitude"]),cities[indexout]).km, 2))
+#                   soilingrate_Weatherdata = soilingrate_Weatherdata.set_index('City, Country')
                     
-                    SimulationDict["variableSoilrate"] = soilingrate_Weatherdata['Soiling_Rate'].iloc[indexout*12:(indexout*12 + 12)].values.tolist()
+#                   SimulationDict["variableSoilrate"] = soilingrate_Weatherdata['Soiling_Rate'].iloc[indexout*12:(indexout*12 + 12)].values.tolist()
                     #SimulationDict["fixSoilrate"] = SimulationDict["variableSoilrate"]
                     
-                    print("Monthly Soiling Rates:", SimulationDict["variableSoilrate"])
+#                   print("Monthly Soiling Rates:", SimulationDict["variableSoilrate"])
                     
                     
                     #to calculate the Duration of the simulation 
-                    Startdate = datetime.datetime(int(Entry_year_start.get()), int(Entry_month_start.get()), int(Entry_day_start.get()), int(Entry_hour_start.get())) #defining as Date
-                    Enddate = datetime.datetime(int(Entry_year_end.get()), int(Entry_month_end.get()), int(Entry_day_end.get()), int(Entry_hour_end.get()))
+#                   Startdate = datetime.datetime(int(Entry_year_start.get()), int(Entry_month_start.get()), int(Entry_day_start.get()), int(Entry_hour_start.get())) #defining as Date
+#                   Enddate = datetime.datetime(int(Entry_year_end.get()), int(Entry_month_end.get()), int(Entry_day_end.get()), int(Entry_hour_end.get()))
                     
                     # Duration of the simulation (in months)
-                    simulation_duration = Enddate - Startdate
-                    
-                    print('Startdate:', Startdate)
-                    print('Enddate:', Enddate)
-                    print('simulation_duration:', simulation_duration)
-                    
-                    
-                    #reset value in the Entry_Soilrate
-                    average_Soiling = round((sum(SimulationDict["variableSoilrate"]) / len (SimulationDict["variableSoilrate"])), 6)
-                    print('average for the location indicated as a function of the length of the simulation:', average_Soiling)
-                    SimulationDict["fixSoilrate"] = average_Soiling
+#                   simulation_duration = Enddate - Startdate
+#                   
+#                   print('Startdate:', Startdate)
+#                   print('Enddate:', Enddate)
+#                   print('simulation_duration:', simulation_duration)
+#                   
                     
                     #reset value in the Entry_Soilrate
-                    Entry_Soilrate.delete(0, END)
-                    Entry_Soilrate.insert(0, SimulationDict["fixSoilrate"])
+#                   average_Soiling = round((sum(SimulationDict["variableSoilrate"]) / len (SimulationDict["variableSoilrate"])), 6)
+#                  print('average for the location indicated as a function of the length of the simulation:', average_Soiling)
+#                   SimulationDict["fixSoilrate"] = average_Soiling
+                    
+                    #reset value in the Entry_Soilrate
+#                   Entry_Soilrate.delete(0, END)
+#                  Entry_Soilrate.insert(0, SimulationDict["fixSoilrate"])
                     
                     #simulationDict["monthlySoilingrate"] == True            
             
@@ -1856,7 +1948,7 @@ class Window(tk.Tk):
                 #soiling value
                 
                 # Load csv file with soiling rates from over 500 locations  and convert to pandas dataframe
-                soilingrate_Weatherdata = pd.read_csv(rootPath + '\Lib\input_soiling\soilingrate_coordinates_monthly_2022.csv',  encoding ='latin-1')
+                soilingrate_Weatherdata = pd.read_csv(rootPath + '\Lib\input_soiling\soilingrate_coordinates_monthly_2022.csv', encoding ='latin-1')
                 soilingrate_Weatherdata = pd.DataFrame(soilingrate_Weatherdata)
                 print(soilingrate_Weatherdata)
                 
