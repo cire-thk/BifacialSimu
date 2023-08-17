@@ -5,37 +5,37 @@
 
 import pandas as pd
 
-# Importer les fichiers CSV dans des DataFrames
+# Importing CSV files into DataFrames
 df_accra = pd.read_csv('Accra, GH.csv')
 df_data = pd.read_csv('Dataframe_df.csv')
 
-# Convertir la colonne 'Date' en format de date pour les deux DataFrames
+# Convert the 'Date' column into date format for both DataFrames
 df_accra['Date'] = pd.to_datetime(df_accra['Date'], dayfirst=True)
 df_data['corrected_timestamp'] = pd.to_datetime(df_data['corrected_timestamp'], dayfirst=True)
 
-# Créer une liste vide pour stocker les valeurs de soilingrate correspondantes
+# Create an empty list to store the corresponding soilingrate values
 PAPA = []
 
-# Parcourir les lignes du DataFrame "Dataframe_df"
+# Browse rows in DataFrame "Dataframe_df
 for index, row in df_data.iterrows():
-    # Extraire la date (jour et mois) de la ligne en cours du DataFrame "Dataframe_df"
+    # Extract the date (day and month) from the current row of the "Dataframe_df" DataFrame
     date_data = row['corrected_timestamp'].replace(year=2023)  # Remplacer l'année par l'année appropriée
     
-    # Filtrer le DataFrame "Accra, GH" pour obtenir les lignes ayant la même date (jour et mois)
+    # Filter the "Accra, GH" DataFrame to obtain rows with the same date (day and month)
     df_filtered = df_accra[(df_accra['Date'].dt.day == date_data.day) & (df_accra['Date'].dt.month == date_data.month)]
     
-    # Vérifier si des lignes ont été trouvées dans le DataFrame filtré
+    # Check whether rows have been found in the filtered DataFrame
     if not df_filtered.empty:
-        # Récupérer la valeur de soilingrate de la première ligne correspondante
+        # Retrieve the soilingrate value from the first corresponding line
         soilingrate_value = df_filtered.iloc[0]['soilingrate']
         
-        # Ajouter la valeur de soilingrate à la liste "PAPA"
+        # Add the soilingrate value to the "PAPA" list
         PAPA.append(soilingrate_value)
     else:
-        # Ajouter une valeur par défaut (par exemple, 0) si aucune valeur de soilingrate correspondante n'a été trouvée
+        # Add a default value (for example, 0) if no corresponding soilingrate value has been found
         PAPA.append(0)
 
-# Afficher la liste "PAPA" contenant les valeurs de soilingrate correspondantes pour chaque jour et mois identiques
+# Display the "PAPA" list containing the corresponding soilingrate values for each identical day and month
 print(PAPA)
 print(len(PAPA))
 
@@ -43,12 +43,12 @@ print(len(PAPA))
 import os
 import pandas as pd
 
-# Définir le chemin absolu du fichier
+# Define the absolute path of the file
 file_path = "C:\\Users\\Arsene Siewe Towoua\\anaconda3\\envs\\soiling2\\Lib\\input_soiling\\city_data_soiling_accumulation\\Denver, US.csv"
 
-# Vérifier si le fichier existe
+# Check if the file exists
 if os.path.exists(file_path):
     df_city = pd.read_csv(file_path)
-    # Faites ce que vous devez faire avec le DataFrame df_city ici
+    # Do what you need to do with the df_city DataFrame here
 else:
     print(f"Le fichier '{file_path}' n'a pas été trouvé.")

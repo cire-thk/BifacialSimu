@@ -512,7 +512,7 @@ class Window(tk.Tk):
                 SimulationDict["nRows"]=int(Entry_nRows.get())   
                 
             if len(Entry_nModsx.get()) !=0:
-                SimulationDict["nModsx"]=int(Entry_nModsx.get())    
+                SimulationDict["nModsx"]=int(Entry_nModsx.get()) 
                 
             if len(Entry_nModsy.get()) !=0:
                 SimulationDict["nModsy"]=int(Entry_nModsy.get())     
@@ -1493,27 +1493,33 @@ class Window(tk.Tk):
                Label_weatherstation.config(state="disabled")
                Entry_distance.config(state="disabled")                                   
                Entry_weatherstation.config(state="disabled")  
+               Entry_clean.config(state="normal")
+               Label_clean.config(state="normal")
            
             elif (rb_Soiling.get() == 2):
-               SimulationDict["average_daily_soiling_rate"] = True
-               SimulationDict["fixed_average_soiling_rate"] = False
+               SimulationDict["average_daily_soiling_rate"] = False
+               SimulationDict["fixed_average_soiling_rate"] = True
                Entry_Soilrate.config(state="disabled")
                Combo_Soilrate.config(state="disabled")
                Label_distance.config(state="normal")
                Label_weatherstation.config(state="normal")
                Entry_distance.config(state="normal")                 
                Entry_weatherstation.config(state="normal")                 
+               Entry_clean.config(state="normal")
+               Label_clean.config(state="normal")
                #messagebox.showwarning("Main Control", "Confirm Main Control inputs when done!")# Input has to be confirmed with Button to update soiling rate
                
             elif (rb_Soiling.get() == 3):
-              SimulationDict["average_daily_soiling_rate"] = False
-              SimulationDict["fixed_average_soiling_rate"] = True
+              SimulationDict["average_daily_soiling_rate"] = True 
+              SimulationDict["fixed_average_soiling_rate"] = False
               Entry_Soilrate.config(state="disabled")
               Combo_Soilrate.config(state="disabled")
               Label_distance.config(state="normal")
               Label_weatherstation.config(state="normal")
               Entry_distance.config(state="normal")                 
               Entry_weatherstation.config(state="normal")                 
+              Entry_clean.config(state="disabled")
+              Label_clean.config(state="disabled")
               #messagebox.showwarning("Main Control", "Confirm Main Control inputs when done!")# Input has to be confirmed with Button to update soiling rate
            
             else:
@@ -1525,6 +1531,8 @@ class Window(tk.Tk):
                Label_weatherstation.config(state="disabled")
                Entry_distance.config(state="disabled")                 
                Entry_weatherstation.config(state="disabled")                    
+               Entry_clean.config(state="normal")
+               Label_clean.config(state="normal")
                 
         # Radiobuttons Soiling         
         rb_Soiling = IntVar()         
@@ -1597,7 +1605,7 @@ class Window(tk.Tk):
             cities = [] # Array to collect pairs of latitude and longitude for each location
             new_soilingrate = new_soilingrate.reset_index() # Create index with range of numbers starting with '0'
             #print(new_soilingrate)
-           
+                
             # Collcect all pairs of coordinates from soiling_Weatherdata in cities[]
             # for count in new_soilingrate.index:
             count = 0    
@@ -1652,10 +1660,11 @@ class Window(tk.Tk):
                 
                 #Function to calculate the soiling_accumulation
                 def calculate_soiling_accumulation(row):
-                    if row['precipitation'] >= 3:  #row['humidity'] >= 75 or
+                    if row['precipitation'] >= 0.3:  #row['humidity'] >= 75 or
                         return 0
                     else:
-                        return round(((row['pm25'] + row['pm10']) * (10 **-9)) * row['wind-speed'] * t * math.cos(math.radians(a)), 6)
+                        return round(((SimulationDict["nModsx"] * SimulationDict["nModsy"]) * (SimulationDict["moduley"] * SimulationDict["modulex"])) 
+                                     * (((row['pm25'] + row['pm10']) * (10 **-9)) * row['wind-speed'] * t * math.cos(math.radians(a))), 6)
 
                 df_city['soiling_accumulation'] = df_city.apply(calculate_soiling_accumulation, axis=1)
 
@@ -1699,6 +1708,8 @@ class Window(tk.Tk):
                 # Print the values of "soiling_accumulation" for the first 10 days
                 #print(first_10_days['soiling_accumulation'])
                 #print(first_10_days['cum_soiling_accumulation'])
+                
+                SimulationDict["hourlySoilrate"] = values_soilingrate_hegazy
 
                 #save the new Table in the "city_data_soiling_accumulation" folder.
                 # Create the directory "city_data_soiling_accumulation" if it doesn't exist
@@ -1720,6 +1731,22 @@ class Window(tk.Tk):
                 Entry_Soilrate.delete(0, END)
                 Entry_Soilrate.insert(0, SimulationDict["fixSoilrate"])
                 
+                #  plot the soiling_accumulation graph
+                #plt.plot(values_soiling_accumulation, marker = 'o')
+                #plt.xlabel('Day [d]')
+                #plt.xlabel('Hours [h]')
+                #plt.ylabel('Soiling Accumulation [g]')
+                #plt.title('Evolution of the Soiling Accumulation over the year')
+                #plt.show()
+                
+                
+                #  plot the soiling_hegazy graph
+                #plt.plot(values_soilingrate_hegazy, marker = 'o')
+                #plt.xlabel('Day [d]')
+                #plt.xlabel('Hours [h]')
+                #plt.ylabel('Soilingrate')
+                #plt.title("Evolution of the Soiling rate over the year")
+                #plt.show()
                 ######################################################################################################################
             # When radiobutton 'soilingrate from weatherdata' active, set new soilingrate
             if (rb_Soiling.get() == 2):
@@ -1743,8 +1770,8 @@ class Window(tk.Tk):
                 # Duration of the simulation (in months)
                 simulation_duration = (Enddate - Startdate)  #total in days an hours
                 seconds = (simulation_duration.total_seconds()) + 86400  #in seconds
-                #day = seconds / 86400 #accumulation per day
-                hours = seconds / 3600 #accumulation per hour
+                day = seconds / 86400 #accumulation per day
+                #hours = seconds / 3600 #accumulation per hour
                 
                 #print('Start of The simulation:', Startdate)
                 #print('End of The simulation:', Enddate)
@@ -1773,8 +1800,8 @@ class Window(tk.Tk):
                 angle = SimulationDict["tilt"] # tilt angle
                 
                 #simulation loop
-                for t in range(int(hours)):
-                #for t in range(int(day)):
+                #for t in range(int(hours)):
+                for t in range(int(day)):
                     
 #                   if the period day_until_clean_second is reached, reset soiling_accumulation and delta_t
                     if delta_t == day_until_clean_second:
@@ -1782,7 +1809,7 @@ class Window(tk.Tk):
                         delta_t = 0 
                         
                     # Calculate new value of soiling_accumulation
-                    soiling_accumulation = (((PM2_5 + PM10)*(10**(-9))) * wind_speed * delta_t * math.cos(math.radians(angle)))  # Coello 
+                    soiling_accumulation = (((SimulationDict["nModsx"] * SimulationDict["nModsy"]) * (SimulationDict["moduley"] * SimulationDict["modulex"]))*(((PM2_5 + PM10)*(10**(-9))) * wind_speed * delta_t * math.cos(math.radians(angle)))) # Coello 
                     #soiling_accumulation = (((PM2_5 + PM10)*(10**(-9))) * wind_speed * math.cos(math.radians(angle)))  # Coello 
                     # add the value of soiling_accumulation to the list of values_soiling_accumulation
                     values_soiling_accumulation.append(soiling_accumulation)
@@ -1802,7 +1829,7 @@ class Window(tk.Tk):
 #                   values_soiling_you_saiz.append(rs_you_saiz)
                     
                     #conceicao model
-#                   rs_conceicao = ((0.2545 * soiling_accumulation))                     
+#                   rs_conceicao = ((0.2545 * soiling_accumulation^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^    	^^^^^^^^^^^^^^                     
                     # add the value of Soiling_rs_conceicao to the list of values_soiling_conceicao
 #                   values_soiling_conceicao.append(rs_conceicao)
                     
@@ -1820,8 +1847,8 @@ class Window(tk.Tk):
                     #print('rs_conceicao:', rs_conceicao)
 
                     #increment the  hourly / daily time interval
-                    delta_t += 3600 #hourly
-                    #delta_t += 86400 #daily
+                    #delta_t += 3600 #hourly
+                    delta_t += 86400 #daily
 
                 #print(values_soilingrate_hegazy)
                 #print('time', times)
@@ -1837,8 +1864,8 @@ class Window(tk.Tk):
                 #plt.plot(times, values_soiling_accumulation)
                 #plt.xlabel('Day [d]')
                 #plt.xlabel('Hours [h]')
-                #plt.ylabel('Soiling Accumulation [g/m²]')
-                #plt.title('Evolution of the Soiling Accumulation during la simulation')
+                #plt.ylabel('Soiling Accumulation [g]')
+                #plt.title('Evolution of the Soiling Accumulation over the Simulation interval')
                 #plt.show()
 
                 #  plot the soiling_hegazy graph
@@ -1846,14 +1873,14 @@ class Window(tk.Tk):
                 #plt.xlabel('Day [d]')
                 #plt.xlabel('Hours [h]')
                 #plt.ylabel('Soilingrate')
-                #plt.title("Evolution of the clogging rate over the year")
+                #plt.title("Evolution of the Soiling rate over the Simulation interval")
                 #plt.show()
                 
                 #for experimental Soiling   
                 # When radiobutton 'Soiling Rate from theorical Model' active, set new soilingrate
                 #insert the new soiling value to the variable in simulation dictionary. 
                 
-                SimulationDict["hourlySoilrate"] = values_soilingrate_hegazy
+                #SimulationDict["hourlySoilrate"] = values_soilingrate_hegazy
                 #print("Soiling rate hegazy:", SimulationDict["hourlySoilrate"])
                 
                 Soilingrate_hegazy_new = round((sum(values_soilingrate_hegazy) / len (values_soilingrate_hegazy)), 6)
@@ -1868,7 +1895,7 @@ class Window(tk.Tk):
                     # Load csv file with soiling rates from over 500 locations  and convert to pandas dataframe
                     soilingrate_Weatherdata = pd.read_csv(rootPath + '\Lib\input_soiling\soilingrate_coordinates_monthly_2022.csv',  encoding ='latin-1')
                     soilingrate_Weatherdata = pd.DataFrame(soilingrate_Weatherdata)
- #                   print(soilingrate_Weatherdata)
+                    #print(soilingrate_Weatherdata)
                     
                     cities = [] # Array to collect pairs of latitude and longitude for each location
                     soilingrate_Weatherdata = soilingrate_Weatherdata.reset_index() # Create index with range of numbers starting with '0'

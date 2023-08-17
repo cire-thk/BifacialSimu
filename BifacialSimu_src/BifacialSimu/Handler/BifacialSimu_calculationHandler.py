@@ -493,6 +493,7 @@ class Electrical_simulation:
 
                 else:
                     soilrate = simulationDict['fixSoilrate']
+                    
                     row_qabs_front = df_report.loc[index,key_front_mono] * (1 - ((soilrate*(temp))/(24)))
                     T_Current = df.loc[index,'temperature']
 
@@ -690,7 +691,7 @@ class Electrical_simulation:
         df_time_soiling['month'] = df_report['corrected_timestamp'].dt.strftime('%m') # Needed to choose wright soiling rate from SimulationDict                                            
         df_time_soiling = df_time_soiling.reset_index(drop = True)
         
-        #################################################################################
+        ###########################################################################################################################################################
         #soilingrate from theorical model
         city_name = simulationDict["city"]  # get the city, country name from 'Entry_weatherstation' 
         #print (str(city_name))
@@ -731,7 +732,7 @@ class Electrical_simulation:
         # Display the list containing the corresponding soilingrate values for each identical day and month
         #print(len(sr_value))
         #print(sr_value)
-        ############################################################################################################################################################
+        ###########################################################################################################################################################
         
         if simulationDict['simulationMode'] == 3:
             df = df.reset_index()
@@ -804,6 +805,42 @@ class Electrical_simulation:
 
                     P_bi_hourly.append(P_bi)
                         
+                    # Append P_bi_hourly array to arrays
+                    P_bi_hourly_arrays.append(P_bi_hourly)
+
+                    print(sum_energy_b)
+
+                elif simulationDict["fixed_average_soiling_rate"] == True:
+                    
+                    soilrate = soilrate = simulationDict['fixSoilrate']
+                
+                    row_qabs_front = df_report.loc[index,key_front] * (1 - (soilrate*(temp)/(24)))
+                    row_qabs_back = df_report.loc[index,key_back] * (1 - (soilrate*(temp)/(24*8.8)))
+                    row_qabs_combined = row_qabs_front + (row_qabs_back*bi_factor)
+                
+                    T_Current = df.loc[index,'temperature']
+                
+                
+                    # calculation of frontside power output
+                    if math.isnan(row_qabs_front) or row_qabs_front < 0.0:
+                        row_qabs_front = 0
+                        P_bi = 0     
+
+                    # calculation of backside power output
+                    elif math.isnan(row_qabs_back) or row_qabs_back < 0.0:
+                        row_qabs_back = 0
+                        P_bi = 0
+               
+                    else:
+                        V_oc_f = V_oc_f0 * (1 + T_koeff_V * (T_Current - T_amb) + moduleDict['zeta'] * np.log(row_qabs_combined / q_stc_front))
+                        I_sc_f = I_sc_f0 * (1 + T_koeff_I * (T_Current - T_amb)) * (row_qabs_combined / q_stc_front)
+                        P_bi = FF_f0 * V_oc_f * I_sc_f
+                
+
+                    sum_energy_b += P_bi # Sum up the energy of every row in every hour
+
+                    P_bi_hourly.append(P_bi)
+                
                     # Append P_bi_hourly array to arrays
                     P_bi_hourly_arrays.append(P_bi_hourly)
 
@@ -938,8 +975,6 @@ class Electrical_simulation:
                 #
                 else:
                     soilrate = simulationDict['fixSoilrate']
-                x = x+1
-                
                     #SG
                     row_qabs_front = df_report.loc[index,key_front_mono] * (1 - ((soilrate*(temp))/(24)))
                     T_Current = df.loc[index,'temperature']
@@ -1543,11 +1578,6 @@ class Electrical_simulation:
                         
                     P_m_hourly.append(P_m)
                     P_bi_hourly.append(P_bi)
-                    
-                # Append P_bi_hourly array to arrays
-                P_m_hourly_arrays.append(P_m_hourly)
-                P_bi_hourly_arrays.append(P_bi_hourly)
-
                 #
                 else:
                     
@@ -1801,11 +1831,6 @@ class Electrical_simulation:
                         
                     P_m_hourly.append(P_m)
                     
-                # Append P_m_hourly array to arrays
-                P_m_hourly_arrays.append(P_m_hourly)
-
-
-                #
                 else:
                     soilrate = simulationDict['fixSoilrate']
                     #SG
@@ -2019,48 +2044,48 @@ class Electrical_simulation:
         df_time_soiling = df_time_soiling.reset_index(drop = True)
         
         
-       #################################################################################
-       #soilingrate from theorical model
-       city_name = simulationDict["city"]  # get the city, country name from 'Entry_weatherstation' 
-       #print (str(city_name))
-       #new_soilingrate = pd.read_csv(rootPath + '\Lib\input_soiling\soiling_data.csv', encoding ='latin-1' ) 
-       df_city = pd.read_csv(rootPath + f'\city_data_soiling_accumulation\{city_name}.csv')
-       #file_path = os.path.join(city_data_directory, f"{city_name}.csv")
-       #df_city = pd.read_csv(file_path)
-       # Convert the 'Date' column into date format for both DataFrames
-       df_city['Date'] = pd.to_datetime(df_city['Date'], dayfirst=True)
-       df_report['corrected_timestamp'] = pd.to_datetime(df_report['corrected_timestamp'], dayfirst=True)
+        #################################################################################
+        #soilingrate from theorical model
+        city_name = simulationDict["city"]  # get the city, country name from 'Entry_weatherstation' 
+        #print (str(city_name))
+        #new_soilingrate = pd.read_csv(rootPath + '\Lib\input_soiling\soiling_data.csv', encoding ='latin-1' ) 
+        df_city = pd.read_csv(rootPath + f'\city_data_soiling_accumulation\{city_name}.csv')
+        #file_path = os.path.join(city_data_directory, f"{city_name}.csv")
+        #df_city = pd.read_csv(file_path)
+        # Convert the 'Date' column into date format for both DataFrames
+        df_city['Date'] = pd.to_datetime(df_city['Date'], dayfirst=True)
+        df_report['corrected_timestamp'] = pd.to_datetime(df_report['corrected_timestamp'], dayfirst=True)
 
-       # Create an empty list to store the corresponding soilingrate values
-       sr_value = []
+        # Create an empty list to store the corresponding soilingrate values
+        sr_value = []
 
-       # Browse rows in DataFrame "df_report
-       for index, row in df_report.iterrows():
-           # Extract the date (day and month) of the current row from the "df_report" DataFrame
-           date_df_report = row['corrected_timestamp'].replace(year=2023)  # Remplacer l'année par l'année appropriée
+        # Browse rows in DataFrame "df_report
+        for index, row in df_report.iterrows():
+            # Extract the date (day and month) of the current row from the "df_report" DataFrame
+            date_df_report = row['corrected_timestamp'].replace(year=2023)  # Remplacer l'année par l'année appropriée
            
-           # Filter the "City, Country" DataFrame to obtain rows with the same date (day and month)
-           df_filtered = df_city[(df_city['Date'].dt.day == date_df_report.day) & (df_city['Date'].dt.month == date_df_report.month)]
+            # Filter the "City, Country" DataFrame to obtain rows with the same date (day and month)
+            df_filtered = df_city[(df_city['Date'].dt.day == date_df_report.day) & (df_city['Date'].dt.month == date_df_report.month)]
            
-           # Check whether rows have been found in the filtered DataFrame
-           if not df_filtered.empty:
-               # Retrieve the soilingrate value from the first corresponding line
-               soilingrate_value = df_filtered.iloc[0]['soilingrate']
+            # Check whether rows have been found in the filtered DataFrame
+            if not df_filtered.empty:
+                # Retrieve the soilingrate value from the first corresponding line
+                soilingrate_value = df_filtered.iloc[0]['soilingrate']
                
                # Add the soilingrate value to the "sr_value" list
-               sr_value.append(soilingrate_value)
-           else:
-               # Add a default value (for example, 0) if no corresponding soilingrate value has been found
-               sr_value.append(0)
-       simulationDict["hourlySoilrate"] = sr_value
-       #print('AAA', len(simulationDict["hourlySoilrate"]))
-       #print('VBBB', len(sr_value))
-       #print('XXXXXXX', len(df_report))
-       #df_reportVF
-       # Display the list containing the corresponding soilingrate values for each identical day and month
-       #print(len(sr_value))
-       #print(sr_value)
-       ############################################################################################################################################################
+                sr_value.append(soilingrate_value)
+            else:
+                # Add a default value (for example, 0) if no corresponding soilingrate value has been found
+                sr_value.append(0)
+        simulationDict["hourlySoilrate"] = sr_value
+        #print('AAA', len(simulationDict["hourlySoilrate"]))
+        #print('VBBB', len(sr_value))
+        #print('XXXXXXX', len(df_report))
+        #df_reportVF
+        # Display the list containing the corresponding soilingrate values for each identical day and month
+        #print(len(sr_value))
+        #print(sr_value)
+        ############################################################################################################################################################
        
        
         #Diode ideality factors. a1 has to be 1 while a2 is flexible but it has to be above 1.2
@@ -2602,9 +2627,7 @@ class Electrical_simulation:
 
                 if simulationDict["average_daily_soiling_rate"] == True:
                     soilrate = simulationDict["hourlySoilrate"]
-                    for i in range(len(soilrate)):
                     
-                    #SG
                     row_qabs_front = df_report.loc[index,key_front_mono] * (1 - soilrate[i])
                     T_Current = df.loc[index,'temperature']
 
@@ -2644,8 +2667,8 @@ class Electrical_simulation:
                         #print("Power: " + str(P_bi))
              
                         sum_energy_m += P_m # Sum up the energy of every row in every hour
-                        else:
-                            P_m = 0
+                    else:
+                        P_m = 0
                     
                     P_m_hourly.append(P_m)
             
@@ -3083,8 +3106,8 @@ class Electrical_simulation:
                             #print("Power: " + str(P_bi))
                  
                             sum_energy_m += P_m # Sum up the energy of every row in every hour
-                            else:
-                                P_m = 0
+                        else:
+                            P_m = 0
                         
                         P_m_hourly.append(P_m)
                 
