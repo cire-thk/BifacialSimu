@@ -216,7 +216,7 @@ class Electrical_simulation:
         # Browse rows in DataFrame "df_report
         for index, row in df_report.iterrows():
             # Extract the date (day and month) of the current row from the "df_report" DataFrame
-            date_df_report = row['corrected_timestamp'].replace(year=2023)  # Remplacer l'année par l'année appropriée
+            date_df_report = row['corrected_timestamp'].replace(year=2023)  # Replace year with appropriate year
             
             # Filter the "City, Country" DataFrame to obtain rows with the same date (day and month)
             df_filtered = df_city[(df_city['Date'].dt.day == date_df_report.day) & (df_city['Date'].dt.month == date_df_report.month)]
@@ -293,7 +293,7 @@ class Electrical_simulation:
                 if simulationDict["average_daily_soiling_rate"] == True:
                     soilrate = simulationDict["hourlySoilrate"]
                     row_qabs_front = df_report.loc[index,key_front] * (1 - soilrate[y])
-                    row_qabs_back = df_report.loc[index,key_back] * (1 - (soilrate[y]/(8.8)))
+                    row_qabs_back = df_report.loc[index,key_back] * (1 - (soilrate[y]/(10.581)))
                     T_Current = df.loc[index,'temperature']
 
                     #print("front: " + str(row_qabs_front))
@@ -780,7 +780,7 @@ class Electrical_simulation:
                     #row_qabs_back = row[key_back]
                         
                     row_qabs_front = df_report.loc[index,key_front] * (1 - soilrate[i])
-                    row_qabs_back = df_report.loc[index,key_back] (1 - (soilrate[i]/(8.8)))
+                    row_qabs_back = df_report.loc[index,key_back] (1 - (soilrate[i]/(10.581)))
                     row_qabs_combined = row_qabs_front + (row_qabs_back*bi_factor)
                     T_Current = df.loc[index,'temperature']
                         
@@ -1435,7 +1435,7 @@ class Electrical_simulation:
                     #row_qabs_back = row[key_back]
                         
                     row_qabs_front = df_report.loc[index,key_front] * (1 - soilrate[i])
-                    row_qabs_back = df_report.loc[index,key_back] (1 - (soilrate[i]/(8.8)))
+                    row_qabs_back = df_report.loc[index,key_back] (1 - (soilrate[i]/(10.581)))
                         
                     T_Current = df.loc[index,'temperature']
                         
@@ -2231,7 +2231,7 @@ class Electrical_simulation:
                     #row_qabs_back = row[key_back]
                         
                     row_qabs_front = df_report.loc[index,key_front] * (1 - soilrate[i])
-                    row_qabs_back = df_report.loc[index,key_back] (1 - (soilrate[i]/(8.8)))
+                    row_qabs_back = df_report.loc[index,key_back] (1 - (soilrate[i]/(10.581)))
                     row_qabs_combined = row_qabs_front + (row_qabs_back*bi_factor)
                     T_Current = df.loc[index,'temperature']
                     #
@@ -2915,7 +2915,7 @@ class Electrical_simulation:
                         #row_qabs_back = row[key_back]
                             
                         row_qabs_front = df_report.loc[index,key_front] * (1 - soilrate[i])
-                        row_qabs_back = df_report.loc[index,key_back] (1 - (soilrate[i]/(8.8)))
+                        row_qabs_back = df_report.loc[index,key_back] (1 - (soilrate[i]/(10.581)))
                         row_qabs_combined = row_qabs_front + (row_qabs_back*bi_factor)
                         T_Current = df.loc[index,'temperature']
                             
