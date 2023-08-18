@@ -343,7 +343,7 @@ class Electrical_simulation:
                     # calculate front row power output including the soiling rate determined in GUI                               
                     row_qabs_front = df_report.loc[index,key_front] * (1 - (soilrate*(temp)/(24)))   
                     # calculate back row power output including the decreased soiling for backside of PV module                                 
-                    row_qabs_back = df_report.loc[index,key_back] * (1 - (soilrate*(temp)/(24*8.8)))
+                    row_qabs_back = df_report.loc[index,key_back] * (1 - (soilrate*(temp)/(24*10.581)))
                     
                     T_Current = df.loc[index,'temperature']
                     
@@ -556,7 +556,7 @@ class Electrical_simulation:
         # Bifacial Gain Calculation
         
         Bifacial_gain= (annual_power_per_peak_b - annual_power_per_peak_m) / annual_power_per_peak_m
-        # print("Bifacial Gain: " + str(Bifacial_gain*100) + " %")
+        print("Bifacial Gain: " + str(Bifacial_gain*100) + " %")
         
                 
         # Create dataframe with data
@@ -587,7 +587,6 @@ class Electrical_simulation:
                 mismatch.append(m)
                 
             return mismatch 
-
 
     
     def simulate_simpleBifacial(moduleDict, simulationDict, df_reportVF, df_reportRT, df_report, df, resultsPath):
@@ -682,14 +681,6 @@ class Electrical_simulation:
         df_report['corrected_timestamp'] = pd.to_datetime(df_report['timestamp'])
         df_report['time'] = df_report['corrected_timestamp'].dt.strftime('%m_%d_%H')
         df_report = df_report.set_index('time')
-        
-        #df_time_soiling = pd.DataFrame(df['corrected_timestamp'])
-        #df_time_soiling['month'] = df['corrected_timestamp'].dt.strftime('%m') # Needed to choose wright soiling rate from SimulationDict                                            
-        df_time_soiling = df_time_soiling.reset_index(drop = True)
-        
-        df_time_soiling = pd.DataFrame(df_report['corrected_timestamp'])
-        df_time_soiling['month'] = df_report['corrected_timestamp'].dt.strftime('%m') # Needed to choose wright soiling rate from SimulationDict                                            
-        df_time_soiling = df_time_soiling.reset_index(drop = True)
         
         ###########################################################################################################################################################
         #soilingrate from theorical model
@@ -810,48 +801,12 @@ class Electrical_simulation:
 
                     print(sum_energy_b)
 
-                elif simulationDict["fixed_average_soiling_rate"] == True:
-                    
-                    soilrate = soilrate = simulationDict['fixSoilrate']
-                
-                    row_qabs_front = df_report.loc[index,key_front] * (1 - (soilrate*(temp)/(24)))
-                    row_qabs_back = df_report.loc[index,key_back] * (1 - (soilrate*(temp)/(24*8.8)))
-                    row_qabs_combined = row_qabs_front + (row_qabs_back*bi_factor)
-                
-                    T_Current = df.loc[index,'temperature']
-                
-                
-                    # calculation of frontside power output
-                    if math.isnan(row_qabs_front) or row_qabs_front < 0.0:
-                        row_qabs_front = 0
-                        P_bi = 0     
-
-                    # calculation of backside power output
-                    elif math.isnan(row_qabs_back) or row_qabs_back < 0.0:
-                        row_qabs_back = 0
-                        P_bi = 0
-               
-                    else:
-                        V_oc_f = V_oc_f0 * (1 + T_koeff_V * (T_Current - T_amb) + moduleDict['zeta'] * np.log(row_qabs_combined / q_stc_front))
-                        I_sc_f = I_sc_f0 * (1 + T_koeff_I * (T_Current - T_amb)) * (row_qabs_combined / q_stc_front)
-                        P_bi = FF_f0 * V_oc_f * I_sc_f
-                
-
-                    sum_energy_b += P_bi # Sum up the energy of every row in every hour
-
-                    P_bi_hourly.append(P_bi)
-                
-                    # Append P_bi_hourly array to arrays
-                    P_bi_hourly_arrays.append(P_bi_hourly)
-
-                    print(sum_energy_b)
-
                 else:
                     
                     soilrate = soilrate = simulationDict['fixSoilrate']
                 
                     row_qabs_front = df_report.loc[index,key_front] * (1 - (soilrate*(temp)/(24)))
-                    row_qabs_back = df_report.loc[index,key_back] * (1 - (soilrate*(temp)/(24*8.8)))
+                    row_qabs_back = df_report.loc[index,key_back] * (1 - (soilrate*(temp)/(24*10.581)))
                     row_qabs_combined = row_qabs_front + (row_qabs_back*bi_factor)
                 
                     T_Current = df.loc[index,'temperature']
@@ -1584,7 +1539,7 @@ class Electrical_simulation:
                     soilrate = simulationDict['fixSoilrate']
                 
                     row_qabs_front = df_report.loc[index,key_front] * (1 - (soilrate*(temp)/(24)))
-                    row_qabs_back = df_report.loc[index,key_back] * (1 - (soilrate*(temp)/(24*8.8)))
+                    row_qabs_back = df_report.loc[index,key_back] * (1 - (soilrate*(temp)/(24*10.581)))
                
                     T_Current = df.loc[index,'temperature']
                 
@@ -2388,7 +2343,7 @@ class Electrical_simulation:
                     soilrate = simulationDict['fixSoilrate']
                     
                     row_qabs_front = df_report.loc[index,key_front] * (1 - ((soilrate*(temp)/(24))))
-                    row_qabs_back = df_report.loc[index,key_back] * (1 - ((soilrate*(temp)/(24*8.8))))
+                    row_qabs_back = df_report.loc[index,key_back] * (1 - ((soilrate*(temp)/(24*10.581))))
 #                   row_qabs_combined = row_qabs_front + (row_qabs_back*bi_factor)
                     T_Current = df.loc[index,'temperature']
                 
@@ -2953,7 +2908,7 @@ class Electrical_simulation:
                         soilrate = simulationDict['fixSoilrate']
                         
                         row_qabs_front = df_report.loc[index,key_front] * (1 - ((soilrate*(temp)/(24))))
-                        row_qabs_back = df_report.loc[index,key_back] * (1 - ((soilrate*(temp)/(24*8.8))))
+                        row_qabs_back = df_report.loc[index,key_back] * (1 - ((soilrate*(temp)/(24*10.581))))
 #                       row_qabs_combined = row_qabs_front + (row_qabs_back*bi_factor)
                         T_Current = df.loc[index,'temperature']
                     
