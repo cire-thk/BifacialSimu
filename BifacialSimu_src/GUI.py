@@ -177,6 +177,7 @@ ModuleDict = {
     'P_mpp': 354, # Power at maximum power Point [W]
     'T_koeff_P': -0.0036, #Temperature Coeffizient [1/°C]
     'T_amb':20, #Ambient Temperature for measuring the Temperature Coeffizient [°C]
+    'T_NOCT':45, #NOCT Temperature for estimation of module Temperature [°C]
     'T_koeff_I': 0.0005, #Temperaturkoeffizient for I_sc [1/°C] #SG
     'T_koeff_V': 0.0005, #Temperaturkoeffizient for U_oc [1/°C] #SG
     'zeta': 0.06, #Bestrahlungskoeffizient für Leerlaufspannung [-]
@@ -1136,7 +1137,7 @@ class Window(tk.Tk):
         #Deciding to download or use ur own weatherfile       
         rb_weatherfile=IntVar()
         rb_weatherfile.set("0")
-        rad1_weatherfile= Radiobutton(namecontrol_frame, variable=rb_weatherfile, width=15, text="Local weather File!", value=0, command=lambda:Weatherfile())
+        rad1_weatherfile= Radiobutton(namecontrol_frame, variable=rb_weatherfile, width=15, text="Local   File!", value=0, command=lambda:Weatherfile())
         rad2_weatherfile= Radiobutton(namecontrol_frame, variable=rb_weatherfile,  width=20, text="Download weather File!", value=1, command=lambda:Weatherfile())
         rad1_weatherfile.grid(column=0,row=3, sticky=W)
         rad2_weatherfile.grid(column=1,row=3, sticky=W)
@@ -1641,7 +1642,7 @@ class Window(tk.Tk):
             if (rb_Soiling.get() == 3):
                 Entry_Soilrate.delete(0, END)
                 SimulationDict["average_daily_soiling_rate"] = True
-    #####        
+
                 city_data_directory = (rootPath + '\Lib\input_soiling\city_data_2')
                 file_path = os.path.join(city_data_directory, f"{city_name}.csv")
                 if os.path.exists(file_path):
