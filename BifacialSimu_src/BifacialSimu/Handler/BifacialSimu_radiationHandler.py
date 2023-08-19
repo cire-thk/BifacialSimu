@@ -367,7 +367,13 @@ class RayTrace:
                 return df_reportRT
             
             #%% start ray multiprocessing pool; limit CPU threads 
-            pool = Pool(processes = int(os.cpu_count()/1.4))
+            cpu_threads = os.cpu_count()
+            if cpu_threads >= 4:
+                cpu_threads -= 2
+            else:
+                cpu_threads = 1
+                
+            pool = Pool(processes = cpu_threads)
 
             args_list = [(hour, simulationDict) for hour in range(hours)]
             results = pool.map(raytrace_hour, args_list)
