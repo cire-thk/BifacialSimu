@@ -177,7 +177,7 @@ inverterDict = {
     'inv_MaxEfficiency_Selected': 0,
     'inv_EuroEfficiency_Selected': 0,
     'inv_CECEfficiency_Selected': 0,
-    'inv_WeightedEfficiency_Selected': 0,
+    'inv_WeightedEff_Selected': 0,
     'inv_Ratedpower': 0, #Rated power of inverter [W]
     'inv_MaxEfficiency': 0, #Maximum efficiency of inverter [%]
     'inv_EuroEfficiency': 0, #European efficiency of inverter [%]
@@ -1254,6 +1254,7 @@ class Window(tk.Tk):
             Entry_dcWire_len.insert(0, dcWire_len_configfile)
             Entry_dcWire_Diameter.insert(0, dcWire_Diameter_configfile)
             Entry_inv_Ratedpower.insert(0, inv_Ratedpower_configfile)
+            Entry_inv_MaxEfficiency.insert(0, inv_MaxEfficiency_configfile)
             Entry_acWire_len.insert(0, acWire_len_configfile)
             Entry_acWire_Diameter.insert(0, acWire_Diameter_configfile)
 
@@ -1291,7 +1292,6 @@ class Window(tk.Tk):
             o = self.jsondata_Inverter[key2]
             self.Inverter_type = key2
             SimulationDict["inverter_type"]=self.Inverter_type
-            Entry_inv_MaxEfficiency.insert(0,str(o['Max efficiency']))
             Entry_inv_Input1.insert(0,str(o['inv_Input1']))
             Entry_inv_Input2.insert(0,str(o['inv_Input2']))
             Entry_inv_Input3.insert(0,str(o['inv_Input3']))
@@ -1306,7 +1306,10 @@ class Window(tk.Tk):
             Entry_inv_Effvalue5.insert(0,str(o['inv_Effvalue5']))
             Entry_inv_Effvalue6.insert(0,str(o['inv_Effvalue6']))
             Entry_inv_Effvalue7.insert(0,str(o['inv_Effvalue7']))
-       
+            
+            rb_Efficiencytype.set("0")
+            Efficiencytype()
+            
         
 # Entry for delete button
             
@@ -2235,12 +2238,12 @@ class Window(tk.Tk):
 
                 
         rb_invLosses=IntVar()
-        rb_invLosses.set("0")
+        rb_invLosses.set("1")
    
         rad1_invLosses=Radiobutton(inverterParameter_frame, variable=rb_invLosses, width=10, text="Disable", value=0, command=lambda:invLosses())
         rad2_invLosses=Radiobutton(inverterParameter_frame, variable=rb_invLosses, width=10, text="Enable", value=1, command=lambda:invLosses())
-        rad1_invLosses.grid(row=1, column=1, sticky=W)
-        rad2_invLosses.grid(row=1, column=2, sticky=W)
+        rad1_invLosses.grid(row=1, column=2, sticky=W)
+        rad2_invLosses.grid(row=1, column=1, sticky=W)
         
         
     #Efficiencytype radio button
@@ -2296,8 +2299,8 @@ class Window(tk.Tk):
                   
                   
             if rb_Efficiencytype.get()==1:
-                    inverterDict["inv_EuroEfficiency_Selected"]=1
                     inverterDict["inv_MaxEfficiency_Selected"]=0
+                    inverterDict["inv_EuroEfficiency_Selected"]=1
                     inverterDict["inv_CECEfficiency_Selected"]=0
                     inverterDict["inv_WeightedEff_Selected"]=0
                     Label_inv_MaxEfficiency.config(state="disabled")
@@ -2342,9 +2345,9 @@ class Window(tk.Tk):
                   
               
             if rb_Efficiencytype.get()==2:
-                    inverterDict["inv_CECEfficiency_Selected"]=1
-                    inverterDict["inv_EuroEfficiency_Selected"]=0
                     inverterDict["inv_MaxEfficiency_Selected"]=0
+                    inverterDict["inv_EuroEfficiency_Selected"]=0
+                    inverterDict["inv_CECEfficiency_Selected"]=1
                     inverterDict["inv_WeightedEff_Selected"]=0
                     Label_inv_MaxEfficiency.config(state="disabled")
                     Entry_inv_MaxEfficiency.config(state="disabled")
@@ -2392,10 +2395,10 @@ class Window(tk.Tk):
                     
                     
             if rb_Efficiencytype.get()==3:
-                    inverterDict["inv_WeightedEff_Selected"]=1
-                    inverterDict["inv_CECEfficiency_Selected"]=0
-                    inverterDict["inv_EuroEfficiency_Selected"]=0
                     inverterDict["inv_MaxEfficiency_Selected"]=0
+                    inverterDict["inv_EuroEfficiency_Selected"]=0
+                    inverterDict["inv_CECEfficiency_Selected"]=0
+                    inverterDict["inv_WeightedEff_Selected"]=1
                     Label_inv_MaxEfficiency.config(state="disabled")
                     Entry_inv_MaxEfficiency.config(state="disabled")
                     Label_inv_MaxEfficiencyUnit.config(state="disabled")
@@ -2435,7 +2438,7 @@ class Window(tk.Tk):
                     Entry_inv_Effvalue6.config(state="normal") 
                     Label_inv_Effvalue7.config(state="normal")
                     Entry_inv_Effvalue7.config(state="normal")
-       
+                    
         rb_Efficiencytype=IntVar()
         rb_Efficiencytype.set("0")
        
@@ -2448,7 +2451,6 @@ class Window(tk.Tk):
         rad3_Efficiencytype.grid(row=6, column=1, sticky=W)
         rad4_Efficiencytype.grid(row=7, column=1, sticky=W)
         
-     
    
         
     #Inveter Rated power
@@ -2607,6 +2609,7 @@ class Window(tk.Tk):
         acWire_len_configfile=parser.get('default', 'acWire_len')
         acWire_Diameter_configfile=parser.get('default', 'acWire_Diameter')
         inv_Ratedpower_configfile=parser.get('default', 'inv_Ratedpower')
+        inv_MaxEfficiency_configfile=parser.get('default', 'inv_MaxEfficiency')
         
         
 

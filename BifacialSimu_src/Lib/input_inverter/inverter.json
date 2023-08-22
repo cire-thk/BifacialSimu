@@ -1,7 +1,6 @@
 {
 	"default": {
     	"Rated power": 300,
-		"Max efficiency": 0.97,
 		"Euro efficiency": 0.964,
 		"CEC efficiency": 0.967,
 		"inv_Input1": 0,
