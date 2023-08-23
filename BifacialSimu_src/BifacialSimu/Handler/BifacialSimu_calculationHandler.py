@@ -97,12 +97,12 @@ class Electrical_simulation:
         # Variables required for simulation
         
         # ACorDC: Whether to calculate resistance of DC or AC wire (dimensionless)
-        # length: Average wire length (m)
-        # diameter: Cross sectional diatemer of wire (mm)
-        # material: material of wire {0-> Cu, 1-> Al} (dimensionless)
-        # area: Cross sectional area of wire (mm2)
-        # Wire_cond: Conductivity of the material of the wire (S/m)
-        # wire_resistance: Calculated resistance of the wire segment (Ohm)
+        # length: Average length of wires from modules to inverter (m)
+        # diameter: Cross sectional diameter of wire (mm)
+        # material: material of wire {0 -> Cu, 1 -> Al} (dimensionless)
+        # area: Cross sectional area of wire (mm^2)
+        # wire_cond: Conductivity of the material of the wire (S/m)
+        # wire_resistance: Calculated resistance of the wire (Ohm)
         
         ####################################################
         Pi = math.pi
@@ -118,7 +118,7 @@ class Electrical_simulation:
         area = (0.25)*Pi*diameter*diameter
         
         if material == 0: #Copper
-            wire_cond = 59600000 #conductivity of copper 5.96x10^7 S/m
+            wire_cond = 59600000 #conductivity of Copper 5.96x10^7 S/m
         elif material == 1: #Aluminium
             wire_cond = 37700000 #conductivity of Aluminium 3.77x10^7 S/m
             
@@ -151,11 +151,9 @@ class Electrical_simulation:
         df_report = Electrical_simulation.build_simulationReport(df_reportVF, df_reportRT, simulationDict, resultsPath)
         
         ####################################################
-        # Variables required for electrical simulation
+        # Variables required for electrical simulation.
         
         # P_bi: Output power of bifacial module for bifacial illumination (W)
-        # P_losses_dc: Losses due to AC Wire (W)
-        # P_out_dc: Output power with losses (W)
         # I_sc_bi: Short-circuit current of bifacial module for bifacial illumination (A)
         # V_oc: Open-circuit voltage of bifacial module for bifacial illumination (V)
         # FF_bi: Fill factor of bifacial module for bifacial illumination (%)
@@ -170,6 +168,10 @@ class Electrical_simulation:
         # FF_f: Fill factor measured for front side illumination of the module at STC (%)
         # FF_r: Fill factor measured for rear side illumination of the module (%)
         # pFF: Pseudo fill factor (FF of the module considering no series resistance effect) (%)
+        # I_sc_b: Average current output from field of modules (A/m2)
+        # I_row: Output current in each row (A)
+        # P_losses_dc: Losses due to AC Wire (W)
+        # P_out_dc: Output power with wire losses before the inverter (W/m2)
 
         ####################################################
         # Definition of simulation parameter
@@ -487,6 +489,8 @@ class Electrical_simulation:
         #####            DC Wire losses              ######
         
         P_out_dc_hourly = []
+        mod_area = simulationDict['modulex']*simulationDict['moduley']
+        total_area = mod_area * simulationDict['nModsy'] * simulationDict['nModsx']
         
         if simulationDict['dcWireLosses'] == True:
             
@@ -499,13 +503,14 @@ class Electrical_simulation:
             
             for i in range(0, len(I_sc_b_hourly_average)):
                 
-                I_sc_b = I_sc_b_hourly_average[i]
-                P_bi = P_bi_hourly_average[i]
+                I_sc_b = I_sc_b_hourly_average[i]                                # [A/m2]
+                P_bi = P_bi_hourly_average[i]                                    # [W/m2]
+                I_row = I_sc_b * mod_area                                        # [A]
                 
-                P_losses_dc = dcWire_res*I_sc_b*I_sc_b
-                P_out_dc = P_bi - P_losses_dc
+                P_losses_dc = dcWire_res*I_row*I_row*simulationDict['nRows']     # [W]
+                P_out_dc = P_bi - P_losses_dc / total_area                       # [W/m2]
                 
-                P_losses_dc_hourly.append(P_losses_dc)
+                P_losses_dc_hourly.append(P_losses_dc/total_area)
                 P_out_dc_hourly.append(P_out_dc)
             
                         
@@ -629,13 +634,12 @@ class Electrical_simulation:
         if simulationDict['acWireLosses'] == True:
             
             ACorDC = 'ac'
-            I_ac_hourly = [] #Array to hold the hourly values of the current output from inverter
-            P_losses_ac_hourly = [] #Array to hold the hourly values of the losses from the AC Wire
-            P_out_ac2_hourly = [] #Array to hold the hourly values of the AC ouptut after subtracting Wire losses
-            Vac = 240 #Temporal. Must be in the inverter dictionary
-            nPhases = 1 #Temporal. Must be in the inverter dictionary
-            Power_Factor = 0.9 #Temporal. Must be in the inverter dictionary
-            cosPhi = Power_Factor
+            I_ac_hourly = [] # Array to hold the hourly values of the current output from inverter (A/m2)
+            P_losses_ac_hourly = [] # Array to hold the hourly values of the losses from the AC Wire (W/m2)
+            P_out_ac2_hourly = [] # Array to hold the hourly values of the AC ouptut after subtracting Wire losses (W/m2)
+            Vac = inverterDict['Vac'] # AC voltage at output of inverter (V)
+            nPhases = inverterDict['nPhases'] # Number of phases of the system
+            cosPhi = inverterDict['Power_Factor'] # Operating power factor of the inverter
             
             acWire_res = Electrical_simulation.simulate_WireResistance(WireDict, ACorDC)
             WireDict['acWire_Resistance'] = acWire_res
@@ -710,7 +714,7 @@ class Electrical_simulation:
 
 
     
-    def simulate_simpleBifacial(moduleDict, simulationDict, df_reportVF, df_reportRT, df_report, df, resultsPath):
+    def simulate_simpleBifacial(moduleDict, simulationDict, WireDict, inverterDict, df_reportVF, df_reportRT, df_report, df, resultsPath):
         """
         Applies a simplified version of the electrical simulation after PVSyst. Uses bifaciality factor to calculate rear efficiency and fill factors.
         Rear open-circuit voltage and short-circuit current are calculated using rear irradiance and temperature. 
@@ -721,6 +725,8 @@ class Electrical_simulation:
         ----------
         moduleDict: module Dictionary containing module data
         simulationDict: simulation Dictionary, which can be found in BifacialSimu_main.py
+        WireDict: Wire Dictionary containing the the DC wire parameters, located in GUI.py
+        InverterDict: Inverter dictionary containing the inverter parameters, located in GUI.py
         df_reportVF: Viewfactor simulation report
         df_reportRT: Raytracing simulation report
         df_report: Final simulation report, containing VF and RT data
@@ -750,6 +756,10 @@ class Electrical_simulation:
         # FF_f: Fill factor measured for front side illumination of the module at STC (%)
         # FF_r: Fill factor measured for rear side illumination of the module (%)
         # pFF: Pseudo fill factor (FF of the module considering no series resistance effect) (%)
+        # I_sc_b: Average current output from field of modules (A/m2)
+        # I_row: Output current in each row (A)
+        # P_losses_dc: Losses due to AC Wire (W)
+        # P_out_dc: Output power with wire losses before the inverter (W/m2)
 
         ####################################################
         # Definition of simulation parameter if only front parameters are available
@@ -793,6 +803,7 @@ class Electrical_simulation:
         
         # Array to hold other arrays -> average after for loop
         P_bi_hourly_arrays = []
+        I_sc_b_hourly_arrays = []
         
         df_report['timestamp'] = df_report.index
         df_report = df_report.reset_index()
@@ -830,6 +841,7 @@ class Electrical_simulation:
             key_back = "row_" + str(i) + "_qabs_back"
         
             P_bi_hourly = []
+            I_sc_b_hourly = []
           
             for index, row in df_report.iterrows():
                 
@@ -845,12 +857,14 @@ class Electrical_simulation:
                 # calculation of frontside power output
                 if math.isnan(row_qabs_front) or row_qabs_front < 0.0:
                     row_qabs_front = 0
-                    P_bi = 0     
+                    P_bi = 0  
+                    I_sc_f = 0
 
                 # calculation of backside power output
                 elif math.isnan(row_qabs_back) or row_qabs_back < 0.0:
                     row_qabs_back = 0
                     P_bi = 0
+                    I_sc_f = 0
                
                 else:
                     V_oc_f = V_oc_f0 * (1 + T_koeff_V * (T_Current - T_amb) + moduleDict['zeta'] * np.log(row_qabs_combined / q_stc_front))
@@ -861,9 +875,11 @@ class Electrical_simulation:
                 sum_energy_b += P_bi # Sum up the energy of every row in every hour
 
                 P_bi_hourly.append(P_bi)
+                I_sc_b_hourly.append(I_sc_f)
                 
             # Append P_bi_hourly array to arrays
             P_bi_hourly_arrays.append(P_bi_hourly)
+            I_sc_b_hourly_arrays.append(I_sc_b_hourly)
 
             print(sum_energy_b)
                 
@@ -878,6 +894,18 @@ class Electrical_simulation:
             average = sum / float(len(P_bi_hourly_arrays))
             
             P_bi_hourly_average.append(average)
+            
+        I_sc_b_hourly_average = []
+        
+        for i in tqdm(range(0, len(I_sc_b_hourly_arrays[0]))):
+            sum = 0
+          
+            for j in range(0, len(I_sc_b_hourly_arrays)):
+                sum += I_sc_b_hourly_arrays[j][i]
+                
+            average = sum / float(len(I_sc_b_hourly_arrays))
+            
+            I_sc_b_hourly_average.append(average)
             
                 
         # Create dataframe with average data
@@ -974,7 +1002,203 @@ class Electrical_simulation:
         print("Bifacial Gain: " + str(Bifacial_gain*100) + " %")
         
         #Plot for Bifacial Power Output + Bifacial Gain
-        GUI.Window.makePlotBifacialRadiance(resultsPath,Bifacial_gain)     
+        GUI.Window.makePlotBifacialRadiance(resultsPath,Bifacial_gain)  
+        
+        
+        ####################################################
+        #                Calculating losses                #
+        ####################################################
+        
+        
+        #####            DC Wire losses              ######
+        
+        P_out_dc_hourly = []
+        mod_area = simulationDict['modulex']*simulationDict['moduley']
+        total_area = mod_area * simulationDict['nModsy'] * simulationDict['nModsx']
+        
+        if simulationDict['dcWireLosses'] == True:
+            
+            ACorDC = 'dc'
+            P_losses_dc_hourly = []
+            
+            
+            dcWire_res = Electrical_simulation.simulate_WireResistance(WireDict, ACorDC)
+            WireDict['dcWire_Resistance'] = dcWire_res
+            
+            for i in range(0, len(I_sc_b_hourly_average)):
+                
+                I_sc_b = I_sc_b_hourly_average[i]                                # [A/m2]
+                P_bi = P_bi_hourly_average[i]                                    # [W/m2]
+                I_row = I_sc_b * mod_area                                        # [A]
+                
+                P_losses_dc = dcWire_res*I_row*I_row*simulationDict['nRows']     # [W]
+                P_out_dc = P_bi - P_losses_dc / total_area                       # [W/m2]
+                
+                P_losses_dc_hourly.append(P_losses_dc / total_area)
+                P_out_dc_hourly.append(P_out_dc)
+            
+                        
+            p_I_df = pd.DataFrame({"timestamps":df_report.index, "I_sc_b": I_sc_b_hourly_average,
+                                   "P_losses_dc": P_losses_dc_hourly, "P_out_dc": P_out_dc_hourly})
+            p_bi_df = pd.merge(p_bi_df, p_I_df, on="timestamps")    
+            p_bi_df.to_csv(resultsPath + "electrical_simulation" + datetime.datetime.now().strftime("%Y-%m-%d-%H-%M") + ".csv")
+            #print("DC Wire Resistance: " + str(dcWire_res*1000) + " mOhms")
+
+                
+         
+        
+        
+        #####            Inverter losses             ######   
+    
+
+        ####################################################
+        # Variables required for simulation
+        
+        # Inverter loss: Whether to calculate inverter loss (Enable/Disable)
+        # Rated power: Rated power of the inverter (W)
+        # MaxEfficiency: Maximum efficiency value (%)
+        # EuroEfficiency: European efficiency value (%)
+        # CECEfficiency: California Energy Commission efficiency value (%)
+        # WeightedEff: Whether to calculate weighted efficiency (Radiobutton)
+        # Eff_Ranges: Range between the inverter input (%)
+        # Eff_Values: Efficiency values for respective range (%)
+        
+        ####################################################           
+
+        inv_Ratedpower = inverterDict['inv_Ratedpower']        
+        inv_MaxEfficiency = inverterDict['inv_MaxEfficiency']
+        inv_EuroEfficiency = inverterDict['inv_EuroEfficiency']
+        inv_CECEfficiency = inverterDict['inv_CECEfficiency']
+        inv_Input1 = inverterDict['inv_Input1']
+        inv_Input2 = inverterDict['inv_Input2']
+        inv_Input3 = inverterDict['inv_Input3']
+        inv_Input4 = inverterDict['inv_Input4']
+        inv_Input5 = inverterDict['inv_Input5']
+        inv_Input6 = inverterDict['inv_Input6']
+        inv_Input7 = inverterDict['inv_Input7']
+        inv_Effvalue1 = inverterDict['inv_Effvalue1']
+        inv_Effvalue2 = inverterDict['inv_Effvalue2']
+        inv_Effvalue3 = inverterDict['inv_Effvalue3']
+        inv_Effvalue4 = inverterDict['inv_Effvalue4']
+        inv_Effvalue5 = inverterDict['inv_Effvalue5']
+        inv_Effvalue6 = inverterDict['inv_Effvalue6']
+        inv_Effvalue7 = inverterDict['inv_Effvalue7']
+        Inv_losses_hourly = []
+        Eff_values_hourly = []
+        P_out_ac1_hourly = []
+
+
+        # Creating an array for inverter efficiency values to use interpolation
+        Eff_Ranges = [inv_Input1, inv_Input2, inv_Input3, inv_Input4, inv_Input5, inv_Input6, inv_Input7]
+        Eff_Values = [inv_Effvalue1, inv_Effvalue2, inv_Effvalue3, inv_Effvalue4, inv_Effvalue5, inv_Effvalue6, inv_Effvalue7]
+        
+        inv_Input = P_out_dc_hourly if len(P_out_dc_hourly) != 0 else P_bi_hourly_average
+        
+        if simulationDict['invLosses']==True:
+            if inverterDict['inv_MaxEfficiency_Selected']:
+                for i in range(0, len(inv_Input)):
+                        inv_HourlyLoss = inv_Input[i] * (1-inv_MaxEfficiency)
+                        Inv_losses_hourly.append(inv_HourlyLoss)
+                        Eff_values_hourly.append(inv_MaxEfficiency)
+                        #print(str(inv_HourlyLoss))
+                
+            elif inverterDict['inv_EuroEfficiency_Selected']:
+                for i in range(0, len(inv_Input)):
+                        inv_HourlyLoss = inv_Input[i] * (1-inv_EuroEfficiency)
+                        Inv_losses_hourly.append(inv_HourlyLoss)
+                        Eff_values_hourly.append(inv_EuroEfficiency)
+                        #print(str(inv_HourlyLoss))
+                
+            elif inverterDict['inv_CECEfficiency_Selected']:
+                for i in range(0, len(inv_Input)):
+                        inv_HourlyLoss = inv_Input[i] * (1-inv_CECEfficiency)
+                        Inv_losses_hourly.append(inv_HourlyLoss)
+                        Eff_values_hourly.append(inv_CECEfficiency)
+                        #print(str(inv_HourlyLoss))
+            else:
+                if inverterDict['inv_WeightedEff_Selected']:
+                    for i in range(0, len(inv_Input)):  
+                        nInput = inv_Input[i]/inv_Ratedpower
+                        inv_Interp = np.interp(nInput, Eff_Ranges, Eff_Values)
+                        inv_Hourlyloss = (1-inv_Interp) * inv_Input[i]
+                        Inv_losses_hourly.append(inv_Hourlyloss)
+                        Eff_values_hourly.append(inv_Interp)
+                        
+                
+        else:
+            for i in range(0, len(inv_Input)):
+                inv_HourlyLoss = 0
+                Eff_values_hourly.append(0)
+                Inv_losses_hourly.append(inv_HourlyLoss)
+                #print(str(inv_HourlyLoss))
+       
+            
+        #Output of the inverter (Difference between input and loss)                                            
+        for i in range(0, len(inv_Input)):
+            inv_out = inv_Input[i] - Inv_losses_hourly[i]
+            P_out_ac1_hourly.append(inv_out)
+                    
+
+
+        # Create dataframe with data for inverter
+        p_inv_df = pd.DataFrame({"timestamps":df_report.index, "Inv_losses":  Inv_losses_hourly, "Eff_values": Eff_values_hourly, "P_out_ac1": P_out_ac1_hourly,})
+        p_bi_df = pd.merge(p_bi_df, p_inv_df, on="timestamps")    
+        p_bi_df.to_csv(resultsPath + "electrical_simulation" + datetime.datetime.now().strftime("%Y-%m-%d-%H-%M") + ".csv")
+        
+        
+        
+        #Plot for Inverter loss
+        #GUI.Window.makePlotinvLosses(resultsPath)
+        
+        
+        
+        #####            AC Wire losses              ######
+        
+        
+        if simulationDict['acWireLosses'] == True:
+            
+            ACorDC = 'ac'
+            I_ac_hourly = [] # Array to hold the hourly values of the current output from inverter (A/m2)
+            P_losses_ac_hourly = [] # Array to hold the hourly values of the losses from the AC Wire (W/m2)
+            P_out_ac2_hourly = [] # Array to hold the hourly values of the AC ouptut after subtracting Wire losses (W/m2)
+            Vac = inverterDict['Vac'] # AC voltage at output of inverter (V)
+            nPhases = inverterDict['nPhases'] # Number of phases of the system
+            cosPhi = inverterDict['Power_Factor'] # Operating power factor of the inverter
+            
+            acWire_res = Electrical_simulation.simulate_WireResistance(WireDict, ACorDC)
+            WireDict['acWire_Resistance'] = acWire_res
+            
+            #Calculating the current output of the inverter
+            if nPhases == 1:
+                for i in range(0, len(P_out_ac1_hourly)):
+                    sum = 0
+                    
+                    I_ac = P_out_ac1_hourly[i]/Vac
+                    I_ac_hourly.append(I_ac)
+                    
+            elif nPhases == 3:
+                for i in range(0, len(P_out_ac1_hourly)):
+                    
+                    I_ac = P_out_ac1_hourly[i]/(3*Vac*cosPhi)
+                    I_ac_hourly.append(I_ac)
+            
+            #Calculating the losses and final output
+            for i in range(0, len(I_ac_hourly)):
+                
+                I_ac = I_ac_hourly[i]
+                P_out_ac1 = P_out_ac1_hourly[i]
+                
+                P_losses_ac = acWire_res*I_ac*I_ac
+                P_out_ac2 = P_out_ac1 - P_losses_ac
+                
+                P_losses_ac_hourly.append(P_losses_ac)
+                P_out_ac2_hourly.append(P_out_ac2)
+            
+                        
+            p_I_ac_df = pd.DataFrame({"timestamps":df_report.index, "I_ac_hourly": I_ac_hourly,
+                                   "P_losses_ac_hourly": P_losses_ac_hourly, "P_out_ac2_hourly": P_out_ac2_hourly})
+            p_bi_df = pd.merge(p_bi_df, p_I_ac_df, on="timestamps")    
+            p_bi_df.to_csv(resultsPath + "electrical_simulation" + datetime.datetime.now().strftime("%Y-%m-%d-%H-%M") + ".csv")
         
         return Bifacial_gain*100
         

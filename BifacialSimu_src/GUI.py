@@ -135,7 +135,7 @@ SimulationDict = {
 'latitude' : 39.739,
 'gcr' : 0.35, #ground coverage ratio (module area / land use)
 'module_type' : 'NREL row 2', #Name of Module
-'dcWireLosses': False, #Whether to calculate DC Wire losses or not
+'dcWireLosses': True, #Whether to calculate DC Wire losses or not
 'invLosses': True, #Whether to calculate Inverter losses or not
 'acWireLosses': True, #Whether to calculate AC Wire losses or not
 }
@@ -196,8 +196,10 @@ inverterDict = {
     'inv_Effvalue4': 0.98, #Efficiency value for respective range
     'inv_Effvalue5': 0.985, #Efficiency value for respective range
     'inv_Effvalue6': 0.985, #Efficiency value for respective range
-    'inv_Effvalue7': 0.985 #Efficiency value for respective range
-       
+    'inv_Effvalue7': 0.985, #Efficiency value for respective range
+    'Vac' : 240, #Rated voltage at the output of the inverter [V]
+    'nPhases' : 3, #Number of phases 
+    'Power_Factor' : 0.9 # Operating power factor of the inverter       
 }
 
 class Window(tk.Tk):
@@ -1151,7 +1153,7 @@ class Window(tk.Tk):
                 ax4.xaxis.set_major_locator(dates.MonthLocator(interval=1))    # every Month
                 ax4.xaxis.set_major_formatter(dates.DateFormatter('\n%m-%Y'))             
                 ax4.legend()
-                ax4.set_ylabel('Power\n[W/m²]', size=17)
+                ax4.set_ylabel('Power output\n[W/m2]', size=17)
                 ax4.set_xlabel("Time", size=17)
                 ax4.set_title('Wire Losses\n', size=18)
                     
@@ -2011,7 +2013,7 @@ class Window(tk.Tk):
                 Combo_dcWire_Diameter.config(state='disable')
                 
         rb_dcWireLosses=IntVar()
-        rb_dcWireLosses.set("0")
+        rb_dcWireLosses.set("1")
    
         rad1_dcWireLosses=Radiobutton(wireParameter_frame, variable=rb_dcWireLosses, width=6, text="Disable", value=0, command=lambda:dcWireLosses())
         rad2_dcWireLosses=Radiobutton(wireParameter_frame, variable=rb_dcWireLosses, width=6, text="Enable", value=1, command=lambda:dcWireLosses())
@@ -2088,7 +2090,7 @@ class Window(tk.Tk):
                Combo_acWire_Diameter.config(state='disable')
                
         rb_acWireLosses=IntVar()
-        rb_acWireLosses.set("0")
+        rb_acWireLosses.set("1")
       
         rad1_acWireLosses=Radiobutton(wireParameter_frame, variable=rb_acWireLosses, width=6, text="Disable", value=0, command=lambda:acWireLosses())
         rad2_acWireLosses=Radiobutton(wireParameter_frame, variable=rb_acWireLosses, width=6, text="Enable", value=1, command=lambda:acWireLosses())

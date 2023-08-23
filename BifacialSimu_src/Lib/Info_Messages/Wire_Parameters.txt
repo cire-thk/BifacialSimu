@@ -3,11 +3,11 @@ cables.
 The following parameters must be entered for the calculations:
 
 
-Average wire length:		The double of the average length of the wires from the terminals of the PV array to the DC terminals of the  
-				in meters. The distance has to be multiplied by 2 given that there is a positive and a negative cable.
+Average wire length:		The average length of the wires from the terminals of the PV array to the DC terminals of the  
+				inverter in meters. 
 
 Wire material:			A selection must be made between copper or aluminum wire. This will determine the resistivity of the material.
  
 
 Wire diameter:			The most common wire gauges can be selected from the drop-down menu and this will load the corresponding
- 				diameter. Else, the diameter in mm can be manually entered in the blank field.
+ 				diameter or instead the diameter in mm can be manually entered in the blank field.
