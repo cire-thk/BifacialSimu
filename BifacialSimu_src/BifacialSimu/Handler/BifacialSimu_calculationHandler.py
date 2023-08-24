@@ -675,11 +675,6 @@ class Electrical_simulation:
                                    "P_losses_ac_hourly": P_losses_ac_hourly, "P_out_ac2_hourly": P_out_ac2_hourly})
             p_bi_df = pd.merge(p_bi_df, p_I_ac_df, on="timestamps")    
             p_bi_df.to_csv(resultsPath + "electrical_simulation" + datetime.datetime.now().strftime("%Y-%m-%d-%H-%M") + ".csv")
-            #print("AC Wire Resistance: " + str(acWire_res*1000) + " mOhms")
-   
-            
-        #if simulationDict['dcWireLosses'] == True or simulationDict['acWireLosses'] == True:
-            #GUI.Window.makePlotLosses(resultsPath)            
         
         
         return Bifacial_gain*100

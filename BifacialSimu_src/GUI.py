@@ -512,10 +512,15 @@ class Window(tk.Tk):
         Invloss_checkbutton = tk.Checkbutton(inverterParameter_frame, text="Plot Inverter Losses", variable= globals.checkbutton_state_inv)
         Invloss_checkbutton.grid(column=0, row=17, sticky="W")
         
-        # Inserting Cable loss Button
-        globals.checkbutton_state_wire=IntVar()
-        Wireloss_checkbutton = tk.Checkbutton(wireParameter_frame, text="Plot Wire Losses", variable= globals.checkbutton_state_wire)
-        Wireloss_checkbutton.grid(column=0, row=12, sticky="W")
+        # Inserting DC Cable loss Button
+        globals.checkbutton_state_DCwire=IntVar()
+        DCWireloss_checkbutton = tk.Checkbutton(wireParameter_frame, text="Plot DC Wire Losses", variable= globals.checkbutton_state_DCwire)
+        DCWireloss_checkbutton.grid(column=0, row=12, sticky="W")
+
+        # Inserting AC Cable loss Button
+        globals.checkbutton_state_ACwire=IntVar()
+        ACWireloss_checkbutton = tk.Checkbutton(wireParameter_frame, text="Plot AC Wire Losses", variable= globals.checkbutton_state_ACwire)
+        ACWireloss_checkbutton.grid(column=1, row=12, sticky="W")
 
         
         # Starting the simulation
@@ -796,7 +801,8 @@ class Window(tk.Tk):
             makePlotBifacialRadiance(resultsPath)
             makePlotMismatch(resultsPath,globals.checkbutton_state)
             makePlotinvLosses(resultsPath,globals.checkbutton_state_inv)
-            makePlotWireLosses(resultsPath,globals.checkbutton_state_wire)
+            makePlotDCWireLosses(resultsPath,globals.checkbutton_state_DCwire)
+            makePlotACWireLosses(resultsPath,globals.checkbutton_state_ACwire)
 
           
 # =============================================================================
@@ -1124,8 +1130,8 @@ class Window(tk.Tk):
 
 # =============================================================================
 
-        def makePlotWireLosses(resultsPath, checkbutton_state_wire):
-            if checkbutton_state_wire.get()== 1 :
+        def makePlotDCWireLosses(resultsPath, checkbutton_state_DCwire):
+            if checkbutton_state_DCwire.get()== 1 :
                 plt.style.use("seaborn")
                     
                     
@@ -1137,16 +1143,12 @@ class Window(tk.Tk):
                     
                 if SimulationDict['dcWireLosses'] == True:
                     P_losses_dc=data["P_losses_dc"]
-                if SimulationDict['acWireLosses'] == True:    
-                    P_losses_ac=data["P_losses_ac_hourly"]
                    
                 fig4 = plt.Figure()
                 ax4= fig4.subplots()
-                    
+                
                 if SimulationDict['dcWireLosses'] == True:
                     ax4.plot(idx, P_losses_dc, label="P_losses_dc", color="green")
-                if SimulationDict['acWireLosses'] == True:
-                    ax4.plot(idx, P_losses_ac, label="P_losses_ac", color="brown")
                     
                 ax4.xaxis.set_minor_locator(dates.DayLocator(interval=1))   # every Day
                 ax4.xaxis.set_minor_formatter(dates.DateFormatter('%d'))  # day and hours
@@ -1155,17 +1157,57 @@ class Window(tk.Tk):
                 ax4.legend()
                 ax4.set_ylabel('Power output\n[W/m2]', size=17)
                 ax4.set_xlabel("Time", size=17)
-                ax4.set_title('Wire Losses\n', size=18)
+                ax4.set_title('DC Wire Losses\n', size=18)
                     
                 fig4.tight_layout()
-                fig4.savefig("Wire_losses" + datetime.datetime.now().strftime("%Y-%m-%d-%H-%M") + ".png")
+                fig4.savefig("DCWire_losses" + datetime.datetime.now().strftime("%Y-%m-%d-%H-%M") + ".png")
                     
                 canvas = FigureCanvasTkAgg(fig4, master=tk.Toplevel())
                 canvas.get_tk_widget().pack(side=tk.TOP, fill=tk.BOTH, expand=1.0)
                 canvas.draw()
             else:
                 return
-            
+
+# =============================================================================
+
+        def makePlotACWireLosses(resultsPath, checkbutton_state_ACwire):
+            if checkbutton_state_ACwire.get()== 1 :
+                plt.style.use("seaborn")
+                    
+                    
+                data=pd.read_csv(resultsPath + "electrical_simulation" + datetime.datetime.now().strftime("%Y-%m-%d-%H-%M") + ".csv")
+                date=pd.read_csv(resultsPath + "/Data.csv")
+                timestamp_start=date.timestamp [0]
+                timestamp_end=len(date.timestamp)
+                idx=pd.date_range(timestamp_start, periods=timestamp_end, freq="1H")
+                    
+                if SimulationDict['acWireLosses'] == True:
+                    P_losses_AC=data["P_losses_ac_hourly"]
+                   
+                fig4 = plt.Figure()
+                ax4= fig4.subplots()
+                
+                if SimulationDict['acWireLosses'] == True:
+                    ax4.plot(idx, P_losses_AC, label="P_losses_ac", color="brown")
+                    
+                ax4.xaxis.set_minor_locator(dates.DayLocator(interval=1))   # every Day
+                ax4.xaxis.set_minor_formatter(dates.DateFormatter('%d'))  # day and hours
+                ax4.xaxis.set_major_locator(dates.MonthLocator(interval=1))    # every Month
+                ax4.xaxis.set_major_formatter(dates.DateFormatter('\n%m-%Y'))             
+                ax4.legend()
+                ax4.set_ylabel('Power output\n[W/m2]', size=17)
+                ax4.set_xlabel("Time", size=17)
+                ax4.set_title('AC Wire Losses\n', size=18)
+                    
+                fig4.tight_layout()
+                fig4.savefig("ACWire_losses" + datetime.datetime.now().strftime("%Y-%m-%d-%H-%M") + ".png")
+                    
+                canvas = FigureCanvasTkAgg(fig4, master=tk.Toplevel())
+                canvas.get_tk_widget().pack(side=tk.TOP, fill=tk.BOTH, expand=1.0)
+                canvas.draw()
+            else:
+                return
+                        
 # =============================================================================
 
         def makePlotinvLosses(resultsPath,checkbutton_state_inv):
@@ -2017,8 +2059,8 @@ class Window(tk.Tk):
    
         rad1_dcWireLosses=Radiobutton(wireParameter_frame, variable=rb_dcWireLosses, width=6, text="Disable", value=0, command=lambda:dcWireLosses())
         rad2_dcWireLosses=Radiobutton(wireParameter_frame, variable=rb_dcWireLosses, width=6, text="Enable", value=1, command=lambda:dcWireLosses())
-        rad1_dcWireLosses.grid(row=2, column=1, sticky=W)
-        rad2_dcWireLosses.grid(row=2, column=2, sticky=W)
+        rad1_dcWireLosses.grid(row=2, column=2, sticky=W)
+        rad2_dcWireLosses.grid(row=2, column=1, sticky=W)
         
         
         #Length
@@ -2094,8 +2136,8 @@ class Window(tk.Tk):
       
         rad1_acWireLosses=Radiobutton(wireParameter_frame, variable=rb_acWireLosses, width=6, text="Disable", value=0, command=lambda:acWireLosses())
         rad2_acWireLosses=Radiobutton(wireParameter_frame, variable=rb_acWireLosses, width=6, text="Enable", value=1, command=lambda:acWireLosses())
-        rad1_acWireLosses.grid(row=8, column=1, sticky=W)
-        rad2_acWireLosses.grid(row=8, column=2, sticky=W)
+        rad1_acWireLosses.grid(row=8, column=2, sticky=W)
+        rad2_acWireLosses.grid(row=8, column=1, sticky=W)
        
        
        #Length
