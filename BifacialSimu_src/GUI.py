@@ -1664,8 +1664,7 @@ class Window(tk.Tk):
                     if row['precipitation'] >= 0.3:  #row['humidity'] >= 75 or
                         return 0
                     else:
-                        return round(((SimulationDict["nModsx"] * SimulationDict["nModsy"]) * (SimulationDict["moduley"] * SimulationDict["modulex"])) 
-                                     * (((row['pm25'] + row['pm10']) * (10 **-9)) * row['wind-speed'] * t * math.cos(math.radians(a))), 6)
+                        return round((((row['pm25'] + row['pm10']) * (10 **-6)) * row['wind-speed'] * t * math.cos(math.radians(a)) * 10**-2), 6) #(SimulationDict["nRows"]*((SimulationDict["nModsx"] * SimulationDict["nModsy"]) * (SimulationDict["moduley"] * SimulationDict["modulex"]))) * 
 
                 df_city['soiling_accumulation'] = df_city.apply(calculate_soiling_accumulation, axis=1)
 
@@ -1693,7 +1692,7 @@ class Window(tk.Tk):
                     values_soiling_accumulation.append(cumulative_soiling_accumulation)
                     
                     #calculate the soilingrate_value for the location using the hegazy model
-                    rs_hegazy = ((34.37 * math.erf(0.17*(cumulative_soiling_accumulation**0.8473))) / 100) #hegazy
+                    rs_hegazy = ((34.37 * math.erf(0.17*(cumulative_soiling_accumulation**0.8473)))) #hegazy
                     #rs_hegazy_neu = 1 - rs_hegazy
                     # add the value of Soiling to the list of values_soilingrate_hegazy
                     values_soilingrate_hegazy.append(rs_hegazy)
@@ -1723,9 +1722,10 @@ class Window(tk.Tk):
                 df_city.to_csv(file_path, index=False)
 
                 #print(f"DataFrame saved as '{Entry_weatherstation}.csv' in the 'city_data_soiling_accumulation' folder.")
-                
+                Soilingaccumulation_new = round((sum(values_soiling_accumulation) / len (values_soiling_accumulation)), 6)
+                print('average of the Soilingaccumulation for the location indicated as a function of the length of the simulation:',Soilingaccumulation_new, "g/m²/d")
                 Soilingrate_hegazy_new = round((sum(values_soilingrate_hegazy) / len (values_soilingrate_hegazy)), 6)
-                print('average of daily Soilingrate for the location indicated:',Soilingrate_hegazy_new, "%/d")
+                print('average of daily Soilingrate for the location indicated:',Soilingrate_hegazy_new, "%/m²/d")
                 SimulationDict["fixSoilrate"] = Soilingrate_hegazy_new
                 
                 #reset value in the Entry_Soilrate
@@ -1733,19 +1733,19 @@ class Window(tk.Tk):
                 Entry_Soilrate.insert(0, SimulationDict["fixSoilrate"])
                 
                 #  plot the soiling_accumulation graph
-                #plt.plot(values_soiling_accumulation, marker = 'o')
-                #plt.xlabel('Day [d]')
+                plt.plot(values_soiling_accumulation, marker = 'o')
+                plt.xlabel('Day [d]')
                 #plt.xlabel('Hours [h]')
-                #plt.ylabel('Soiling Accumulation [g]')
-                #plt.title('Evolution of the Soiling Accumulation over the year')
-                #plt.show()
+                plt.ylabel('Soiling Accumulation [g/m²]')
+                plt.title('Evolution of the Soiling Accumulation over the year')
+                plt.show()
                 
                 
                 #  plot the soiling_hegazy graph
                 #plt.plot(values_soilingrate_hegazy, marker = 'o')
                 #plt.xlabel('Day [d]')
                 #plt.xlabel('Hours [h]')
-                #plt.ylabel('Soilingrate')
+                #plt.ylabel('Soilingrate [%/m²]')
                 #plt.title("Evolution of the Soiling rate over the year")
                 #plt.show()
                 ######################################################################################################################
@@ -1810,14 +1810,14 @@ class Window(tk.Tk):
                         delta_t = 0 
                         
                     # Calculate new value of soiling_accumulation
-                    soiling_accumulation = (((SimulationDict["nModsx"] * SimulationDict["nModsy"]) * (SimulationDict["moduley"] * SimulationDict["modulex"]))*(((PM2_5 + PM10)*(10**(-9))) * wind_speed * delta_t * math.cos(math.radians(angle)))) # Coello 
+                    soiling_accumulation = round((((PM2_5 + PM10)*(10**(-6))) * wind_speed * delta_t * math.cos(math.radians(angle))* 10**-2), 6) # Coello #(SimulationDict["nRows"]*((SimulationDict["nModsx"] * SimulationDict["nModsy"]) * (SimulationDict["moduley"] * SimulationDict["modulex"]))) * 
                     #soiling_accumulation = (((PM2_5 + PM10)*(10**(-9))) * wind_speed * math.cos(math.radians(angle)))  # Coello 
                     # add the value of soiling_accumulation to the list of values_soiling_accumulation
                     values_soiling_accumulation.append(soiling_accumulation)
                     
                     
                     #calculate the soilingvvalue for the location using the hegazy model
-                    rs_hegazy = ((34.37 * math.erf(0.17*(soiling_accumulation**0.8473))) / 100) #hegazy
+                    rs_hegazy = ((34.37 * math.erf(0.17*(soiling_accumulation**0.8473)))) #hegazy
                     #rs_hegazy_neu = 1 - rs_hegazy
                     #add the value of Soiling to the list of values_soilingrate_hegazy
                     values_soilingrate_hegazy.append(rs_hegazy)
@@ -1830,7 +1830,7 @@ class Window(tk.Tk):
 #                   values_soiling_you_saiz.append(rs_you_saiz)
                     
                     #conceicao model
-#                   rs_conceicao = ((0.2545 * soiling_accumulation^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^    	^^^^^^^^^^^^^^                     
+#                   rs_conceicao = ((0.2545 * soiling_accumulation))    
                     # add the value of Soiling_rs_conceicao to the list of values_soiling_conceicao
 #                   values_soiling_conceicao.append(rs_conceicao)
                     
@@ -1855,17 +1855,17 @@ class Window(tk.Tk):
                 #print('time', times)
                 
                 # Creating the csv table with Soiling data of the Location with the Index(indexout)
-                with open('Soiling{}.csv'.format(indexout), mode='w', newline='') as file:
-                    writer = csv.writer(file)
-                    writer.writerow(['Hours', 'soiling_accumulation', 'rs_hegazy'])  # Column headings #, 'rs_you_saiz', 'rs_conceicao' 
-                    for i in range(len(times)):
-                        writer.writerow([times[i], values_soiling_accumulation[i], values_soilingrate_hegazy[i]])  # Adding data to the table #, values_soiling_you_saiz[i], values_soiling_conceicao[i]
+                #with open('Soiling{}.csv'.format(indexout), mode='w', newline='') as file:
+                    #writer = csv.writer(file)
+                    #writer.writerow(['Hours', 'soiling_accumulation', 'rs_hegazy'])  # Column headings #, 'rs_you_saiz', 'rs_conceicao' 
+                    #for i in range(len(times)):
+                        #writer.writerow([times[i], values_soiling_accumulation[i], values_soilingrate_hegazy[i]])  # Adding data to the table #, values_soiling_you_saiz[i], values_soiling_conceicao[i]
                
                 #plot the soiling_accumulation graph
                 #plt.plot(times, values_soiling_accumulation)
                 #plt.xlabel('Day [d]')
                 #plt.xlabel('Hours [h]')
-                #plt.ylabel('Soiling Accumulation [g]')
+                #plt.ylabel('Soiling Accumulation [g/m²]')
                 #plt.title('Evolution of the Soiling Accumulation over the Simulation interval')
                 #plt.show()
 
@@ -1873,7 +1873,7 @@ class Window(tk.Tk):
                 #plt.plot(times, values_soilingrate_hegazy)
                 #plt.xlabel('Day [d]')
                 #plt.xlabel('Hours [h]')
-                #plt.ylabel('Soilingrate')
+                #plt.ylabel('Soilingrate [%/m²]')
                 #plt.title("Evolution of the Soiling rate over the Simulation interval")
                 #plt.show()
                 
@@ -1883,9 +1883,10 @@ class Window(tk.Tk):
                 
                 #SimulationDict["hourlySoilrate"] = values_soilingrate_hegazy
                 #print("Soiling rate hegazy:", SimulationDict["hourlySoilrate"])
-                
+                Soilingaccumulation_new = round((sum(values_soiling_accumulation) / len (values_soiling_accumulation)), 6)
+                print('average of the Soilingaccumulation for the location indicated as a function of the length of the simulation:',Soilingaccumulation_new, "g/m²/d")
                 Soilingrate_hegazy_new = round((sum(values_soilingrate_hegazy) / len (values_soilingrate_hegazy)), 6)
-                #print('average for the location indicated as a function of the length of the simulation:',Soilingrate_hegazy_new)
+                print('average of the Soilingrate for the location indicated as a function of the length of the simulation:',Soilingrate_hegazy_new, "%/m²/d")
                 SimulationDict["fixSoilrate"] = Soilingrate_hegazy_new
                 
                 #reset value in the Entry_Soilrate
