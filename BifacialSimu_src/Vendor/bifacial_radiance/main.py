@@ -60,10 +60,10 @@ from subprocess import Popen, PIPE  # replacement for os.system()
 import pandas as pd
 import numpy as np 
 #from input import *
-
+from BifacialSimu_src import globals
 # Mutual parameters across all processes
 #daydate=sys.argv[1]
-
+globals.initialize()
 
 global DATA_PATH # path to data files including module.json.  Global context
 #DATA_PATH = os.path.abspath(pkg_resources.resource_filename('bifacial_radiance', 'data/') )
@@ -450,7 +450,8 @@ class RadianceObj:
                     lontemp = location['geometry']['coordinates'][0]
                     lattemp = location['geometry']['coordinates'][1]
                     dftemp = pd.DataFrame({'url':[url], 'lat':[lattemp], 'lon':[lontemp], 'name':[name]})
-                    df = df.append(dftemp, ignore_index=True)
+                    #df = df.append(dftemp, ignore_index=True)
+                    df = pd.concat([df, dftemp], ignore_index=True)
             return df
 
         def _findClosestEPW(lat, lon, df):
@@ -650,7 +651,7 @@ class RadianceObj:
         self.metdata = MetObj(tmydata_trunc, metadata, label = label)
         return self.metdata
 
-    def readEPW(self, epwfile=None, hpc=False, starttime=None, endtime=None, 
+    def readEPW(self, epwfile=None, hpc=False, starttime= None, endtime= None, 
                 daydate=None, label = 'right'):
         """
         Uses readepw from pvlib>0.6.1 but un-do -1hr offset and
@@ -699,8 +700,9 @@ class RadianceObj:
         with a default -1 hour offset.  This is not reflected in our existing
         workflow, and must be investigated further. 
         '''
+       
         #(tmydata, metadata) = readepw(epwfile) #
-        (tmydata, metadata) = pvlib.iotools.epw.read_epw(epwfile, coerce_year=2001) #pvlib>0.6.1
+        (tmydata, metadata) = pvlib.iotools.epw.read_epw(epwfile, coerce_year= globals.start_year) #pvlib>0.6.1
         #pvlib uses -1hr offset that needs to be un-done. Why did they do this?
         tmydata.index = tmydata.index+pd.Timedelta(hours=1) 
         # rename different field parameters to match output from 
@@ -2946,6 +2948,7 @@ class MetObj:
         self.longitude = metadata['longitude']; lon=self.longitude
         self.elevation = metadata['altitude']; elev=self.elevation
         self.timezone = metadata['TZ']
+       
         try:
             self.city = metadata['Name'] # readepw version
         except KeyError:
@@ -2956,7 +2959,21 @@ class MetObj:
         self.dhi = np.array(tmydata.DHI)
         self.dni = np.array(tmydata.DNI)
         self.albedo = np.array(tmydata.Alb)
-        self.pressure = np.array(tmydata.Pressure) # changed by THKoeln
+        
+        try:
+            self.datetime = tmydata.index.tolist() # this is tz-aware.
+            self.ghi = np.array(tmydata.GHI)
+            self.dhi = np.array(tmydata.DHI)
+            self.dni = np.array(tmydata.DNI)
+            self.albedo = np.array(tmydata.Alb)
+            self.pressure = np.array(tmydata.Pressure) # changed by THKoeln
+        except:
+            self.datetime = tmydata.index.tolist() # this is tz-aware.
+            self.ghi = np.array(tmydata.GHI)
+            self.dhi = np.array(tmydata.DHI)
+            self.dni = np.array(tmydata.DNI)
+            self.albedo = np.array(tmydata.Alb)
+            
         try:
             self.temp_air = np.array(tmydata.DryBulb) #changed by THKoeln
         except:

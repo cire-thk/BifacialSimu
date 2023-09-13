@@ -17,7 +17,8 @@
         "T_koeff_V": 0.0005,
         "zeta": 0.06,
 		"moduley": 1.98,
-		"modulex": 0.992
+		"modulex": 0.992,
+        "T_NOCT": 45
     },
 	"GCL-M3/72GDF-420W":{
 		"bi_factor": 0.7087,
@@ -37,7 +38,8 @@
         "T_koeff_V": -0.0030,
         "zeta": 0.07,
 		"moduley": 2.036,
-		"modulex": 1.002
+		"modulex": 1.002,
+        "T_NOCT": 43
     },
 	"LG400N2T-BiFi200":{
 		"bi_factor": 0.7,
@@ -57,7 +59,8 @@
         "T_koeff_V": -0.0026,
         "zeta": 0.07,
 		"moduley": 2.13,
-		"modulex": 1.042
+		"modulex": 1.042,
+        "T_NOCT": 45
 	},
 	"LG435N2T-E6":{
 		"bi_factor": 0.75,
@@ -73,7 +76,8 @@
         "T_koeff_V": -0.0026,
         "zeta": 0.06,
 		"moduley": 2.130,
-		"modulex": 1.042
+		"modulex": 1.042,
+        "T_NOCT": 45
 	},		
 	"LG425N2T-E6":{
 		"bi_factor": 0.75,
@@ -89,7 +93,8 @@
         "T_koeff_V": -0.0026,
         "zeta": 0.06,
 		"moduley": 2.130,
-		"modulex": 1.042
+		"modulex": 1.042,
+        "T_NOCT": 45
 	},		
 	"LG415N2T-L5":{
 		"bi_factor": 0.75,
@@ -105,7 +110,8 @@
         "T_koeff_V": -0.0026,
         "zeta": 0.06,
 		"moduley": 2.024,
-		"modulex": 1.024
+		"modulex": 1.024,
+        "T_NOCT": 45
 	},		
 	"LG410N2T-L5":{
 		"bi_factor": 0.72,
@@ -121,7 +127,8 @@
         "T_koeff_V": -0.0026,
         "zeta": 0.06,
 		"moduley": 2.024,
-		"modulex": 1.024
+		"modulex": 1.024,
+        "T_NOCT": 45
 	},		
 	"LG405N2T-L5":{
 		"bi_factor": 0.75,
@@ -137,7 +144,8 @@
         "T_koeff_V": -0.0026,
         "zeta": 0.06,
 		"moduley": 2.024,
-		"modulex": 1.024
+		"modulex": 1.024,
+        "T_NOCT": 45
 	},		
 	"LR4-72HBD 425M":{
 		"bi_factor": 0.7,
@@ -153,7 +161,8 @@
         "T_koeff_V": -0.00284,
         "zeta": 0.06,
 		"moduley": 2.094,
-		"modulex": 1.038
+		"modulex": 1.038,
+        "T_NOCT": 45
 	},		
 	"LR4-72HBD 455M":{
 		"bi_factor": 0.7,
@@ -169,7 +178,8 @@
         "T_koeff_V": -0.00284,
         "zeta": 0.06,
 		"moduley": 2.094,
-		"modulex": 1.038
+		"modulex": 1.038,
+        "T_NOCT": 45
 	},		
 	"144-CELL DUOMAX TWIN-390":{
 		"bi_factor": 0.7,
@@ -185,7 +195,8 @@
         "T_koeff_V": -0.0025,
         "zeta": 0.06,
 		"moduley": 2.024,
-		"modulex": 1.002
+		"modulex": 1.002,
+        "T_NOCT": 45
 	},
 	"144-CELL DUOMAX TWIN-395":{
 		"bi_factor": 0.7,
@@ -201,7 +212,8 @@
         "T_koeff_V": -0.0025,
         "zeta": 0.06,
 		"moduley": 2.024,
-		"modulex": 1.002
+		"modulex": 1.002,
+        "T_NOCT": 45
 	},
 	"144-CELL DUOMAX TWIN-400":{
 		"bi_factor": 0.7,
@@ -217,7 +229,8 @@
         "T_koeff_V": -0.0025,
         "zeta": 0.06,
 		"moduley": 2.024,
-		"modulex": 1.002
+		"modulex": 1.002,
+        "T_NOCT": 45
 	},
 	"144-CELL DUOMAX TWIN-405":{
 		"bi_factor": 0.7,
@@ -233,7 +246,8 @@
         "T_koeff_V": -0.0025,
         "zeta": 0.06,
 		"moduley": 2.024,
-		"modulex": 1.002
+		"modulex": 1.002,
+        "T_NOCT": 45
 	},
 	"144-CELL DUOMAX TWIN-410":{
 		"bi_factor": 0.7,
@@ -249,7 +263,8 @@
         "T_koeff_V": -0.0025,
         "zeta": 0.06,
 		"moduley": 2.024,
-		"modulex": 1.002
+		"modulex": 1.002,
+        "T_NOCT": 45
 	},
 	"144-CELL DUOMAX TWIN-415":{
 		"bi_factor": 0.7,
@@ -265,7 +280,8 @@
         "T_koeff_V": -0.0025,
         "zeta": 0.06,
 		"moduley": 2.024,
-		"modulex": 1.002
+		"modulex": 1.002,
+        "T_NOCT": 45
 	},										
 	"JAM60D10-330/MB":{
 		"bi_factor": 0.7,
@@ -281,7 +297,8 @@
         "T_koeff_V": -0.00272,
         "zeta": 0.06,
 		"moduley": 1.711,
-		"modulex": 1.005
+		"modulex": 1.005,
+        "T_NOCT": 45
 	},		
 	"JAM60D10-335/MB":{
 		"bi_factor": 0.7,
@@ -297,7 +314,8 @@
         "T_koeff_V": -0.00272,
         "zeta": 0.06,
 		"moduley": 1.711,
-		"modulex": 1.005
+		"modulex": 1.005,
+        "T_NOCT": 45
 	},		
 	"JAM60D10-340/MB":{
 		"bi_factor": 0.7,
@@ -313,7 +331,8 @@
         "T_koeff_V": -0.00272,
         "zeta": 0.06,
 		"moduley": 1.711,
-		"modulex": 1.005
+		"modulex": 1.005,
+        "T_NOCT": 45
 	},		
 	"JAM60D10-345/MB":{
 		"bi_factor": 0.7,
@@ -329,7 +348,8 @@
         "T_koeff_V": -0.00272,
         "zeta": 0.06,
 		"moduley": 1.711,
-		"modulex": 1.005
+		"modulex": 1.005,
+        "T_NOCT": 45
 	},		
 	"JAM60D10-350/MB":{
 		"bi_factor": 0.7,
@@ -345,7 +365,8 @@
         "T_koeff_V": -0.00272,
         "zeta": 0.06,
 		"moduley": 1.711,
-		"modulex": 1.005
+		"modulex": 1.005,
+        "T_NOCT": 45
 	},		
 	"JAM60D20-360/MB":{
 		"bi_factor": 0.7,
@@ -361,7 +382,8 @@
         "T_koeff_V": -0.00272,
         "zeta": 0.06,
 		"moduley": 1.774,
-		"modulex": 1.052
+		"modulex": 1.052,
+        "T_NOCT": 45
 	},		
 	"JAM60D20-365/MB":{
 		"bi_factor": 0.7,
@@ -377,7 +399,8 @@
         "T_koeff_V": -0.00272,
         "zeta": 0.06,
 		"moduley": 1.774,
-		"modulex": 1.052
+		"modulex": 1.052,
+        "T_NOCT": 45
 	},		
 	"JAM60D20-370/MB":{
 		"bi_factor": 0.7,
@@ -393,7 +416,8 @@
         "T_koeff_V": -0.00272,
         "zeta": 0.06,
 		"moduley": 1.774,
-		"modulex": 1.052
+		"modulex": 1.052,
+        "T_NOCT": 45
 	},		
 	"JAM60D20-375/MB":{
 		"bi_factor": 0.7,
@@ -409,7 +433,8 @@
         "T_koeff_V": -0.00272,
         "zeta": 0.06,
 		"moduley": 1.774,
-		"modulex": 1.052
+		"modulex": 1.052,
+        "T_NOCT": 45
 	},
 	"JAM60D20-380/MB":{
 		"bi_factor": 0.7,
@@ -425,7 +450,8 @@
         "T_koeff_V": -0.00272,
         "zeta": 0.06,
 		"moduley": 1.774,
-		"modulex": 1.052
+		"modulex": 1.052,
+        "T_NOCT": 45
 	},
 	"JAM60D20-385/MB":{
 		"bi_factor": 0.7,
@@ -441,7 +467,8 @@
         "T_koeff_V": -0.00272,
         "zeta": 0.06,
 		"moduley": 1.774,
-		"modulex": 1.052
+		"modulex": 1.052,
+        "T_NOCT": 45
 	},
 	"JAM72D10-400/MB":{
 		"bi_factor": 0.7,
@@ -457,7 +484,8 @@
         "T_koeff_V": -0.00272,
         "zeta": 0.06,
 		"moduley": 2.037,
-		"modulex": 1.005
+		"modulex": 1.005,
+        "T_NOCT": 45
 	},
 	"JAM72D10-405/MB":{
 		"bi_factor": 0.7,
@@ -473,7 +501,8 @@
         "T_koeff_V": -0.00272,
         "zeta": 0.06,
 		"moduley": 2.037,
-		"modulex": 1.005
+		"modulex": 1.005,
+        "T_NOCT": 45
 	},
 	"JAM72D10-410/MB":{
 		"bi_factor": 0.7,
@@ -489,7 +518,8 @@
         "T_koeff_V": -0.00272,
         "zeta": 0.06,
 		"moduley": 2.037,
-		"modulex": 1.005
+		"modulex": 1.005,
+        "T_NOCT": 45
 	},
 	"JAM72D10-415/MB":{
 		"bi_factor": 0.7,
@@ -505,7 +535,8 @@
         "T_koeff_V": -0.00272,
         "zeta": 0.06,
 		"moduley": 2.037,
-		"modulex": 1.005
+		"modulex": 1.005,
+        "T_NOCT": 45
 	},
 	"JAM72D10-420/MB":{
 		"bi_factor": 0.7,
@@ -521,7 +552,8 @@
         "T_koeff_V": -0.00272,
         "zeta": 0.06,
 		"moduley": 2.037,
-		"modulex": 1.005
+		"modulex": 1.005,
+        "T_NOCT": 45
 	},
 	"JAM72D20-440/MB":{
 		"bi_factor": 0.75,
@@ -537,7 +569,8 @@
         "T_koeff_V": -0.00272,
         "zeta": 0.06,
 		"moduley": 2.117,
-		"modulex": 1.052
+		"modulex": 1.052,
+        "T_NOCT": 45
 	},
 	"JAM72D20-440/MB":{
 		"bi_factor": 0.75,
@@ -553,7 +586,8 @@
         "T_koeff_V": -0.00272,
         "zeta": 0.06,
 		"moduley": 2.117,
-		"modulex": 1.052
+		"modulex": 1.052,
+        "T_NOCT": 45
 	},
 	"JAM72D20-450/MB":{
 		"bi_factor": 0.75,
@@ -569,7 +603,8 @@
         "T_koeff_V": -0.00272,
         "zeta": 0.06,
 		"moduley": 2.117,
-		"modulex": 1.052
+		"modulex": 1.052,
+        "T_NOCT": 45
 	},
 	"JAM72D20-455/MB":{
 		"bi_factor": 0.75,
@@ -585,7 +620,8 @@
         "T_koeff_V": -0.00272,
         "zeta": 0.06,
 		"moduley": 2.117,
-		"modulex": 1.052
+		"modulex": 1.052,
+        "T_NOCT": 45
 	},
 	"JAM72D20-460/MB":{
 		"bi_factor": 0.75,
@@ -601,7 +637,8 @@
         "T_koeff_V": -0.00272,
         "zeta": 0.06,
 		"moduley": 2.117,
-		"modulex": 1.052
+		"modulex": 1.052,
+        "T_NOCT": 45
 	},
 	"JAM72D20-465/MB":{
 		"bi_factor": 0.75,
@@ -617,7 +654,8 @@
         "T_koeff_V": -0.00272,
         "zeta": 0.06,
 		"moduley": 2.117,
-		"modulex": 1.052
+		"modulex": 1.052,
+        "T_NOCT": 45
 	},
 	"JAM72D30-525/MB":{
 		"bi_factor": 0.75,
@@ -633,7 +671,8 @@
         "T_koeff_V": -0.00275,
         "zeta": 0.06,
 		"moduley": 2.285,
-		"modulex": 1.134
+		"modulex": 1.134,
+        "T_NOCT": 45
 	},
 	"JAM72D30-530/MB":{
 		"bi_factor": 0.75,
@@ -649,7 +688,8 @@
         "T_koeff_V": -0.00275,
         "zeta": 0.06,
 		"moduley": 2.285,
-		"modulex": 1.134
+		"modulex": 1.134,
+        "T_NOCT": 45
 	},
 	"JAM72D30-535/MB":{
 		"bi_factor": 0.75,
@@ -665,7 +705,8 @@
         "T_koeff_V": -0.00275,
         "zeta": 0.06,
 		"moduley": 2.285,
-		"modulex": 1.134
+		"modulex": 1.134,
+        "T_NOCT": 45
 	},
 	"JAM72D30-540/MB":{
 		"bi_factor": 0.75,
@@ -681,7 +722,8 @@
         "T_koeff_V": -0.00275,
         "zeta": 0.06,
 		"moduley": 2.285,
-		"modulex": 1.134
+		"modulex": 1.134,
+        "T_NOCT": 45
 	},
 	"JAM72D30-545/MB":{
 		"bi_factor": 0.75,
@@ -697,7 +739,8 @@
         "T_koeff_V": -0.00275,
         "zeta": 0.06,
 		"moduley": 2.285,
-		"modulex": 1.134
+		"modulex": 1.134,
+        "T_NOCT": 45
 	},
 	"JAM72D30-550/MB":{
 		"bi_factor": 0.75,
