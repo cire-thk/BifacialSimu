@@ -1469,7 +1469,7 @@ class Window(tk.Tk):
                     systemtuple = ('',) # Needed to enable selection of module
                 for key in jsondata_soiling.keys():  # um auf die Modul Keys zurückgreifen zu können
                 # build the tuple of strings                 
-                systemtuple = systemtuple + (str(key),)
+                    systemtuple = systemtuple + (str(key),)
                 Combo_Soilrate['values'] = systemtuple[1:]
             
             # Set Combobox on first module
