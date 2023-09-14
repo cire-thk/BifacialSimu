@@ -31,3 +31,15 @@ Constant Albedo Value:		This is the simplest and therefore least accurate implem
 				according to what the surface is made of, or alternatively a custom numerical value can be entered.
 				[the name of the Surface will not be modified after entering a custom value]
 
+Soiling Calculation: 		The calculation of the concentration of particles accumulating on the surface of the Module and the resulting transmission losses.
+
+Average daily Soiling Rate [%/d]: Average experimental value for transmission loss due to PV-Module soiling 
+
+Soiling rate according to geographical area [%/d]: Average experimental value of transmission loss due to PV-Module soiling obtained in a specific geographical location
+							eg: Agricultural field, Desert, Europe, Sub-Saharan Africa, Central Asia, America, etc.
+
+Fixed Average soiling rate based on meteorological data [%/d]: Average transmission loss value calculated from climatic data (wind speed; 2.5 and 10 um particle size concentration) 
+								and Module mounting conditions (Module inclination angle)
+
+Average hourly Soiling rate based on meteorological data [%/h]: Average value of transmission loss calculated per hour From climate data (wind speed; 2.5 and 10 um particle size concentration;precipitation) 
+								and Module mounting conditions (Module inclination angle)
