@@ -1,7 +1,7 @@
 
- Insert Simulation Name: names the folder under which the simulation will be saved
+ Insert Simulation Name:	names the folder under which the simulation will be saved
 
- Local Weather File:	using a user produced weather file for the prefered location. With the "Insert weather File!", user has to set  
+ Local Weather File:		using a user produced weather file for the prefered location. With the "Insert weather File!", user has to set  
 			the path of the desired file location.
 			[with Date format: DD/MM/YYYY, and Time format: HH:MM]
 
@@ -12,4 +12,4 @@
 			[click info button in Simulation Parameter tab for additional information about this simulation model]
 
 
-Confrim Main Control inputs: validate the settings made in the Main Control menu
+
