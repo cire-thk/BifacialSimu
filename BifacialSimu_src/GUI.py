@@ -1556,7 +1556,7 @@ class Window(tk.Tk):
         Entry_weatherstation = ttk.Entry(simulationParameter_frame, background="white", width=35)
         Entry_weatherstation.grid(column=2, row=27, sticky=W)
         
-        Entry_distance = ttk.Entry(simulationParameter_frame, background="white", width=35)
+        Entry_distance = ttk.Entry(simulationParameter_frame, background="white", width=37)
         Entry_distance.grid(column=2, row=28, sticky="W")
         
         Entry_clean = ttk.Entry(simulationParameter_frame, background="white", width=35)
@@ -1664,7 +1664,9 @@ class Window(tk.Tk):
                     if row['precipitation'] >= 0.3:  #row['humidity'] >= 75 or
                         return 0
                     else:
-                        return round((((row['pm25'] + row['pm10']) * (10 **-6)) * row['wind-speed'] * t * math.cos(math.radians(a)) * 10**-2), 6) #(SimulationDict["nRows"]*((SimulationDict["nModsx"] * SimulationDict["nModsy"]) * (SimulationDict["moduley"] * SimulationDict["modulex"]))) * 
+                        # calculate the concentration of the particules accumulation on the moduls. 10**2 is a correction factor. While using Windspeed instead of settling Speed.  
+                        return round((((row['pm25'] + row['pm10']) * (10 **-6)) * row['wind-speed'] * t * math.cos(math.radians(a)) * 10**-2), 6) 
+
 
                 df_city['soiling_accumulation'] = df_city.apply(calculate_soiling_accumulation, axis=1)
 
@@ -1720,8 +1722,8 @@ class Window(tk.Tk):
                 # Save the DataFrame as a CSV file
                 file_path = os.path.join(output_directory, f"{city_name}.csv")
                 df_city.to_csv(file_path, index=False)
-
                 #print(f"DataFrame saved as '{Entry_weatherstation}.csv' in the 'city_data_soiling_accumulation' folder.")
+                #calculate the Average of the data 
                 Soilingaccumulation_new = round((sum(values_soiling_accumulation) / len (values_soiling_accumulation)), 6)
                 print('average of the Soilingaccumulation for the location indicated as a function of the length of the simulation:',Soilingaccumulation_new, "g/m²/d")
                 Soilingrate_hegazy_new = round((sum(values_soilingrate_hegazy) / len (values_soilingrate_hegazy)), 6)
@@ -1810,7 +1812,8 @@ class Window(tk.Tk):
                         delta_t = 0 
                         
                     # Calculate new value of soiling_accumulation
-                    soiling_accumulation = round((((PM2_5 + PM10)*(10**(-6))) * wind_speed * delta_t * math.cos(math.radians(angle))* 10**-2), 6) # Coello #(SimulationDict["nRows"]*((SimulationDict["nModsx"] * SimulationDict["nModsy"]) * (SimulationDict["moduley"] * SimulationDict["modulex"]))) * 
+                        # calculate the concentration of the particules accumulation on the moduls. 10**2 is a correction factor. While using Windspeed instead of settling Speed. 
+                    soiling_accumulation = round((((PM2_5 + PM10)*(10**(-6))) * wind_speed * delta_t * math.cos(math.radians(angle))* 10**-2), 6) # Coello  
                     #soiling_accumulation = (((PM2_5 + PM10)*(10**(-9))) * wind_speed * math.cos(math.radians(angle)))  # Coello 
                     # add the value of soiling_accumulation to the list of values_soiling_accumulation
                     values_soiling_accumulation.append(soiling_accumulation)
