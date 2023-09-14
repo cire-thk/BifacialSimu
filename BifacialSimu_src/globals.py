@@ -4,5 +4,6 @@ def initialize():
     global thread_break
     thread_break = False
     
-    global start_year
-    start_year = 0
+    global checkbutton_state
+    global checkbutton_state_wire
+    

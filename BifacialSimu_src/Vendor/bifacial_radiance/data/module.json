@@ -2,7 +2,7 @@
     "NREL": {
         "bifi": 1,
         "cellModule": null,
-        "modulefile": "objects/NREL.rad",
+        "modulefile": "objects\\NREL.rad",
         "numpanels": 1,
         "offsetfromaxis": 0,
         "scenex": 1.002,

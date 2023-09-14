@@ -756,42 +756,26 @@
         "T_koeff_V": -0.00275,
         "zeta": 0.06,
 		"moduley": 2.285,
-		"modulex": 1.134,
-        "T_NOCT": 45
+		"modulex": 1.134
 	},
-	"SW-Bisun-270-duo":{
-		"bi_factor": 0.65,
-		"n_front": 0.161,
-        "I_sc_f": 9.28,
-        "V_oc_f": 39,
-        "V_mpp_f": 31.3,
-        "I_mpp_f": 8.68,
-        "P_mpp": 270,
-        "T_koeff_P": -0.0043,
+	"JW-D72N": {
+		"bi_factor": 0.8,
+		"n_front": 0.1941,
+        "I_sc_f": 9.93,
+        "I_sc_r": 6.86,
+        "V_oc_f": 49.5,
+        "V_oc_r": 48.77,
+        "V_mpp_f": 40.2,
+        "V_mpp_r": 40.5,
+        "I_mpp_f": 9.44,
+        "I_mpp_r": 6.5,
+        "P_mpp": 380,
+        "T_koeff_P": -0.0032,
         "T_amb": 20,
-        "T_koeff_I": 0.00044,
-        "T_koeff_V": -0.0031,
-        "zeta": 0.06,
-		"moduley": 1.675,
-		"modulex": 1.001,
-        "T_NOCT": 48
-	},
-    "Canadian Solar CS7N-MB":{
-		"bi_factor": 0.7,
-		"n_front": 0.206,
-        "I_sc_f": 18.35,
-        "V_oc_f": 44.8,
-        "V_mpp_f": 37.7,
-        "I_mpp_f": 17.11,
-        "P_mpp": 645,
-        "T_koeff_P": -0.0034,
-        "T_amb": 20,
-        "T_koeff_I": 0.0005,
+        "T_koeff_I": 0.00046,
         "T_koeff_V": -0.0026,
         "zeta": 0.06,
-		"moduley": 2.384,
-		"modulex": 1.303,
-        "T_NOCT": 41
-	}	
-    									
+		"moduley": 0.992,
+		"modulex": 1.974
+    }										
 }

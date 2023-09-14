@@ -163,10 +163,16 @@ Now check under Module Parameters that all relevant parameters have been filled 
 
 <p align="center"><img src="BifacialSimu_src/Lib/readme_pics/Mod_Par_default.png" width="500"><br/></p>
 
+Next step would be check the Inverter Parameter tab. If you want to consider inverter losses in the simulation respective fields should be filled.
+
+<p align="center"><img src="BifacialSimu_src/Lib/readme_pics/inverter_parameter.png" width="500"><br/></p>
+
 The simulation can now be carried out by clicking on the button "Start Simulation!" under Main Control. 
 This may take a while depending upon your computer's specifications, please have patience.
 
 <p align="center"><img src="BifacialSimu_src/Lib/readme_pics/GUI_start_sim.png" width="1000"><br/></p>
+
+
 
 Once this has completed a variety of graphs will be produced which can be further analysed and exported. Incidentally, the data for these graphs will have been saved in the designated outputs folder produced for this specific simulation which can be found in the same folder as the installation of BifacialSimu:
 
@@ -230,6 +236,34 @@ A glossary of the adjustable parameters can be found below:
 
 Important to note is that when no rear side irradiance values are present (e.g. V_oc_r) then you must select "without rear values". 
 More info to this can be found in [Electrical Simulation](#electrical-simulation) and within the next section.
+
+### **Wire Parameter**
+
+The wire parameters are required to calculate the ohmic losses due to the resistivity of the cables. The following parameters are required:
+
+>Average DC wire length - average length of the cables from the PV array to the inverter and back, in m
+>Wire material - either cooper or aluminum, this determines the resistivity of the material
+>Wire diameter - the cross sectional diameter of the wire, in mm
+
+The wire diameter can be entered manually or selected by the available gauges from the drop down menu.
+The ohmic losses can be calculated for the DC cables, AC cables or both.
+
+
+### **Inverter Parameter**
+
+The inverter losses will be estimated in this part based on the efficiency of various types of inverters, and the user will enter the values based on the inverter datasheet and the manufacturer's datasheet. 
+
+The following types of inverter efficiency exist:
+
+>Maximum efficiency - Fixed value
+>European efficiency - Fixed value
+>CEC efficiency - Fixed value
+>Weighted efficiency - Variety of value
+
+The efficiency ranges and values are collected from the graph in the inverter's datasheet.
+It should be noted that if one of the efficiency types is chosen, the information in the other fields should be erased.
+
+
 ***
 ## Examples
 This section provides a number of examples to help with learning what each part of BifacialSimu does and how to operate it.
@@ -322,6 +356,27 @@ It's important to note here that if no values are provided for any of the rear s
 Once a module has been selected it is also possible to amend the values in each individual field, this can be useful when comparing similar modules that aren't already in BifacialSimu's database. 
 These settings however will not be saved so make a note of them for future reference.  
 
+---
+
+__Inverter Parameter - Inverter Choice and Loss Simulation__
+
+This section will guide you on how to consider inverter losses in the simulation.
+
+Before going further, you have to choose whether calculate the inverter loss or not by enabling or disabling the tab, as shown below:
+
+<p align="center"><img src="BifacialSimu_src/Lib/readme_pics/inverter_choice.png" width="500"><br/></p>
+
+Once you enable it, your next step is to choose the inverter brand or insert the inverter data in each field. There have already been a few inverter data included in the drop-down menu:
+
+<p align="center"><img src="BifacialSimu_src/Lib/readme_pics/inverter_json.png" width="500"><br/></p>
+
+Fill the belonging fields out depending on what type of efficiency you would use in your calculation.
+
+<p align="center"><img src="BifacialSimu_src/Lib/readme_pics/inverter_tab.png" width="500"><br/></p>
+
+It's important to note that unnecessary fields for the simulation must be removed.
+
+
 ***
 ## Results
 Once a simulation has successfully completed, various graphs will be automatically generated with matplotlib which can then be exported. 
@@ -369,6 +424,14 @@ The absolute irradiance on the modules is shown in this graph over the entire si
 
 
 This graph also displays the total irradiance of the system, this time broken down into the Global Horizontal Irradiance (ghi), Diffuse Horizontal Irradiance (dhi) and Direct Normal Irradiance (dni).
+
+
+---
+
+<p align="center"><img src="BifacialSimu_src/Lib/readme_pics/inverter_losses.png" width="700"><br/></p> 
+
+This particular graph illustrates the inverter losses in the system. 
+The blue lines represent the number of losses in the inverter due to its efficiency, while the red one demonstrates the efficiency values in a time series with days.
 
 ***
 

@@ -1,0 +1,28 @@
+The pop-down menu at the top provides several inverter datasheets to select from. 
+Below, you'll find the options to calculate the inverter loss in the simulation by selecting enable/disable.
+
+After choosing the preferable inverter module, the parameters will be automatically filled out. Or, a user has the option to input the parameters of their inverter module. 
+It's important to note that unnecessary fields for the simulation must be removed.
+
+Rated power:		refers to the maximum output power that an inverter can deliver under specified conditions, expressed in watts
+ 			or kilowatts. Also, it indicates the inverter's capacity and is defined by the inverter manufacturer.
+	
+Maximum efficiency: 	is the highest level of efficiency that an inverter can achieve under specific conditions and express as a
+			percentage. The value is fixed and is referred from the manufacturer's datasheet. 
+
+European efficiency:	is usually given by the manufacturer of the inverter.
+
+CEC efficiency:		Inverter efficiency value would be referred from the manufacturer's datasheet.
+			The value is fixed and is referred from the manufacturer's datasheet.
+
+Weighted efficiency:	takes into account the variations in efficiency at different operating points of the system. 
+			It calculates the efficiency of the system by assigning different weights to the efficiency values obtained at various
+			operating conditions. The values are referred to from the graph shown in the inverter datasheet. The user would input
+			those values in the following two columns of data.
+
+adjustable parameters: 
+
+                            Efficiency range:           - Ranges for inverter efficinecy input
+                            Efficiency values:          - Efficiency value for respective range
+
+
