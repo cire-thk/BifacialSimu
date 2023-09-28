@@ -1540,7 +1540,7 @@ class Window(tk.Tk):
         rb_Soiling.set("0")
         
         rad1_Soiling = Radiobutton(simulationParameter_frame, variable=rb_Soiling, width=23, text="Average daily Soiling Rate! [%/d]", value=0, command=lambda: Soiling())  
-        rad2_Soiling = Radiobutton(simulationParameter_frame, variable=rb_Soiling, width=35, text="Soiling rate according to geographical area! [%/d]", value=1, command=lambda: Soiling())        
+        rad2_Soiling = Radiobutton(simulationParameter_frame, variable=rb_Soiling, width=37, text="Soiling rate according to geographical area! [%/d]", value=1, command=lambda: Soiling())        
         rad3_Soiling = Radiobutton(simulationParameter_frame, variable=rb_Soiling, width=47, text="Fixed average soiling rate based on meteorological data! [%/d]", value=2, command=lambda: Soiling()) 
         rad4_Soiling = Radiobutton(simulationParameter_frame, variable=rb_Soiling, width=47, text="Average daily soiling rate based on meteorological data! [%/h]", value=3, command=lambda: Soiling()) 
         
@@ -1556,7 +1556,7 @@ class Window(tk.Tk):
         Entry_weatherstation = ttk.Entry(simulationParameter_frame, background="white", width=35)
         Entry_weatherstation.grid(column=2, row=27, sticky=W)
         
-        Entry_distance = ttk.Entry(simulationParameter_frame, background="white", width=37)
+        Entry_distance = ttk.Entry(simulationParameter_frame, background="white", width=35)
         Entry_distance.grid(column=2, row=28, sticky="W")
         
         Entry_clean = ttk.Entry(simulationParameter_frame, background="white", width=35)
