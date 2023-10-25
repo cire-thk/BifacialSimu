@@ -4025,7 +4025,7 @@ class Window(tk.Tk):
             df_reportRT: Raytracing simulation report
             df_report: Final simulation report, containing VF and RT data
             resultsPath: output filepath
-            df: helper DataFrame containing temperature for electrical simulation
+            df: helper DataFrame containing temperature for electrical simulation """
 # =============================================================================
 #         defining the input for the Albedo
 # =============================================================================
