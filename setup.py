@@ -69,6 +69,7 @@ setup(
         'timezonefinder==6.2.0',
         'black==22.3.0',
         'ray==2.5.1'
+        'geopy==2.4.0'
     ],
 
     # Here are the keywords of my library.
