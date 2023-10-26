@@ -797,7 +797,7 @@
 		"modulex": 1.001,
         "T_NOCT": 48
 	},
-    "Canadian Solar CS7N-MB":{
+    "CS7N-MB":{
 		"bi_factor": 0.7,
 		"n_front": 0.206,
         "I_sc_f": 18.35,
@@ -813,6 +813,5 @@
 		"moduley": 2.384,
 		"modulex": 1.303,
         "T_NOCT": 41
-	}	
-    									
+	}	  									
 }

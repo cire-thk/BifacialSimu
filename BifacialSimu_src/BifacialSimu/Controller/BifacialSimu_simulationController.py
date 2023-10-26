@@ -54,9 +54,13 @@ def startSimulation(simulationDict, moduleDict, resultsPath):
     #              Break Flag Check   
     # =============================================================================
     if globals.thread_break == True:
-        messagebox.showinfo("Simulation Stopped!", "The simulation was successfully terminated!")
-        exit
+       print("Simulation was Stopped!")
+       raise Exception('\nSimulation was stopped by user!\n')
     
+    if simulationDict['cumulativeSky'] == True and simulationDict['simulationMode'] not in {3,5}:
+        print('\nCumulative Sky simulation is only available with RayTracing!\n')
+        raise Exception('\nCumulative Sky simulation is only available with RayTracing!\n')
+
 
     #get weatherFile
     metdata, demo = BifacialSimu_dataHandler.DataHandler().getWeatherData(simulationDict, resultsPath)
