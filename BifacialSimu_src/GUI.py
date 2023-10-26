@@ -1403,7 +1403,7 @@ class Window(tk.Tk):
             Entry_zeta.delete(0,END)
             Entry_albedo.delete(0,END)
             Entry_Tnoct.delete(0,END)
-            Entry_utcoffset.delete(0,END)
+            #Entry_utcoffset.delete(0,END)
             Entry_dcWire_len.delete(0,END)
             Entry_dcWire_Diameter.delete(0,END)
             Entry_acWire_len.delete(0,END)
