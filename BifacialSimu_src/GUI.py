@@ -78,7 +78,7 @@ PhotoImage = tk.PhotoImage
 # Get path of this (GUI.py) file. See: https://stackoverflow.com/a/44592299
 filename = inspect.getframeinfo(inspect.currentframe()).filename
 rootPath = os.path.dirname(os.path.abspath(filename))
-
+print(filename)
 # Include path in system path, so that python would find the Modules
 sys.path.append(rootPath)
 # Include paths
@@ -86,7 +86,7 @@ sys.path.append(rootPath)
 # sys.path.append(rootPath + "/BifacialSimu/Handler")
 
 # Include modules
-from BifacialSimu import Controller
+from BifacialSimu_src.BifacialSimu import Controller
 
 
 
@@ -1680,7 +1680,7 @@ class Window(tk.Tk):
 # =============================================================================
          
         parser = ConfigParser()
-        parser.read(rootPath + '/Lib/default/default.ini')
+        parser.read(rootPath + '/Lib/default/default minimodule horizontal.ini')
         simulationName_configfile=parser.get('default', 'simulationName')
        # simulationMode_configfile=parser.get('default', 'simulationMode')
         weatherFile_configfile=parser.get('default', "weatherFile")

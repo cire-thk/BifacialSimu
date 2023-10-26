@@ -26,14 +26,15 @@ import sys, os
 import math
 
 # Path handling
-rootPath = os.path.realpath(".")
+#rootPath = os.path.realpath(".")
+rootPath = 'C:/Users/User/Documents/GitHub/CleanBifacial/BifacialSimu_src'
 print(rootPath)
 # Include paths
 sys.path.append(rootPath + "/BifacialSimu/Controller")
 sys.path.append(rootPath + "/BifacialSimu/Handler")
 
 # Include modules
-import BifacialSimu_simulationController
+from BifacialSimu_src.BifacialSimu.Controller import BifacialSimu_simulationController
 
 
 """

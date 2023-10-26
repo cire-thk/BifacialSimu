@@ -56,7 +56,7 @@ from BifacialSimu_src import globals
 
 
 
-
+print("1 bin wohl im calc handler")
 # electric-calculation Klasse
     
     # Functions for One-Diode Model
@@ -111,9 +111,10 @@ class Electrical_simulation:
         """
         
         
-        
+        print('one diode!!!!!!!!!!!!!!!')
         # Build a final simutlation report
         df_report = Electrical_simulation.build_simulationReport(df_reportVF, df_reportRT, simulationDict, resultsPath)
+        
         
         ####################################################
         # Variables required for electrical simulation
@@ -186,7 +187,7 @@ class Electrical_simulation:
         # Array to hold other arrays -> average after for loop
         P_bi_hourly_arrays = []
         P_m_hourly_arrays = []
-        
+        I_sc_b_array=[]
 
         df_report = df_report.reset_index()
 
@@ -212,7 +213,8 @@ class Electrical_simulation:
             key_back = "row_" + str(i) + "_qabs_back"
         
             P_bi_hourly = []
-          
+            I_sc_b_hourly = []
+           
             for index, row in df_report.iterrows():
                 if simulationDict['simulationMode'] == 5:
                     row_qabs_front = 0
@@ -238,7 +240,7 @@ class Electrical_simulation:
                 if math.isnan(row_qabs_back) or row_qabs_back < 0.0:
                     row_qabs_back = 0
 
-                
+                I_sc_b = 0
                 if row_qabs_back + row_qabs_front > 0.0:
                     
                     I_sc_f = I_sc_f0 * (1 + T_koeff_I * (T_Current - T_amb))
@@ -267,14 +269,15 @@ class Electrical_simulation:
             
                 else:
                     P_bi=0
-
+                    
                 P_bi_hourly.append(P_bi/(simulationDict['moduley'] *simulationDict['modulex']))  #Bifacial Power Output per Module Area  [W/m2]
-                
+                I_sc_b_hourly.append(I_sc_b)
             # Append P_bi_hourly array to arrays
             P_bi_hourly_arrays.append(P_bi_hourly)
+            I_sc_b_array.append(I_sc_b_hourly)
                      
         P_bi_hourly_average = []
-        
+        I_sc_b_hourly_average = []
         for i in tqdm(range(0, len(P_bi_hourly_arrays[0]))):
             sum = 0
           
@@ -284,6 +287,15 @@ class Electrical_simulation:
             average = sum / float(len(P_bi_hourly_arrays))
             
             P_bi_hourly_average.append(average)
+        for i in tqdm(range(0, len(I_sc_b_array[0]))):
+            sum = 0
+          
+            for j in range(0, len(I_sc_b_array)):
+                sum += I_sc_b_array[j][i]
+                
+            average = sum / float(len(I_sc_b_array))
+            
+            I_sc_b_hourly_average.append(average)    
 
 # =============================================================================
 #        at this point we have an hourly average of P_bi for every row in every hour
@@ -422,16 +434,18 @@ class Electrical_simulation:
         
                 
         # Create dataframe with data
-        p_bi_df = pd.DataFrame({"timestamps":df_report.index, "P_bi ": P_bi_hourly_average, "P_m ": P_m_hourly_average, "Mismatch":mismatch_array})
+        p_bi_df = pd.DataFrame({"timestamps":df_report.index,  "P_m ": P_m_hourly_average, "Mismatch":mismatch_array,  "P_bi ": P_bi_hourly_average, "I_sc_b": I_sc_b_hourly_average})
         p_bi_df.set_index("timestamps")
+        print(p_bi_df)
         p_bi_df.to_csv(Path(resultsPath + "electrical_simulation" + datetime.datetime.now().strftime("%Y-%m-%d-%H-%M") + ".csv"))
         
         #Plot for Bifacial Power Output + Bifacial Gain
         # GUI.Window.makePlotBifacialRadiance(resultsPath,Bifacial_gain)
         # GUI.Window.makePlotMismatch(resultsPath,checkbutton_state)
         
-        return Bifacial_gain*100
+        return Bifacial_gain*100 
     
+    print("2 one diode müsste ich drin sein")
     def calculate_mismatch(P_array, P_cell):
         
         mismatch=[]
