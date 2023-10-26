@@ -772,10 +772,28 @@
         "P_mpp": 380,
         "T_koeff_P": -0.0032,
         "T_amb": 20,
-        "T_koeff_I": 0.00046,
+        "T_koeff_I": 0.00044,
+        "T_koeff_V": -0.0031,
+        "zeta": 0.06,
+		"moduley": 1.675,
+		"modulex": 1.001,
+        "T_NOCT": 48
+	},
+    "CS7N-MB":{
+		"bi_factor": 0.7,
+		"n_front": 0.206,
+        "I_sc_f": 18.35,
+        "V_oc_f": 44.8,
+        "V_mpp_f": 37.7,
+        "I_mpp_f": 17.11,
+        "P_mpp": 645,
+        "T_koeff_P": -0.0034,
+        "T_amb": 20,
+        "T_koeff_I": 0.0005,
         "T_koeff_V": -0.0026,
         "zeta": 0.06,
-		"moduley": 0.992,
-		"modulex": 1.974
-    }										
+		"moduley": 2.384,
+		"modulex": 1.303,
+        "T_NOCT": 41
+	}	  									
 }

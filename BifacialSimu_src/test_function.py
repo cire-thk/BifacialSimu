@@ -34,7 +34,7 @@ import threading
 
 timestamp = datetime.now().strftime("%Y-%m-%d %H.%M") 
 rootPath = os.getcwd().replace(os.sep, '/')
-resultspath = Controller.DataHandler().setDirectories()
+datahandler_resultspath = Controller.DataHandler().setDirectories()
 
 #%% Shutdown timer class
 class ShutdownThread(threading.Thread):
@@ -202,8 +202,8 @@ SimulationDict_Golden = {
                 'singleAxisTracking' : False, # singleAxisTracking or not
                 'limitAngle' : 60,#30, # limit Angle for singleAxisTracking
                 'hub_height' : 1.5, # Height of the rotation axis of the tracker [m]
-                'azimuth' : 180, #azimuth of the PV surface [deg] 90°: East, 135° : South-East, 180°:South
-                'nModsx' : 19, #number of modules in x-axis
+                'azimuth' : 90, #azimuth of the PV surface [deg] 90°: East, 135° : South-East, 180°:South
+                'nModsx' : 20, #number of modules in x-axis
                 'nModsy' : 1, #number of modules in y-axis
                 'nRows' : 5, #number of rows
                 'sensorsy' : 5, #number of sensors
@@ -214,7 +214,7 @@ SimulationDict_Golden = {
                 'BackReflect' : 0.05, #back surface reflectivity of PV rows
                 'longitude' : -105.172, 
                 'latitude' : 39.739,
-                'gcr' : 0.35, #ground coverage ratio (module area / land use)
+                'gcr' : 0.45, #ground coverage ratio (module area / land use)
                 'module_type' : 'NREL', #Name of Module                    
                 }
 
@@ -363,7 +363,10 @@ def plot_bars(df, y_columns, y_label, save_path, title, show=True, relative=Fals
      
 def test_function(SimulationDict, ModuleDict, test_name, startHour, endHour, singleAxisTrackingMode,  real_results_path):
 
-    verzeichnis = resultspath+'/Test_result_'+test_name +'/' #rootPath + 'TEST_results/'+timestamp +'-'+test_name +'/'
+    verzeichnis = datahandler_resultspath+'/Test_result_'+test_name +'/' #rootPath + 'TEST_results/'+timestamp +'-'+test_name +'/'
+    if not os.path.exists(verzeichnis):
+        os.makedirs(verzeichnis) 
+    
     
     SimulationDict['startHour'] = startHour
     SimulationDict['endHour'] = endHour
@@ -553,49 +556,53 @@ def test_function(SimulationDict, ModuleDict, test_name, startHour, endHour, sin
     
     runtime_df = pd.DataFrame()
     
-    for simMode in range(3):       
+    for simMode in range(2,3):       
         if singleAxisTrackingMode ==1 and SimulationDict['cumulativeSky'] == True:
             continue
         
-        for backTrackingMode in range(2): #
-            if backTrackingMode ==1 and simMode not in {0, 2, 4}:
-                continue
+        for backTrackingMode in range(1): #
+            #if backTrackingMode ==1 and simMode not in {0, 2, 4}:
+                #continue
             
-            for albedoMode in range(2): # 
+            for albedoMode in range(1): # 
                 if albedoMode ==1 and simMode in {0, 2, 4}:
                     continue
                 
                 for localFile in range(1,2):
                     
-                    for electricalMode in range(2):
+                    for electricalMode in range(1):
                         
                         for cumSky in range(1):
                             if cumSky ==1 and simMode not in {2, 5}:
                                 continue
                             
-                            name = 'SM'+ str(simMode+1) + '-EL'+str(electricalMode) + '-BT'+str(backTrackingMode) + '-AL'+str(albedoMode) + '-TR'+str(singleAxisTrackingMode) + '-LF'+str(localFile)
-                            if cumSky ==1:
-                                name += '-CS'+str(cumSky)
-                            
-                            SimulationDict["simulationMode"] = simMode+1
-                            SimulationDict["localFile"] = bool(localFile)                     
-                            SimulationDict["ElectricalMode_simple"] = electricalMode                    
-                            SimulationDict["backTrackingMode"] = bool(backTrackingMode)                   
-                            SimulationDict["singleAxisTracking"] = bool(singleAxisTrackingMode)
-                            SimulationDict["cumulativeSky"] = bool(cumSky)  
-                            define_albedo(albedoMode)
-                            
-                            start_time = time.time()
-    
-                            try:
-                               test_thread(name, timestamp)
-                            except Exception as err:
-                               print(err)
-                               
-                            end_time = time.time() 
-                            runtime_df.loc[name, 'sim_runtime_s'] = end_time-start_time
-    
-                            time.sleep(0.1) 
+                            #for gcr in np.arange(0,1,0.1):    
+                                
+                                name = 'SM'+ str(simMode+1) + '-EL'+str(electricalMode) + '-BT'+str(backTrackingMode) + '-AL'+str(albedoMode) + '-TR'+str(singleAxisTrackingMode) + '-LF'+str(localFile)# + '-gcr' +str(gcr)
+                                #SimulationDict["gcr"] = gcr
+                                
+                                if cumSky ==1:
+                                    name += '-CS'+str(cumSky)
+                                
+                                SimulationDict["simulationMode"] = simMode+1
+                                SimulationDict["localFile"] = bool(localFile)                     
+                                SimulationDict["ElectricalMode_simple"] = electricalMode                    
+                                SimulationDict["backTrackingMode"] = bool(backTrackingMode)                   
+                                SimulationDict["singleAxisTracking"] = bool(singleAxisTrackingMode)
+                                SimulationDict["cumulativeSky"] = bool(cumSky)  
+                                define_albedo(albedoMode)
+                                
+                                start_time = time.time()
+        
+                                try:
+                                   test_thread(name, timestamp)
+                                except Exception as err:
+                                   print(err)
+                                   
+                                end_time = time.time() 
+                                runtime_df.loc[name, 'sim_runtime_s'] = end_time-start_time
+        
+                                time.sleep(0.1) 
                                   
         
     results_h, results_d, results_avg = ergebnisausgabe(test_name, runtime_df)
@@ -621,31 +628,37 @@ golden_real_path = rootPath + '/WeatherData/Golden_USA/Golden_USA_field_test_dat
 if __name__ == '__main__':
     
     try:
-        """simulate 2 days"""
+        """simulate 3 month"""
         
-        #heggelbach_h_22, heggelbach_d_22, heggelbach_avg_22 = test_function(SimulationDict_Heggelbach, ModuleDict_Heggelbach, 'Heggelbach 2022', (2022, 7, 1, 8), (2022, 7, 7, 21), 0, heggelbach_real_path)
+        #heggelbach_h_22, heggelbach_d_22, heggelbach_avg_22 = test_function(SimulationDict_Heggelbach, ModuleDict_Heggelbach, 'Heggelbach2022', (2022, 1, 1, 11), (2022, 1, 1, 12), 0, heggelbach_real_path)
+        #heggelbach_h_22, heggelbach_d_22, heggelbach_avg_22 = test_function(SimulationDict_Heggelbach, ModuleDict_Heggelbach, 'Heggelbach 2022-Jul', (2022, 7, 1, 1), (2022, 7, 28, 22), 0, heggelbach_real_path)
+        #heggelbach_h_22, heggelbach_d_22, heggelbach_avg_22 = test_function(SimulationDict_Heggelbach, ModuleDict_Heggelbach, 'Heggelbach 2022-Okt', (2022, 10, 1, 1), (2022, 10, 28, 22), 0, heggelbach_real_path)
+        
+        golden_21_h, golden_21_d, golden_21_avg = test_function(SimulationDict_Golden, ModuleDict_Golden, 'Golden 2021-Jan', (2021, 1, 1, 1), (2021, 1, 28, 22), 1, golden_real_path)
+        #golden_21_h, golden_21_d, golden_21_avg = test_function(SimulationDict_Golden, ModuleDict_Golden, 'Golden 2021-Jul', (2021, 7, 1, 1), (2021, 7, 28, 22), 1, golden_real_path)
+        #golden_21_h, golden_21_d, golden_21_avg = test_function(SimulationDict_Golden, ModuleDict_Golden, 'Golden 2021-Okt', (2021, 10, 1, 1), (2021, 10, 28, 22), 1, golden_real_path)
         
         """simulate year"""
-        #heggelbach_h_22, heggelbach_d_22, heggelbach_avg_22 = test_function(SimulationDict_Heggelbach, ModuleDict_Heggelbach, 'Heggelbach 2022', (2022, 1, 1, 1), (2022, 12, 31, 22), 0, heggelbach_real_path)
-        golden_21_h, golden_21_d, golden_21_avg = test_function(SimulationDict_Golden, ModuleDict_Golden, 'Golden 2021-Tracking', (2021, 1, 1, 0), (2021, 12, 31, 23), 1, golden_real_path)
+        #heggelbach_h_22, heggelbach_d_22, heggelbach_avg_22 = test_function(SimulationDict_Heggelbach, ModuleDict_Heggelbach, 'Heggelbach 2022', (2022, 1, 1, 1), (2022, 12, 31, 23), 0, heggelbach_real_path)
+        #golden_21_h, golden_21_d, golden_21_avg = test_function(SimulationDict_Golden, ModuleDict_Golden, 'Golden 2021-Tracking', (2021, 1, 1, 1), (2021, 12, 31, 23), 1, golden_real_path)
 
         #brazil_fixed_h, brazil_fixed_d = test_function(SimulationDict_Brazil_fixed, ModuleDict_Brazil, 'Brazil-fixed 2023 POA_conversion', (2023, 1, 1, 11), (2023, 1, 1, 13), 0, brazil_fixed_real_path)
         #brazil_tracked_h, brazil_tracked_d, brazil_tracked_avg = test_function(SimulationDict_Brazil_tracked, ModuleDict_Brazil, 'Brazil tracked 2023 POA-conversion', (2023, 1, 1, 7), (2023, 3, 27, 20), 1, brazil_tracked_real_path)        
         
         #SimulationDict_Heggelbach['weatherFile'] = rootPath + '/WeatherData/Heggelbach_Germany/Heggelbach_Germany_2017.csv'
-        #heggelbach_h_17, heggelbach_d_17, heggelbach_avg_17 = test_function(SimulationDict_Heggelbach, ModuleDict_Heggelbach, 'Heggelbach 2017', (2017, 1, 1, 1), (2017, 12, 31, 22), 0, heggelbach_real_path)
+        #heggelbach_h_17, heggelbach_d_17, heggelbach_avg_17 = test_function(SimulationDict_Heggelbach, ModuleDict_Heggelbach, 'Heggelbach 2017', (2017, 1, 1, 1), (2017, 12, 31, 23), 0, heggelbach_real_path)
         #SimulationDict_Heggelbach['weatherFile'] = rootPath + '/WeatherData/Heggelbach_Germany/Heggelbach_Germany_2018.csv'
-        #heggelbach_h_18, heggelbach_d_18, heggelbach_avg_18 = test_function(SimulationDict_Heggelbach, ModuleDict_Heggelbach, 'Heggelbach 2018', (2018, 1, 1, 1), (2018, 12, 31, 22), 0, heggelbach_real_path)
+        #heggelbach_h_18, heggelbach_d_18, heggelbach_avg_18 = test_function(SimulationDict_Heggelbach, ModuleDict_Heggelbach, 'Heggelbach 2018', (2018, 1, 1, 1), (2018, 12, 31, 23), 0, heggelbach_real_path)
         #SimulationDict_Heggelbach['weatherFile'] = rootPath + '/WeatherData/Heggelbach_Germany/Heggelbach_Germany_2021.csv'
-        #heggelbach_h_21, heggelbach_d_21, heggelbach_avg_21 = test_function(SimulationDict_Heggelbach, ModuleDict_Heggelbach, 'Heggelbach 2021', (2021, 1, 1, 1), (2021, 12, 31, 22), 0, heggelbach_real_path)
+        #heggelbach_h_21, heggelbach_d_21, heggelbach_avg_21 = test_function(SimulationDict_Heggelbach, ModuleDict_Heggelbach, 'Heggelbach 2021', (2021, 1, 1, 1), (2021, 12, 31, 23), 0, heggelbach_real_path)
         
-        """plot and show final results to interact with"""
+        """plot and show final results for interaction"""
         #plot_lines(heggelbach_h_17, 'P_bi ', r'Bifacial Power Output [$\mathrm{\frac{W}{m^2}}$]', resultspath, 'Heggelbach 2017 - Hourly Bifacial Power Output', True)
         #plot_lines(heggelbach_h_18, 'P_bi ', r'Bifacial Power Output [$\mathrm{\frac{W}{m^2}}$]', resultspath, 'Heggelbach 2018 - Hourly Bifacial Power Output', True)
         #plot_lines(heggelbach_h_21, 'P_bi ', r'Bifacial Power Output [$\mathrm{\frac{W}{m^2}}$]', resultspath, 'Heggelbach 2021 - Hourly Bifacial Power Output', True)
         #plot_lines(heggelbach_h_22, 'P_bi ', r'Bifacial Power Output [$\mathrm{\frac{W}{m^2}}$]', resultspath, 'Heggelbach 2022 - Hourly Bifacial Power Output', True)
         #plot_lines(brazil_tracked_h, 'P_bi ', r'Bifacial Power Output [$\mathrm{\frac{W}{m^2}}$]', resultspath, 'Brazil tracked - Hourly Bifacial Power Output', True)
-        plot_lines(golden_21_h, 'P_bi ', r'Bifacial Power Output [$\mathrm{\frac{W}{m^2}}$]', resultspath, 'Golden 2021 - Hourly Bifacial Power Output', True)
+        #plot_lines(golden_21_h, 'P_bi ', r'Bifacial Power Output [$\mathrm{\frac{W}{m^2}}$]', resultspath, 'Golden 2021 - Hourly Bifacial Power Output', True)
         
         #plot_boxplots(heggelbach_d_17, ['delta_E_abs', 'delta_Q_front_abs', 'delta_Q_rear_abs' ], r'Energy yield per m$^2$  [$\mathrm{\frac{Wh}{m^2*d}}$]', resultspath, 'Heggelbach 2017 - Absolute Energy Difference - Daily', True)
         #plot_boxplots(heggelbach_d_18, ['delta_E_abs', 'delta_Q_front_abs', 'delta_Q_rear_abs' ], r'Energy yield per m$^2$  [$\mathrm{\frac{Wh}{m^2*d}}$]', resultspath, 'Heggelbach 2018 - Absolute Energy Difference - Daily', True)
@@ -657,7 +670,7 @@ if __name__ == '__main__':
         #plot_bars(heggelbach_avg_21, ['delta_E_rel', 'delta_E_rad_front_rel', 'delta_E_rad_rear_rel' ], r'Energy yield per m$^2$  [$\mathrm{\frac{Wh}{m^2}}$]', resultspath, 'Heggelbach 2021 - Relative Energy Difference - Full timeframe', True, True)
         #plot_bars(heggelbach_avg_18, ['delta_E_rel', 'delta_E_rad_front_rel', 'delta_E_rad_rear_rel' ], r'Energy yield per m$^2$  [$\mathrm{\frac{Wh}{m^2}}$]', resultspath, 'Heggelbach 2018 - Relative Energy Difference - Full timeframe', True, True)
         #plot_bars(heggelbach_avg_17, ['delta_E_rel', 'delta_E_rad_front_rel', 'delta_E_rad_rear_rel' ], r'Energy yield per m$^2$  [$\mathrm{\frac{Wh}{m^2}}$]', resultspath, 'Heggelbach 2017 - Relative Energy Difference - Full timeframe', True, True)
-        plot_bars(golden_21_avg, ['delta_E_rel', 'delta_E_rad_front_rel', 'delta_E_rad_rear_rel' ], r'Energy yield per m$^2$  [$\mathrm{\frac{Wh}{m^2}}$]', resultspath, 'Golden 2021 - Relative Energy Difference - Full timeframe', True, True)
+        #plot_bars(golden_21_avg, ['delta_E_rel', 'delta_E_rad_front_rel', 'delta_E_rad_rear_rel' ], r'Energy yield per m$^2$  [$\mathrm{\frac{Wh}{m^2}}$]', resultspath, 'Golden 2021 - Relative Energy Difference - Full timeframe', True, True)
         #plot_boxplots(brazil_tracked_d, ['delta_E_abs', 'delta_Q_front_abs', 'delta_Q_rear_abs' ], r'Energy yield per m$^2$  [$\mathrm{\frac{Wh}{m^2*d}}$]', resultspath, 'Brazil tracked - Absolute Energy Difference - Daily', True)
         
     except Exception as err:     
