@@ -112,7 +112,7 @@ class Electrical_simulation:
         """
         
         
-        print('one diode!!!!!!!!!!!!!!!')
+        
         # Build a final simutlation report
         df_report = Electrical_simulation.build_simulationReport(df_reportVF, df_reportRT, simulationDict, resultsPath)
         
@@ -446,7 +446,7 @@ class Electrical_simulation:
         
         return Bifacial_gain*100 
     
-    print("2 one diode müsste ich drin sein")
+   
     def calculate_mismatch(P_array, P_cell):
         
         mismatch=[]

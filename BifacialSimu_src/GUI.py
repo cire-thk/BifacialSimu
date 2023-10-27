@@ -1681,7 +1681,7 @@ class Window(tk.Tk):
 # =============================================================================
          
         parser = ConfigParser()
-        parser.read(rootPath + '/Lib/default/default minimodule horizontal.ini')
+        parser.read(rootPath + '/Lib/default/default minimodule vertical.ini')
         simulationName_configfile=parser.get('default', 'simulationName')
        # simulationMode_configfile=parser.get('default', 'simulationMode')
         weatherFile_configfile=parser.get('default', "weatherFile")

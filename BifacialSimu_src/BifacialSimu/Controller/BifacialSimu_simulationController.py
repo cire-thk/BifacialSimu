@@ -66,7 +66,7 @@ def startSimulation(simulationDict, moduleDict, resultsPath):
     metdata, demo = BifacialSimu_dataHandler.DataHandler().getWeatherData(simulationDict, resultsPath)
 
     print('succsessfully created metdata and demo')
-    print('im richtigen Kontroller Drin?')
+    
     # pass weatherfile to df
     df = BifacialSimu_dataHandler.DataHandler().passEPWtoDF(metdata, simulationDict, resultsPath)
     df_reportRT = pd.DataFrame()
@@ -111,20 +111,20 @@ def startSimulation(simulationDict, moduleDict, resultsPath):
         
             
     if simulationDict['simulationMode'] == 2:
-        print('Front and back simulation with ViewFactors NICHT')
+        print('Front and back simulation with ViewFactors')
         df_reportVF, df, test = BifacialSimu_radiationHandler.ViewFactors.simulateViewFactors(simulationDict, demo, metdata,  df, resultsPath, onlyFrontscan = False)
         
         if simulationDict['ElectricalMode_simple'] == 0: 
-            print('simple 0')     
+               
             BifacialSimu_calculationHandler.Electrical_simulation.simulate_simpleBifacial(moduleDict, simulationDict, df_reportVF, df_reportRT, df_report, df, resultsPath)
         if simulationDict['ElectricalMode_simple'] == 1:
-            print('VF front back one diode???!!!!!')
+           
             BifacialSimu_calculationHandler.Electrical_simulation.simulate_oneDiode(moduleDict, simulationDict, df_reportVF, df_reportRT, df_report, df, resultsPath)
         if simulationDict['ElectricalMode_simple'] == 2: 
-            print('VF front back Double Diode')  
+             
             BifacialSimu_calculationHandler.Electrical_simulation.simulate_doubleDiode(moduleDict, simulationDict, df_reportVF, df_reportRT, df_report, df, resultsPath)
         if simulationDict['ElectricalMode_simple'] == 3:
-            print('VF front back Double Diode BIFAC') 
+            
             BifacialSimu_calculationHandler.Electrical_simulation.simulate_doubleDiodeBi(moduleDict, simulationDict, df_reportVF, df_reportRT, df_report, df, resultsPath)
     
     
