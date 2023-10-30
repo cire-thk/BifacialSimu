@@ -1,4 +1,25 @@
 {
+    "LaserCutCell":{
+		"bi_factor": 0.694,
+		"n_front": 0.15,
+        "I_sc_f": 0.6815,
+        "I_sc_r": 0.5694,
+        "V_oc_f": 0.662,
+        "V_oc_r": 0.650,
+        "V_mpp_f": 0.465,
+        "V_mpp_r": 0.538,
+        "I_mpp_f": 0.6525,
+        "I_mpp_r": 0.5137,
+        "P_mpp": 0.303,
+        "T_koeff_P": -0.0039,
+        "T_amb": 20,
+        "T_koeff_I": 0.0006,
+        "T_koeff_V": -0.0030,
+        "zeta": 0.06,
+		"moduley": 0.037,
+		"modulex": 0.055,
+        "T_NOCT": 45
+    },
     "NREL": {
 		"bi_factor": 0.694,
 		"n_front": 0.19,
@@ -40,27 +61,6 @@
 		"moduley": 2.036,
 		"modulex": 1.002,
         "T_NOCT": 43
-    },
-	"LaserCutCell":{
-		"bi_factor": 0.694,
-		"n_front": 0.15,
-        "I_sc_f": 0.6815,
-        "I_sc_r": 0.5694,
-        "V_oc_f": 0.662,
-        "V_oc_r": 0.650,
-        "V_mpp_f": 0.465,
-        "V_mpp_r": 0.538,
-        "I_mpp_f": 0.6525,
-        "I_mpp_r": 0.5137,
-        "P_mpp": 0.303,
-        "T_koeff_P": -0.0039,
-        "T_amb": 20,
-        "T_koeff_I": 0.0006,
-        "T_koeff_V": -0.0030,
-        "zeta": 0.06,
-		"moduley": 0.037,
-		"modulex": 0.055,
-        "T_NOCT": 45
     },
 	"LG400N2T-BiFi200":{
 		"bi_factor": 0.7,
