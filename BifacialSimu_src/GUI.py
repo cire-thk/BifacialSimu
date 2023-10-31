@@ -1556,7 +1556,7 @@ class Window(tk.Tk):
         Entry_weatherstation = ttk.Entry(simulationParameter_frame, background="white", width=35)
         Entry_weatherstation.grid(column=2, row=27, sticky=W)
         
-        Entry_distance = ttk.Entry(simulationParameter_frame, background="white", width=35)
+        Entry_distance = ttk.Entry(simulationParameter_frame, background="white", width=37)
         Entry_distance.grid(column=2, row=28, sticky="W")
         
         Entry_clean = ttk.Entry(simulationParameter_frame, background="white", width=35)
