@@ -1,3 +1,4 @@
+0,Cologne,Germany,2,50.935,6.992,53,,,,,,
 Date (MM/DD/YYYY),Time (HH:MM),nothing,GHI (W/m^2),DNI (W/m^2),DHI (W/m^2),temp_air,Windspeed (m/s),Avg Pressure [mBar],Avg Zenith Angle [degrees],Avg Azimuth Angle [degrees],Air pressure (Pa),Alb
 07/04/2023,01:00,0,0.0,0.0,0.0,17.96,60.04,1015.37,-16.043,220.357,101537.0,0.222
 07/04/2023,02:00,1,0.0,0.0,0.0,17.245,60.042,1015.614,-15.141,12.649,101561.4,0.222
