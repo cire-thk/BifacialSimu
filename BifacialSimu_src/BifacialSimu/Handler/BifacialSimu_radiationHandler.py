@@ -243,8 +243,8 @@ class RayTrace:
                     if simulationDict['singleAxisTracking'] == True:
                         demo.setGround(material = None)
                     else:
-                        #demo.setGround(material = metdata.albedo)
-                        sys.exit("The use of hourly Measured Albedo Values is not possible with fixed tilts at the moment")
+                        demo.setGround(material = metdata.albedo)
+                        #sys.exit("The use of hourly Measured Albedo Values is not possible with fixed tilts at the moment")
                 
                 if SimulationDict['singleAxisTracking'] == True:
                     
