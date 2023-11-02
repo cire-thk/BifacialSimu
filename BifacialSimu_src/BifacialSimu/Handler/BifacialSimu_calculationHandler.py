@@ -56,7 +56,7 @@ from BifacialSimu_src import globals
 
 
 
-print("1 bin wohl im calc handler")
+
 # electric-calculation Klasse
     
     # Functions for One-Diode Model
