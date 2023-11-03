@@ -119,7 +119,9 @@ class RayTrace:
 
         # DEFINE a Module type
         moduley = simulationDict['moduley']*simulationDict['nModsy']
-     
+        demo.makeModule(name=simulationDict['module_type'],x=simulationDict['modulex'], y=moduley)
+
+        
         # Make the Scene
         sceneDict = {'tilt': simulationDict['tilt'],'gcr': simulationDict['gcr'],'clearance_height':simulationDict['clearance_height'],'hub_height':simulationDict['hub_height'], 'azimuth':simulationDict['azimuth'], 'nModsx': simulationDict['nModsx'], 'nRows': simulationDict['nRows']} 
         
@@ -133,7 +135,6 @@ class RayTrace:
         
         if simulationDict['cumulativeSky'] == True:
             
-            demo.makeModule(name=simulationDict['module_type'],x=simulationDict['modulex'], y=moduley)
             
             if simulationDict['fixAlbedo'] ==True:
                 # Measured Albedo average fix value
@@ -153,16 +154,10 @@ class RayTrace:
                 trackerdict = demo.set1axis(metdata = metdata, limit_angle = simulationDict['limitAngle'], backtrack = simulationDict['backTracking'], 
                             gcr = simulationDict['gcr'], cumulativesky = True)
                
-                #demo.genCumSky1axis(demo.epwfile)
                 trackerdict = demo.genCumSky1axis()
-                
-                
+ 
                 # Make the Scene
                 trackerdict = demo.makeScene1axis(trackerdict = trackerdict, moduletype = simulationDict['module_type'], sceneDict = sceneDict) 
-                # make the sky
-                #trackerdict = demo.genCumSky1axis(trackerdict = trackerdict)
-                #demo.genCumSky1axis(demo.epwfile)
-                # make oct file
                 
                 trackerdict = demo.makeOct1axis(trackerdict = trackerdict)
                 print('\n trackerdict \n', trackerdict)
@@ -175,7 +170,6 @@ class RayTrace:
                                             'row_0_qabs_front': [np.mean(results['Wm2Front'])],
                                             'row_0_qabs_back': [np.mean(results['Wm2Back'])]
                                         })
-                #demo.exportTrackerDict(trackerdict = demo.trackerdict, savefile = 'results\\test_reindexTrue.csv', reindex = False)
             
             else: # CumSky fixed tilt
                 
@@ -197,7 +191,6 @@ class RayTrace:
             df_reportRT_sum /= hours
             
             for hour in range(hours):
-                #df_reportRT = df_reportRT.append(df_reportRT_sum, ignore_index=True)
                 df_reportRT = pd.concat([df_reportRT, df_reportRT_sum], ignore_index=True)
         #################
         #%% gendayLit
@@ -213,7 +206,7 @@ class RayTrace:
             solpos = metdata.solpos
             solpos.reset_index(drop=True, inplace=True)
             
-
+            #demo.makeModule(name=simulationDict['module_type'],x=simulationDict['modulex'], y=moduley)    
             def raytrace_hour(args):
                 """ Ray multiprocessing function; simulates one hour with bifacial radiance"""
             # =============================================================================
@@ -225,11 +218,9 @@ class RayTrace:
                 
                 time, SimulationDict = args
                 SimulationDict['simulationName']='raytrace_'+str(time)
-                
+
                 starttime =  dtStart + datetime.timedelta(hours=time)
                 starttime = starttime.strftime('%m_%d_%H')
-                #endtime = starttime #+ datetime.timedelta(hours=1)
-                #endtime = endtime.strftime('%m_%d_%H')
                 
                 demo = RayTrace.createDemo(SimulationDict, resultsPath)
                 metdata = demo.readWeatherFile(weatherFile=SimulationDict['weatherFile'], starttime=starttime, endtime=starttime, label='center')
@@ -240,12 +231,8 @@ class RayTrace:
                     
                 else:
                     # hourly spectral albedo or hourly measured albedo
-                    if simulationDict['singleAxisTracking'] == True:
-                        demo.setGround(material = None)
-                    else:
-                        demo.setGround(material = None)
-                        #sys.exit("The use of hourly Measured Albedo Values is not possible with fixed tilts at the moment")
-                
+                    demo.setGround(material = None)
+
                 if SimulationDict['singleAxisTracking'] == True:
                     
                     trackerdict = demo.set1axis(metdata = metdata, limit_angle = SimulationDict['limitAngle'], backtrack = SimulationDict['backTracking'], gcr = SimulationDict['gcr'], cumulativesky = False)
@@ -273,8 +260,9 @@ class RayTrace:
                     #simulate sky with gendaylit
                     demo.gendaylit2manual(dni, dhi, sunalt, sunaz)
                     demo.getfilelist()
+
+                    octfile = demo.makeOct(demo.getfilelist())
                     
-                    octfile = demo.makeOct(demo.getfilelist())  
                     analysis = AnalysisObj(octfile, demo.basename)
                 
                 df_reportRT = pd.DataFrame()
@@ -329,8 +317,7 @@ class RayTrace:
 
                             else:
                                 df_rtraceBack = pd.DataFrame({key_back: [np.NaN]})
- 
-                    #df_rtrace = df_rtrace.append(pd.concat([df_rtraceFront, df_rtraceBack], axis=1))     
+     
                     df_rtrace = pd.concat([df_rtrace, pd.concat([df_rtraceFront, df_rtraceBack], axis=1)])
                     
                 # calculate averages and absolute energy
@@ -564,33 +551,19 @@ class ViewFactors:
             C = 0.4            # Solar angle dependency factor  
             adiff = 0.19896735     # Measured Albedo under 100% diffuse illumination
             
+            df['albedo'] = np.where(df['ghi'] == 0, 0, np.nan) #Avoid division by 0
+
             # Calculate albedo for every hour
-            for index, row in df.iterrows(): 
-    
-                if row['ghi'] == 0: #Avoid division by 0
-                    df.loc[index,'albedo'] = 0
-                else:
-                    df.loc[index,'albedo'] = (1 - row['dhi'] / row['ghi']) * a0 * ((1 + C)  / (1 + 2 * C * math.cos(math.radians(row['zenith'])))) + (row['dhi']  / row['ghi'] * adiff)
-      
-            if df.loc[index,'albedo'] < 0: #change values below 0 for yield calculation
-                df.loc[index,'albedo'] = 0
-        
-        
+            df['albedo'] = np.where(df['ghi'] > 0,
+                        (1 - df['dhi'] / df['ghi']) * a0 * ((1 + C) / (1 + 2 * C * np.cos(np.radians(df['zenith'])))) + (df['dhi'] / df['ghi'] * adiff),
+                        0)
+
+            df['albedo'] = np.where(df['albedo'] < 0, 0, df['albedo']) #change values below 0 for yield calculation
+            
+            #save variable Albedo as csv
             variableAlbedo = pd.DataFrame({'datetime':df.index, 'variable_Albedo': df['albedo']})
             variableAlbedo.to_csv(Path(resultspath + '/variable_Albedo.csv'), sep=';', index=False)
-            
-            # Plot variable albedo
-            plt.rc ('axes', labelsize = 13) # Schriftgröße der x- und y-Beschriftungen
-            plt.rc ('xtick', labelsize = 11) #Schriftgröße der x-Tick-Labels
-            plt.rc ('ytick', labelsize = 11) #Schriftgröße der y-Tick-Labels
-            plt.rc ('legend', fontsize = 11) #Schriftgröße der Legende
-            f, ax = plt.subplots(figsize=(12, 4), dpi=200)
-            
-            variableAlbedo[['variable_Albedo']].plot(ax=ax)
-            ax.set_ylabel('Variable albedo')
-            ax.legend(bbox_to_anchor=(0., 1.02, 1, 0.1), loc='lower left', ncol=2, borderaxespad=0.)
-            plt.ylim(0,0.4)
-            #plt.show()()
+
         
         ####################################################
         
