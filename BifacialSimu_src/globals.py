@@ -7,4 +7,3 @@ def initialize():
     global checkbutton_state
     global checkbutton_state_wire
     
-    
