@@ -33,6 +33,10 @@ import numpy as np
 from pathlib import Path
 
 
+
+
+
+
 # Path handling
 rootPath = os.path.dirname(os.path.dirname(os.path.realpath(".")))
 
@@ -74,14 +78,9 @@ class DataHandler:
         simulationDict: simulation Dictionary, which can be found in BifacialSimuu_main.py
         resultsPath: output filepath
         """
-
-        starttime =  str(simulationDict['startHour'][1]) +'_'+ str(simulationDict['startHour'][2])+'_'+ str(simulationDict['startHour'][3]) 
-        endtime = str(simulationDict['endHour'][1]) +'_'+ str(simulationDict['endHour'][2])+'_'+ str(simulationDict['endHour'][3])
         
         demo = BifacialSimu_radiationHandler.RayTrace.createDemo(simulationDict, resultsPath)
-        
         if simulationDict['localFile'] == False:
-            
             try:
                 longitude = simulationDict['longitude']
                 latitude = simulationDict['latitude']
@@ -89,12 +88,10 @@ class DataHandler:
                 epwfile = demo.getEPW(latitude,longitude) # pull TMY data for any global lat/lon
             except ConnectionError: # no connection to automatically pull data
                 pass
-            metdata = demo.readEPW(epwfile, starttime= starttime, endtime=endtime, label='center') # read in the EPW weather data from above
-
-        else:            
-
-            metdata = demo.readWeatherFile(weatherFile=simulationDict['weatherFile'], starttime=starttime, endtime=endtime, label='center')
-
+            metdata = demo.readEPW(epwfile) # read in the EPW weather data from above
+        else:
+            metdata = demo.readTMY(simulationDict['weatherFile'])
+        
         return metdata, demo
     
     def passEPWtoDF(self, metdata, simulationDict, resultsPath):
@@ -110,34 +107,46 @@ class DataHandler:
         metdata: Object containing meteorological data and sun parameters        
         resultsPath: output filepath       
         """
-
         df = metdata.solpos
-        print('DF at start of data handler',df)
-        try:
-            df['ghi'] = metdata.ghi
-            df['dhi'] = metdata.dhi
-            df['dni'] = metdata.dni
-            df['temperature'] = metdata.temp_air
-            df['pressure'] = metdata.pressure
-            df['albedo'] = metdata.albedo
-            
-        except:
-            df['ghi'] = metdata.ghi
-            df['dhi'] = metdata.dhi
-            df['dni'] = metdata.dni
-            df['temperature'] = metdata.temp_air
-            df['albedo'] = metdata.albedo
+
+        df['ghi'] = metdata.ghi
+        df['dhi'] = metdata.dhi
+        df['dni'] = metdata.dni
+
+        df['temperature'] = metdata.temp_air
+        df['pressure'] = metdata.pressure
+        df['albedo'] = metdata.albedo
         
-        df['albedo'] = df['albedo'].apply(lambda x: simulationDict['albedo'] if x >= 1 or x <= 0 else x)
-
-        # setting UTC offset from weatherfile
+        #define start and end Date for dataframe
+        #dtStart = datetime.datetime(simulationDict['startHour'][0], simulationDict['startHour'][1], simulationDict['startHour'][2], simulationDict['startHour'][3], tzinfo=dateutil.tz.tzoffset(None, simulationDict['utcOffset']*60*60))
+        #dtEnd = datetime.datetime(simulationDict['endHour'][0], simulationDict['endHour'][1], simulationDict['endHour'][2], simulationDict['endHour'][3], tzinfo=dateutil.tz.tzoffset(None, simulationDict['utcOffset']*60*60))
+         
+       
         df = df.reset_index()
+        
+        
         df['corrected_timestamp'] = pd.to_datetime(df['corrected_timestamp'])
-        simulationDict['utcOffset'] = int(df['corrected_timestamp'][0].utcoffset().total_seconds()/3600) #set UTC offset from weatherfile
-
-        df['timestamp'] = df['corrected_timestamp']
-        df = df.set_index('timestamp')
+        #add 30 minutes, since the calculation of the sunposition has changed the dateformat to -30 minutes 
+        df['corrected_timestamp'] = df['corrected_timestamp'] + datetime.timedelta(minutes=30)
+        
+        #change the days at midnight, because through the shifting it is not right anymore
+        if simulationDict['localFile'] == True:
+            
+            df['corrected_timestamp'] = df['corrected_timestamp'].astype(str)
+            df['is_midnight']= df['corrected_timestamp'].str[11:13].apply(lambda x: 'YES' if (x == '00') else 'NO') 
+            df['corrected_timestamp'] = pd.to_datetime(df['corrected_timestamp'])
+            df['corrected_timestamp'] = np.where(df['is_midnight'] == "YES", df['corrected_timestamp'] + datetime.timedelta(days=-1), df['corrected_timestamp'])
+            df.drop(columns=['is_midnight'])
+            
+        df = df.set_index('corrected_timestamp')
+        
+        #check if the year of the weatherfile is the same as which the user has entered
+        if str(df.index.year[0]) != str(simulationDict['startHour'][0]):
+              sys.exit("Please correct the input year to match the year of the weather file: " + str(df.index.year[0]))
+            
+        
+        print('view_factor dataframe at data handler:')
+        print(df)
 
         df.to_csv(Path(resultsPath + "Dataframe_df.csv"))
-        
         return df
