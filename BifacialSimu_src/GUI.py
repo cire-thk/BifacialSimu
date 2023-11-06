@@ -23,6 +23,13 @@ overview:
 #matplotlib.use("TkAgg")
 import sys
 import math
+#<<<<<<< HEAD
+import csv
+import os
+import webbrowser
+from tkinter import *
+from math import radians, cos, sin, asin, sqrt
+#=======
 import os
 import webbrowser
 from tkinter import *
@@ -30,6 +37,7 @@ import time
 from datetime import datetime
 from timezonefinder import TimezoneFinder as tf
 import pytz
+#>>>>>>> master
 
 try:
     import tkinter as tk
@@ -62,6 +70,12 @@ import pandas as pd
 #import pickle
 import threading #for using multiple threads to make the GUI responsive during simulations
 from BifacialSimu_src import globals
+from geopy.distance import geodesic as GD # needed to find closest weatherstation to simulation location
+import pvlib #needed to read TMY file to get coordinates
+import pathlib  # for finding the example dataset
+#from datetime import datetime
+
+import matplotlib.pyplot as plt
 
 globals.initialize()
 
@@ -140,6 +154,14 @@ SimulationDict = {
 'dcWireLosses': True, #Whether to calculate DC Wire losses or not
 'invLosses': True, #Whether to calculate Inverter losses or not
 'acWireLosses': True, #Whether to calculate AC Wire losses or not
+'fixSoilrate': 0.01, # Soiling rate default value
+'variableSoilrate' : [0.1, 0.1, 0.1, 0.1, 0.1, 0.1, 0.1, 0.1, 0.1, 0.1, 0.1, 0.1],
+'days_until_clean' : 15, #Default value for cleaning period of PV moduls
+'average_daily_soiling_rate' : False,
+'fixed_average_soiling_rate' : False,
+'hourlySoilrate' : [], 
+'city': "Duala, CM",
+#'daily_Soiling_mass' : 0.1, # daily soiling accumulation on the PV-Panels. [g/m³]
 }
 
 # is in Function StartSimulation()
@@ -161,7 +183,9 @@ ModuleDict = {
     'T_NOCT':45, #NOCT Temperature for estimation of module Temperature [°C]
     'T_koeff_I': 0.0005, #Temperaturkoeffizient for I_sc [1/°C] #SG
     'T_koeff_V': 0.0005, #Temperaturkoeffizient for U_oc [1/°C] #SG
-    'zeta': 0.06 #Bestrahlungskoeffizient für Leerlaufspannung [-]
+    'zeta': 0.06, #Bestrahlungskoeffizient für Leerlaufspannung [-]
+    'Ns': 90,  #Number of cells in module; to avoid error by the simulation
+    
     
 }
 
@@ -208,7 +232,7 @@ inverterDict = {
 class Window(tk.Tk):
     def __init__(self):
         tk.Tk.__init__(self)
-        self.geometry("1300x700")
+        self.geometry("1300x750")
         self.title('BifacialSimu')
         if sys.platform == "linux":
             self.iconbitmap("@" + rootPath + "/Lib/logos/App_icon.xbm")
@@ -564,15 +588,13 @@ class Window(tk.Tk):
                 and len(Entry_day_end.get()) != 0 and 1<= int(Entry_day_end.get()) <=31
                 and len(Entry_hour_end.get()) != 0) and 0<= int(Entry_hour_end.get()) <=23:
                 
-                Startdate=datetime.datetime(int(Entry_year_start.get()), int(Entry_month_start.get()), int(Entry_day_start.get()), int(Entry_hour_start.get())) #defining as Date
-                SimulationDict["startHour"]=(Startdate.year, Startdate.month, Startdate.day, Startdate.hour)
-                globals.start_year = SimulationDict['startHour'][0]
-                if globals.start_year < 2001:
-                    messagebox.showwarning("TMY Error","TMY(Typical Meteological Year) is out of simulation bounds! TMY must be greater or equal 2001!")
-                    exit
-                Enddate=datetime.datetime(int(Entry_year_end.get()), int(Entry_month_end.get()), int(Entry_day_end.get()), int(Entry_hour_end.get()))
-                SimulationDict["endHour"]=(Enddate.year, Enddate.month, Enddate.day, Enddate.hour)
-                
+                #start_date = datetime.strptime(Startdate, '%Y %m %d %H')
+                #start_date = datetime.strptime(SimulationDict["startHour"], '%Y %m %d %H')
+                Startdate = datetime.datetime(int(Entry_year_start.get()), int(Entry_month_start.get()), int(Entry_day_start.get()), int(Entry_hour_start.get())) #defining as Date
+                SimulationDict["startHour"] = (Startdate.year, Startdate.month, Startdate.day, Startdate.hour)
+                Enddate = datetime.datetime(int(Entry_year_end.get()), int(Entry_month_end.get()), int(Entry_day_end.get()), int(Entry_hour_end.get()))
+                SimulationDict["endHour"] = (Enddate.year, Enddate.month, Enddate.day, Enddate.hour)
+            
             else:
                 messagebox.showwarning("Simulation Control", "Please insert a Start and End Date \n in the format: [yyyy mm dd hh]!")
                 exit
@@ -607,7 +629,7 @@ class Window(tk.Tk):
                 SimulationDict["nRows"]=int(Entry_nRows.get())   
                 
             if len(Entry_nModsx.get()) !=0:
-                SimulationDict["nModsx"]=int(Entry_nModsx.get())    
+                SimulationDict["nModsx"]=int(Entry_nModsx.get()) 
                 
             if len(Entry_nModsy.get()) !=0:
                 SimulationDict["nModsy"]=int(Entry_nModsy.get())     
@@ -643,6 +665,12 @@ class Window(tk.Tk):
                 SimulationDict["hub_height"]=float(Entry_HubHeight.get()) 
                 # Calculate the clearance height of the PV rows, measured at the bottom edge
                 SimulationDict['clearance_height']  = (SimulationDict['hub_height'] - (math.sin(SimulationDict['tilt'])*SimulationDict['moduley']/2))
+                
+            if len(Entry_Soilrate.get()) != 0:
+                SimulationDict["fixSoilrate"] = float(Entry_Soilrate.get())
+            
+            if len(Entry_clean.get()) != 0:
+                SimulationDict["days_until_clean"] = float(Entry_clean.get())
 
 
 # =============================================================================
@@ -1064,9 +1092,9 @@ class Window(tk.Tk):
                   
                   data=pd.read_csv(resultsPath + "electrical_simulation" + datetime.datetime.now().strftime("%Y-%m-%d-%H-%M") + ".csv")
                   date=pd.read_csv(resultsPath + "/Data.csv")
-                  timestamp_start=date.time [0]
+                  timestamp_start=date.timestamp [0]
                  # print (timestamp_start)
-                  timestamp_end=len(date.time)
+                  timestamp_end=len(date.timestamp)
                  # timestamp_end=
                   idx=pd.date_range(timestamp_start, periods=timestamp_end, freq="1H")
                   
@@ -1265,6 +1293,8 @@ class Window(tk.Tk):
             clearall()
             Combo_Module.current(0)
             Combo_Albedo.current(0)
+            Combo_Soilrate.current(0)
+            rad1_Soiling.invoke()
             rad1_weatherfile.invoke()
             rad2_simulationMode.invoke()
             rad1_rb_SingleAxisTracking.invoke()
@@ -1328,7 +1358,9 @@ class Window(tk.Tk):
             Entry_zeta.insert(0,str(d['zeta']))
             Entry_modulex.insert(0,str(d['modulex']))
             Entry_moduley.insert(0,str(d['moduley'])) 
-                
+            Entry_Ns.insert(0,str(ModuleDict["Ns"]))
+            
+            
             key1=entry_albedo_value.get()
             a = self.jsondata_albedo[key1]
             self.albedo = key1
@@ -1357,6 +1389,13 @@ class Window(tk.Tk):
             rb_Efficiencytype.set("0")
             Efficiencytype()
             
+            key2 = entry_soilrate_value.get()             
+            b = self.jsondata_soiling[key2]             
+            self.soilrate = key2
+            Entry_Soilrate.delete(0, END)
+            Entry_Soilrate.insert(0, str(b['soilrate']))
+            
+            Entry_clean.insert(0, 15) # set default cleaning period [d]
         
 # Entry for delete button
             
@@ -1426,6 +1465,8 @@ class Window(tk.Tk):
             Entry_inv_Effvalue5.delete(0,END)
             Entry_inv_Effvalue6.delete(0,END)
             Entry_inv_Effvalue7.delete(0,END)
+            Entry_Soilrate.delete(0, END) 
+            Entry_clean.delete (0, END)
 
             
            # Combo_Module.delete(0,END)
@@ -1464,7 +1505,7 @@ class Window(tk.Tk):
         #Deciding to download or use ur own weatherfile       
         rb_weatherfile=IntVar()
         rb_weatherfile.set("0")
-        rad1_weatherfile= Radiobutton(namecontrol_frame, variable=rb_weatherfile, width=15, text="Local weather File!", value=0, command=lambda:Weatherfile())
+        rad1_weatherfile= Radiobutton(namecontrol_frame, variable=rb_weatherfile, width=15, text="Local   File!", value=0, command=lambda:Weatherfile())
         rad2_weatherfile= Radiobutton(namecontrol_frame, variable=rb_weatherfile,  width=20, text="Download weather File!", value=1, command=lambda:Weatherfile())
         rad1_weatherfile.grid(column=0,row=3, sticky=W)
         rad2_weatherfile.grid(column=1,row=3, sticky=W)
@@ -1483,7 +1524,7 @@ class Window(tk.Tk):
 
             Entry_weatherfile.delete(0, END)
             Entry_weatherfile.insert(0, filename)   
-            SimulationDict["weatherFile"]=Entry_weatherfile.get()
+            SimulationDict["weatherFile"] = Entry_weatherfile.get()
         
         def InsertReflectivityfile():    
             
@@ -1496,6 +1537,7 @@ class Window(tk.Tk):
             Entry_reflectivityfile.insert(0, filename)   
             SimulationDict["spectralReflectancefile"]=Entry_reflectivityfile.get()
             
+
         def Set_UTC_offset():
             """ This function takes the coordinates entered by the user in the GUI, and returns as a result the resulting UTC timezone offset of the given location.
                 The coordinates should be entered according to the following format:
@@ -1522,8 +1564,54 @@ class Window(tk.Tk):
             UTC_offset= tested_time.hour- GMT_time.hour
          
             Entry_utcoffset.delete(0,END)
-            Entry_utcoffset.insert(0, int(UTC_offset))
+#<<<<<<< HEAD
+            Entry_utcoffset.insert(0, int(offset_result))
+            
+# Function to set 'longitude' and 'latitude' in SimulationDict. Needed for getSoilingWeatherdata()             
+        def Set_lat_lng():
+            
+            # Get 'longitude' and 'latitude' from entryboxes, when trying to download weatherfile            
+            if len(Entry_longitude.get()) != 0 and len(Entry_longitude.get()) != 0 and rb_weatherfile.get() == 1: 
+                SimulationDict["longitude"] = float(Entry_longitude.get())                                                                                      
+                SimulationDict["latitude"] = float(Entry_latitude.get())  
+            # When local file is used, try to get 'longitude' and 'latitude' from TMY files with help of pvlib.iotools                          
+            elif len(Entry_weatherfile.get()) != 0 and rb_weatherfile.get() == 0:
+                tmydata, tmymetadata = pvlib.iotools.read_tmy3(Entry_weatherfile.get())
+                SimulationDict["longitude"] = tmymetadata['longitude']
+                SimulationDict["latitude"] = tmymetadata['latitude']                 
                      
+                    
+#                try:
+#                    SimulationDict["longitude"] = float(Entry_longitude.get())                                                                                      
+#                    SimulationDict["latitude"] = float(Entry_latitude.get())      
+#                except:                     
+#                    messagebox.showwarning("Main Control", "Please enter coordinates according to following following exampe (lat, lon): 50.9, 7.0 ")                    
+#                pass
+            
+            # When local file is used, try to get 'longitude' and 'latitude' from TMY files with help of pvlib.iotools                          
+#            elif len(Entry_weatherfile.get()) != 0 and rb_weatherfile.get() == 0:                
+#                try:
+#                    tmydata, tmymetadata = pvlib.iotools.read_tmy3(Entry_weatherfile.get())
+#                    SimulationDict["longitude"] = tmymetadata['longitude']
+#                    SimulationDict["latitude"] = tmymetadata['latitude']                 
+#                except:
+#                    messagebox.showwarning(
+#                         "Main Control", "PLease enter a weather file in TMY format")                     
+            # If both options did not work, show warning messagebox             
+#            else:
+#                messagebox.showwarning(
+#                    "Main Control", "Please insert a TMY weather file or enter coordinates of the simulation location")         
+#            Soiling() #Update Soilingrates for new Weatherdata or Location 
+            
+            # Show message to user, when PV-Module tilt is over 85°             
+#            if (float(Entry_Tilt.get()) > 84.0):                 
+#                messagebox.showwarning(
+#                    "Main Control", "Note that the soiling rate is significantly reduced if modules are nearly vertical!") 
+                   
+#=======
+            #Entry_utcoffset.insert(0, int(UTC_offset))
+                     
+#>>>>>>> master
         #Changing the weatherfile
         Lab_weatherfile=ttk.Label(namecontrol_frame, text="Add Path of weatherfile:")
         Lab_weatherfile.grid(row=4, column=0, sticky=W)
@@ -1553,6 +1641,12 @@ class Window(tk.Tk):
         #Setting UTC offset of Longitude and Latitude coordinates
         Calculate_UTC= ttk.Button(namecontrol_frame,text= "Set UTC offset", command=lambda: Set_UTC_offset())
         Calculate_UTC.grid(column=2, row=6,sticky=W)
+        
+        # Confirm Main Control inputs to update soiling rate with Set_lat_lng()         
+        Confirm_main_control = ttk.Button(namecontrol_frame, text="Confirm Main Control inputs", command=lambda: Set_lat_lng())                              
+        Confirm_main_control.grid(column=1, row=8, sticky=W)            
+        
+
   
 # =============================================================================
 #     Parameter of the Simulation Parameter Frame
@@ -1722,8 +1816,7 @@ class Window(tk.Tk):
                 Entry_reflectivityfile.config(state="disabled")
                 Button_reflectivityfile.config(state="disabled")
                 Lab_reflectivityfile.config(state="disabled")
-        
-        
+                
         #Radiobuttons Albedo
         rb_Albedo=IntVar()
         rb_Albedo.set("0")
@@ -1734,11 +1827,507 @@ class Window(tk.Tk):
         rad1_Albedo.grid(column=0,row=17, sticky=W)
         rad2_Albedo.grid(column=1,row=17, columnspan=2, sticky=W)
         rad3_Albedo.grid(column=0,row=18, sticky=W)
-        rad4_Albedo.grid(column=1,row=18, columnspan=2, sticky=W)
-  
+        rad4_Albedo.grid(column=1,row=18, columnspan=2, sticky=W)    
+        
+        # Get Soiling Rate Value from Json file         
+        def getSoilingJSONlist():
+              # Load Json file from folder             
+             with open(rootPath + '\Lib\input_soiling\Soiling.json') as file:                 
+                  jsondata_soiling = json.load(file)
+                  systemtuple = ('',) # Needed to enable selection of module
+             for key in jsondata_soiling.keys():  # um auf die Modul Keys zurückgreifen zu können
+                # build the tuple of strings                 
+                systemtuple = systemtuple + (str(key),)
+                Combo_Soilrate['values'] = systemtuple[1:]
+            
+            # Set Combobox on first module
+                Combo_Soilrate.current(0)
+                self.jsondata_soiling = jsondata_soiling    
+                
+        def Soiling():            
+            Entry_Soilrate.config(state="normal")
+            Combo_Soilrate.config(state="normal")
+            Label_distance.config(state="normal")
+            Label_weatherstation.config(state="normal")
+            Entry_distance.config(state="normal")             
+            Entry_weatherstation.config(state="normal")
+            getSoilingWeatherdata() # Insures that soiling rate is updated with getSoilingWeatherdata() when Weatherdata has changed
+            
+            if rb_Soiling.get() == 0:
+               SimulationDict["average_daily_soiling_rate"] = False
+               SimulationDict["fixed_average_soiling_rate"] = False
+               Entry_Soilrate.config(state="normal")
+               Combo_Soilrate.config(state="disabled")
+               Label_distance.config(state="disabled")
+               Label_weatherstation.config(state="disabled")
+               Entry_distance.config(state="disabled")                                   
+               Entry_weatherstation.config(state="disabled")  
+               Entry_clean.config(state="normal")
+               Label_clean.config(state="normal")
+           
+            elif (rb_Soiling.get() == 2):
+               SimulationDict["average_daily_soiling_rate"] = False
+               SimulationDict["fixed_average_soiling_rate"] = True
+               Entry_Soilrate.config(state="disabled")
+               Combo_Soilrate.config(state="disabled")
+               Label_distance.config(state="normal")
+               Label_weatherstation.config(state="normal")
+               Entry_distance.config(state="normal")                 
+               Entry_weatherstation.config(state="normal")                 
+               Entry_clean.config(state="normal")
+               Label_clean.config(state="normal")
+               #messagebox.showwarning("Main Control", "Confirm Main Control inputs when done!")# Input has to be confirmed with Button to update soiling rate
+               
+            elif (rb_Soiling.get() == 3):
+              SimulationDict["average_daily_soiling_rate"] = True 
+              SimulationDict["fixed_average_soiling_rate"] = False
+              Entry_Soilrate.config(state="disabled")
+              Combo_Soilrate.config(state="disabled")
+              Label_distance.config(state="normal")
+              Label_weatherstation.config(state="normal")
+              Entry_distance.config(state="normal")                 
+              Entry_weatherstation.config(state="normal")                 
+              Entry_clean.config(state="disabled")
+              Label_clean.config(state="disabled")
+              #messagebox.showwarning("Main Control", "Confirm Main Control inputs when done!")# Input has to be confirmed with Button to update soiling rate
+           
+            else:
+               SimulationDict["average_daily_soiling_rate"] = False
+               SimulationDict["fixed_average_soiling_rate"] = False
+               Entry_Soilrate.config(state="normal")
+               Combo_Soilrate.config(state="normal")
+               Label_distance.config(state="disabled")
+               Label_weatherstation.config(state="disabled")
+               Entry_distance.config(state="disabled")                 
+               Entry_weatherstation.config(state="disabled")                    
+               Entry_clean.config(state="normal")
+               Label_clean.config(state="normal")
+                
+        # Radiobuttons Soiling         
+        rb_Soiling = IntVar()         
+        rb_Soiling.set("0")
+        
+        rad1_Soiling = Radiobutton(simulationParameter_frame, variable=rb_Soiling, width=23, text="Average daily Soiling Rate! [%/d]", value=0, command=lambda: Soiling())  
+        rad2_Soiling = Radiobutton(simulationParameter_frame, variable=rb_Soiling, width=35, text="Soiling rate according to geographical area! [%/d]", value=1, command=lambda: Soiling())        
+        rad3_Soiling = Radiobutton(simulationParameter_frame, variable=rb_Soiling, width=47, text="Fixed average soiling rate based on meteorological data! [%/d]", value=2, command=lambda: Soiling()) 
+        rad4_Soiling = Radiobutton(simulationParameter_frame, variable=rb_Soiling, width=47, text="Average daily soiling rate based on meteorological data! [%/h]", value=3, command=lambda: Soiling()) 
+        
+        rad1_Soiling.grid(column=0, row=22, sticky=W) 
+        rad2_Soiling.grid(column=0, row=23, sticky=W)        
+        rad3_Soiling.grid(column=0, row=24, sticky=W)
+        rad4_Soiling.grid(column=0, row=25, sticky=W)
+
+        # Radiobuttons Soiling
+        Entry_Soilrate = ttk.Entry(simulationParameter_frame, background="white", width=10)
+        Entry_Soilrate.grid(column=2, row=22, sticky=W)
+        
+        Entry_weatherstation = ttk.Entry(simulationParameter_frame, background="white", width=35)
+        Entry_weatherstation.grid(column=2, row=27, sticky=W)
+        
+        Entry_distance = ttk.Entry(simulationParameter_frame, background="white", width=35)
+        Entry_distance.grid(column=2, row=28, sticky="W")
+        
+        Entry_clean = ttk.Entry(simulationParameter_frame, background="white", width=35)
+        Entry_clean.grid(column=2, row=30, sticky="W")
     
- 
-       # Defining the electrical Mode with or without Values of rear side
+    
+    
+        # Labels Soiling
+        Label_weatherstation = ttk.Label(simulationParameter_frame, text="Weatherstation:")
+        Label_weatherstation.grid(column=0, row=27, sticky=W)
+        
+        Label_distance = ttk.Label(simulationParameter_frame, text="Distance from Station [km]:")
+        Label_distance.grid(column=0, row=28, sticky="W")
+        
+        Label_clean = ttk.Label(simulationParameter_frame, text="Raining / Cleaning period of PV surface [d]:")
+        Label_clean.grid(column=0, row=30, sticky="W")
+    
+        # Zuweisen von Werten für Verschmutzungsrate aus hinterlegten Json-Datei bei Benutzung von Dropdown-liste.       
+        def comboclick_soilrate(event):
+            key2 = entry_soilrate_value.get()  # what is the value selected?
+            if key2 != '':  # '' not a dict key
+              b = self.jsondata_soiling[key2]                
+              self.soilrate = key2
+              # clear module entries loaded from json
+              Entry_Soilrate.delete(0, END)
+              # set module entries loaded from json
+              Entry_Soilrate.insert(0, str(b['soilrate']))
+              
+        # Combobox Soiling
+        entry_soilrate_value = tk.StringVar()
+        Combo_Soilrate = ttk.Combobox(simulationParameter_frame, textvariable=entry_soilrate_value)
+        Combo_Soilrate.grid(column=2, row=23, ipadx=50)
+        getSoilingJSONlist()  # set the module name values
+        Combo_Soilrate.bind("<<ComboboxSelected>>", comboclick_soilrate)              
+    
+       # Calculate nearest location from data set with locations to given coordinates 'v'         
+        def closest (data, v):
+           return min(data, key=lambda p: GD(v, p).km)    
+      
+        # Find nearest location from data set 'new_soilingrate_coordinates_data_2022.csv' and set soiling rate accordingly
+        def getSoilingWeatherdata():
+            #import Soiling data for the mathematical simulation
+            new_soilingrate = pd.read_csv(rootPath + '\Lib\input_soiling\soiling_data.csv', encoding ='latin-1' )            
+            new_soilingrate = pd.DataFrame(new_soilingrate)
+            #print(new_soilingrate)
+            
+            cities = [] # Array to collect pairs of latitude and longitude for each location
+            new_soilingrate = new_soilingrate.reset_index() # Create index with range of numbers starting with '0'
+            #print(new_soilingrate)
+                
+            # Collcect all pairs of coordinates from soiling_Weatherdata in cities[]
+            # for count in new_soilingrate.index:
+            count = 0    
+            while count < len(new_soilingrate['City, Country']):
+                coord = (new_soilingrate["lat"][count], new_soilingrate["lng"][count])
+                #print(coord)
+                cities.append(coord)
+                #print(cities)
+                count = count + 1
+                
+            # Find nearest location to given latitude and longitude from SimulationDict
+            nearest_location = closest(cities, (SimulationDict["latitude"],SimulationDict["longitude"]))
+            indexout = cities.index(nearest_location)
+            #print('Lat and long', nearest_location)
+            #print('Index city in the excelsheet:', indexout) 
+            
+            # clear weatherstation and distance entries         
+            Entry_weatherstation.delete(0, END)
+            Entry_distance.delete(0, END)
+                      
+            # set weatherstation entry with nearest location from new_soilingrate
+            Entry_weatherstation.insert(0, new_soilingrate['City, Country'].values[indexout])
+                
+            # set distance entry with distance from simulation location to nearest weatherstation from given data with geodesic      
+            Entry_distance.insert(0, round(GD((SimulationDict["latitude"],SimulationDict["longitude"]),cities[indexout]).km, 2))
+            new_soilingrate = new_soilingrate.set_index('City, Country')
+            
+            city_name = Entry_weatherstation.get()  # get the city, country name from 'Entry_weatherstation' 
+            SimulationDict["city"] = city_name
+            #print (SimulationDict["city"])
+            
+            # When radiobutton 'Soiling Rate from theorical Model' active, set new soilingrate
+            if (rb_Soiling.get() == 3):
+                Entry_Soilrate.delete(0, END)
+                SimulationDict["average_daily_soiling_rate"] = True
+
+                city_data_directory = (rootPath + '\Lib\input_soiling\city_data_2')
+                file_path = os.path.join(city_data_directory, f"{city_name}.csv")
+                if os.path.exists(file_path):
+                    # The CSV file for the specified city exists, so we can import it as a DataFrame
+                    df_city = pd.read_csv(file_path)
+                    # Perform any further operations with the DataFrame as needed
+                else:
+                    # The CSV file for the specified city does not exist in the "city_data" folder
+                    # Handle the case where the city data is not available
+                    messagebox.showinfo("Error", f"Data for {city_name} are not yet in the database; please choose the Soiling mode 3 (Soiling Rate from weather data) to simulate for this city.")
+
+                # Assuming you have already imported the CSV file and the DataFrame is named 'df_city'
+                # Calculate the soilingrate for each row
+                t = 86400 #time in s (daily)
+                a = SimulationDict["tilt"] #tilt angle of th pv-moduls
+                
+                #Function to calculate the soiling_accumulation
+                def calculate_soiling_accumulation(row):
+                    if row['precipitation'] >= 0.3:  #row['humidity'] >= 75 or
+                        return 0
+                    else:
+                        return round((((row['pm25'] + row['pm10']) * (10 **-6)) * row['wind-speed'] * t * math.cos(math.radians(a)) * 10**-2), 6) #(SimulationDict["nRows"]*((SimulationDict["nModsx"] * SimulationDict["nModsy"]) * (SimulationDict["moduley"] * SimulationDict["modulex"]))) * 
+
+                df_city['soiling_accumulation'] = df_city.apply(calculate_soiling_accumulation, axis=1)
+
+                # Display the new DataFrame with the 'soiling_accumulation' column
+                #print(df_city)
+
+                # Initialize the cumulative soiling_accumulation rate column with NaN values
+                df_city['cum_soiling_accumulation'] = np.nan
+                df_city['soilingrate'] = np.nan
+                
+                # Initialize variables
+                values_soiling_accumulation = []
+                values_soilingrate_hegazy = []
+                
+                # Calculate the cumulative soiling rate
+                cumulative_soiling_accumulation = 0
+                for index, row in df_city.iterrows():
+                    if row['soiling_accumulation'] == 0:
+                        cumulative_soiling_accumulation = 0
+                    else:
+                        cumulative_soiling_accumulation += row['soiling_accumulation']
+                    df_city.at[index, 'cum_soiling_accumulation'] = cumulative_soiling_accumulation
+                    
+                    # add the value of cumulative_soiling_accumulation to the list of values_soiling_accumulation
+                    values_soiling_accumulation.append(cumulative_soiling_accumulation)
+                    
+                    #calculate the soilingrate_value for the location using the hegazy model
+                    rs_hegazy = ((34.37 * math.erf(0.17*(cumulative_soiling_accumulation**0.8473)))) #hegazy
+                    #rs_hegazy_neu = 1 - rs_hegazy
+                    # add the value of Soiling to the list of values_soilingrate_hegazy
+                    values_soilingrate_hegazy.append(rs_hegazy)
+                    
+                    df_city.at[index, 'soilingrate'] = rs_hegazy
+                    
+                # Print the new DataFrame with the "cum_soiling_accumulation" column
+                #print(df_city)
+
+                # Extract the first 10 rows of the DataFrame
+                #first_10_days = df.head(20)
+
+                # Print the values of "soiling_accumulation" for the first 10 days
+                #print(first_10_days['soiling_accumulation'])
+                #print(first_10_days['cum_soiling_accumulation'])
+                
+                SimulationDict["hourlySoilrate"] = values_soilingrate_hegazy
+
+                #save the new Table in the "city_data_soiling_accumulation" folder.
+                # Create the directory "city_data_soiling_accumulation" if it doesn't exist
+                output_directory = (rootPath + '\BifacialSimu\Handler\city_data_soiling_accumulation') 
+                if not os.path.exists(output_directory):
+                    os.makedirs(output_directory)
+
+                # Save the DataFrame as a CSV file
+                file_path = os.path.join(output_directory, f"{city_name}.csv")
+                df_city.to_csv(file_path, index=False)
+
+                #print(f"DataFrame saved as '{Entry_weatherstation}.csv' in the 'city_data_soiling_accumulation' folder.")
+                Soilingaccumulation_new = round((sum(values_soiling_accumulation) / len (values_soiling_accumulation)), 6)
+                print('average of the Soilingaccumulation for the location indicated as a function of the length of the simulation:',Soilingaccumulation_new, "g/m²/d")
+                Soilingrate_hegazy_new = round((sum(values_soilingrate_hegazy) / len (values_soilingrate_hegazy)), 6)
+                print('average of daily Soilingrate for the location indicated:',Soilingrate_hegazy_new, "%/m²/d")
+                SimulationDict["fixSoilrate"] = Soilingrate_hegazy_new
+                
+                #reset value in the Entry_Soilrate
+                Entry_Soilrate.delete(0, END)
+                Entry_Soilrate.insert(0, SimulationDict["fixSoilrate"])
+                
+                #  plot the soiling_accumulation graph
+                plt.plot(values_soiling_accumulation, marker = 'o')
+                plt.xlabel('Day [d]')
+                #plt.xlabel('Hours [h]')
+                plt.ylabel('Soiling Accumulation [g/m²]')
+                plt.title('Evolution of the Soiling Accumulation over the year')
+                plt.show()
+                
+                
+                #  plot the soiling_hegazy graph
+                #plt.plot(values_soilingrate_hegazy, marker = 'o')
+                #plt.xlabel('Day [d]')
+                #plt.xlabel('Hours [h]')
+                #plt.ylabel('Soilingrate [%/m²]')
+                #plt.title("Evolution of the Soiling rate over the year")
+                #plt.show()
+                ######################################################################################################################
+            # When radiobutton 'soilingrate from weatherdata' active, set new soilingrate
+            if (rb_Soiling.get() == 2):
+                
+                Entry_Soilrate.delete(0, END)
+                SimulationDict["fixed_average_soiling_rate"] = True
+                
+                #value needed to calculate the dirt accumullation  value for the location found
+                PM2_5 = new_soilingrate['PM2_5'].iloc[indexout]
+                PM10 = new_soilingrate['PM10'].iloc[indexout]
+                wind_speed = new_soilingrate['wind_speed'].iloc[indexout]
+                
+                #print('pm2.5:', PM2_5)
+                #print('pm10:', PM10)
+                #print('wind_speed:', wind_speed)
+                
+                #to calculate the Duration of the simulation 
+                Startdate = datetime.datetime(int(Entry_year_start.get()), int(Entry_month_start.get()), int(Entry_day_start.get()), int(Entry_hour_start.get())) #defining as Date
+                Enddate = datetime.datetime(int(Entry_year_end.get()), int(Entry_month_end.get()), int(Entry_day_end.get()), int(Entry_hour_end.get()))
+                
+                # Duration of the simulation (in months)
+                simulation_duration = (Enddate - Startdate)  #total in days an hours
+                seconds = (simulation_duration.total_seconds()) + 86400  #in seconds
+                day = seconds / 86400 #accumulation per day
+                #hours = seconds / 3600 #accumulation per hour
+                
+                #print('Start of The simulation:', Startdate)
+                #print('End of The simulation:', Enddate)
+                #print('simulation_duration:', simulation_duration)
+                #print('simulation_duration in seconds:', seconds, 's')
+                #print("simulation_duration in hours:", hours, 'h')
+                #print("simulation_duration per day:", day, 'd')
+
+                # Define day_until_clean_second as the time until the next cleaning (in seconds)
+                day_until_clean = float(Entry_clean.get()) #cleaning occurs every 15 days
+                day_until_clean_second = 86400 * day_until_clean  # in seconds; Assume cleaning occurs every 15 days
+#               print("cleaning every:", day_until_clean, 'days')
+                #print("cleaning every:", day_until_clean_second, 'seconds')
+                
+                
+                ########calculate the dirt accumullation  value for the location found#######
+                # Initialize variables
+                delta_t = 0 #timessteps
+                soiling_accumulation = 0 #soiling_accumulation
+                times = []
+                values_soiling_accumulation = []
+                values_soilingrate_hegazy = [] 
+#               values_soiling_you_saiz = []
+#               values_soiling_conceicao = []
+                
+                angle = SimulationDict["tilt"] # tilt angle
+                
+                #simulation loop
+                #for t in range(int(hours)):
+                for t in range(int(day)):
+                    
+#                   if the period day_until_clean_second is reached, reset soiling_accumulation and delta_t
+                    if delta_t == day_until_clean_second:
+                        soiling_accumulation = 0
+                        delta_t = 0 
+                        
+                    # Calculate new value of soiling_accumulation
+                    soiling_accumulation = round((((PM2_5 + PM10)*(10**(-6))) * wind_speed * delta_t * math.cos(math.radians(angle))* 10**-2), 6) # Coello #(SimulationDict["nRows"]*((SimulationDict["nModsx"] * SimulationDict["nModsy"]) * (SimulationDict["moduley"] * SimulationDict["modulex"]))) * 
+                    #soiling_accumulation = (((PM2_5 + PM10)*(10**(-9))) * wind_speed * math.cos(math.radians(angle)))  # Coello 
+                    # add the value of soiling_accumulation to the list of values_soiling_accumulation
+                    values_soiling_accumulation.append(soiling_accumulation)
+                    
+                    
+                    #calculate the soilingvvalue for the location using the hegazy model
+                    rs_hegazy = ((34.37 * math.erf(0.17*(soiling_accumulation**0.8473)))) #hegazy
+                    #rs_hegazy_neu = 1 - rs_hegazy
+                    #add the value of Soiling to the list of values_soilingrate_hegazy
+                    values_soilingrate_hegazy.append(rs_hegazy)
+                    
+                    
+                    #You_Saiz model
+#                   rs_you_saiz = ((0.0385 * soiling_accumulation)) #“You/Saiz”.
+                    #rs_you_saiz_neu = 1 - (rs_you_saiz)                    
+                    # add the value of Soiling_rs_you_saiz to the list of values_soiling_you_saiz
+#                   values_soiling_you_saiz.append(rs_you_saiz)
+                    
+                    #conceicao model
+#                   rs_conceicao = ((0.2545 * soiling_accumulation))    
+                    # add the value of Soiling_rs_conceicao to the list of values_soiling_conceicao
+#                   values_soiling_conceicao.append(rs_conceicao)
+                    
+                    # add the current hour to the time list in hours
+                    times.append(t)
+                    
+                   #Print current values of soiling_accumulation and delta_t
+                    #print('Index_location:', indexout)
+                    #print("delta_t:", delta_t)
+                    #print('S:', soiling_accumulation, 'g/m²')
+                    #print('rs_hegazy:', rs_hegazy, '%/d')
+                    #print('rs_hegazy_neu:', rs_hegazy_neu)
+                    #print('rs_you_saiz:', rs_you_saiz)
+                    #print('rs_you_saiz_neu:', rs_you_saiz_neu)
+                    #print('rs_conceicao:', rs_conceicao)
+
+                    #increment the  hourly / daily time interval
+                    #delta_t += 3600 #hourly
+                    delta_t += 86400 #daily
+
+                #print(values_soilingrate_hegazy)
+                #print('time', times)
+                
+                # Creating the csv table with Soiling data of the Location with the Index(indexout)
+                #with open('Soiling{}.csv'.format(indexout), mode='w', newline='') as file:
+                    #writer = csv.writer(file)
+                    #writer.writerow(['Hours', 'soiling_accumulation', 'rs_hegazy'])  # Column headings #, 'rs_you_saiz', 'rs_conceicao' 
+                    #for i in range(len(times)):
+                        #writer.writerow([times[i], values_soiling_accumulation[i], values_soilingrate_hegazy[i]])  # Adding data to the table #, values_soiling_you_saiz[i], values_soiling_conceicao[i]
+               
+                #plot the soiling_accumulation graph
+                #plt.plot(times, values_soiling_accumulation)
+                #plt.xlabel('Day [d]')
+                #plt.xlabel('Hours [h]')
+                #plt.ylabel('Soiling Accumulation [g/m²]')
+                #plt.title('Evolution of the Soiling Accumulation over the Simulation interval')
+                #plt.show()
+
+                #  plot the soiling_hegazy graph
+                #plt.plot(times, values_soilingrate_hegazy)
+                #plt.xlabel('Day [d]')
+                #plt.xlabel('Hours [h]')
+                #plt.ylabel('Soilingrate [%/m²]')
+                #plt.title("Evolution of the Soiling rate over the Simulation interval")
+                #plt.show()
+                
+                #for experimental Soiling   
+                # When radiobutton 'Soiling Rate from theorical Model' active, set new soilingrate
+                #insert the new soiling value to the variable in simulation dictionary. 
+                
+                #SimulationDict["hourlySoilrate"] = values_soilingrate_hegazy
+                #print("Soiling rate hegazy:", SimulationDict["hourlySoilrate"])
+                Soilingaccumulation_new = round((sum(values_soiling_accumulation) / len (values_soiling_accumulation)), 6)
+                print('average of the Soilingaccumulation for the location indicated as a function of the length of the simulation:',Soilingaccumulation_new, "g/m²/d")
+                Soilingrate_hegazy_new = round((sum(values_soilingrate_hegazy) / len (values_soilingrate_hegazy)), 6)
+                print('average of the Soilingrate for the location indicated as a function of the length of the simulation:',Soilingrate_hegazy_new, "%/m²/d")
+                SimulationDict["fixSoilrate"] = Soilingrate_hegazy_new
+                
+                #reset value in the Entry_Soilrate
+                Entry_Soilrate.delete(0, END)
+                Entry_Soilrate.insert(0, SimulationDict["fixSoilrate"])
+                
+                if Soilingrate_hegazy_new == 0:
+                    # Load csv file with soiling rates from over 500 locations  and convert to pandas dataframe
+                    soilingrate_Weatherdata = pd.read_csv(rootPath + '\Lib\input_soiling\soilingrate_coordinates_monthly_2022.csv',  encoding ='latin-1')
+                    soilingrate_Weatherdata = pd.DataFrame(soilingrate_Weatherdata)
+                    #print(soilingrate_Weatherdata)
+                    
+                    cities = [] # Array to collect pairs of latitude and longitude for each location
+                    soilingrate_Weatherdata = soilingrate_Weatherdata.reset_index() # Create index with range of numbers starting with '0'
+                    #print(soilingrate_Weatherdata)
+                   
+                    # Collcect all pairs of coordinates from soiling_Weatherdata in cities[]
+                    # for count in soilingrate_Weatherdata.index:
+
+                    count = 0    
+                    while count < len(soilingrate_Weatherdata['City, Country']):
+                        coord = (soilingrate_Weatherdata["lat"][count], soilingrate_Weatherdata["lng"][count])
+                    #print(coord)
+                        cities.append(coord)
+                    #print(cities)
+                        count = count + 12
+                    
+                    # Find nearest location to given latitude and longitude from SimulationDict
+                    nearest_location = closest(cities, (SimulationDict["latitude"],SimulationDict["longitude"]))
+                    indexout = cities.index(nearest_location)
+#                   print('Lat and long', nearest_location)
+#                   print('Index city in the excelsheet:', indexout) 
+                    
+                    
+                    # clear weatherstation and distance entries         
+                    Entry_weatherstation.delete(0, END)
+                    Entry_distance.delete(0, END)
+                              
+                    # set weatherstation entry with nearest location from soilingrate_Weatherdata
+                    Entry_weatherstation.insert(0, soilingrate_Weatherdata['City, Country'].values[indexout*12])
+                        
+                    # set distance entry with distance from simulation location to nearest weatherstation from given data with geodesic      
+                    Entry_distance.insert(0, round(GD((SimulationDict["latitude"],SimulationDict["longitude"]),cities[indexout]).km, 2))
+                    soilingrate_Weatherdata = soilingrate_Weatherdata.set_index('City, Country')
+                    
+                    SimulationDict["variableSoilrate"] = soilingrate_Weatherdata['Soiling_Rate'].iloc[indexout*12:(indexout*12 + 12)].values.tolist()
+                    #SimulationDict["fixSoilrate"] = SimulationDict["variableSoilrate"]
+                    
+                    #print("Monthly Soiling Rates:", SimulationDict["variableSoilrate"])
+                    
+                    
+                    #to calculate the Duration of the simulation 
+#                   Startdate = datetime.datetime(int(Entry_year_start.get()), int(Entry_month_start.get()), int(Entry_day_start.get()), int(Entry_hour_start.get())) #defining as Date
+#                   Enddate = datetime.datetime(int(Entry_year_end.get()), int(Entry_month_end.get()), int(Entry_day_end.get()), int(Entry_hour_end.get()))
+                    
+                    # Duration of the simulation (in months)
+#                   simulation_duration = Enddate - Startdate
+#                   
+#                   print('Startdate:', Startdate)
+#                   print('Enddate:', Enddate)
+#                   print('simulation_duration:', simulation_duration)
+#                   
+                    
+                    #reset value in the Entry_Soilrate
+                    average_Soiling = round((sum(SimulationDict["variableSoilrate"]) / len (SimulationDict["variableSoilrate"])), 6)
+                    print('average for the location indicated as a function of the length of the simulation:', average_Soiling)
+                    SimulationDict["fixSoilrate"] = average_Soiling
+                    
+                    #reset value in the Entry_Soilrate
+                    Entry_Soilrate.delete(0, END)
+                    Entry_Soilrate.insert(0, SimulationDict["fixSoilrate"])
+
+        # Defining the electrical Mode with or without Values of rear side
         def Electricalmode():
            if rb_ElectricalMode.get()==0:
                SimulationDict["ElectricalMode_simple"]= 1 #One diode front and back
@@ -3049,7 +3638,7 @@ class Window(tk.Tk):
             #pack the image in the frame
             Label2_logo=ttk.Label(namecontrol_frame, image=self.logo2)
             Label2_logo.image=logo2
-            Label2_logo.grid(row=8,column=0, columnspan=3)
+            Label2_logo.grid(row=9,column=0, columnspan=3)
         
         logo2()
         
@@ -3077,7 +3666,8 @@ class Window(tk.Tk):
         def generate_thread():
             
             #breaking flag must be rest before starting a new Simulation, otherwise it won't function if someone pressed the stop button before.
-            globals.thread_break = False  
+            globals.thread_break = False 
+            
             threading.Thread(target=StartSimulation).start()
        
         #break Simulation in Thread
@@ -3118,9 +3708,9 @@ class Window(tk.Tk):
             
             data=pd.read_csv(resultsPath + "electrical_simulation" + datetime.datetime.now().strftime("%Y-%m-%d-%H-%M") + ".csv")
             date=pd.read_csv(resultsPath + "/Data.csv")
-            timestamp_start=date.corrected_timestamp [0]
+            timestamp_start=date.timestamp [0]
            # print (timestamp_start)
-            timestamp_end=len(date.corrected_timestamp)
+            timestamp_end=len(date.timestamp)
            # timestamp_end=
             idx=pd.date_range(timestamp_start, periods=timestamp_end, freq="1H")
             

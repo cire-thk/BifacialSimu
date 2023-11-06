@@ -1,0 +1,47 @@
+{
+    "Default": {
+        "soilrate": 0.1
+    },
+    "No Soiling Rate": {
+        "soilrate": 0.0
+    },
+    "Tundra": {
+        "soilrate": 0.01
+    },
+    "Scandinavia": {
+        "soilrate": 0.01
+    },
+    "Eastern & South Europe": {
+        "soilrate": 0.724
+    },
+    "Western Europe": {
+        "soilrate": 0.188
+    },
+    "West Asia": {
+        "soilrate": 0.991
+    },
+    "South Asia": {
+        "soilrate": 2.919
+    },
+    "Southeast Asia": {
+        "soilrate": 0.991
+    },
+    "North India": {
+        "soilrate": 4.74
+    },
+    "China Mainland": {
+        "soilrate": 3.669
+    },
+    "Japan": {
+        "soilrate": 0.01
+    },
+    "Australia": {
+        "soilrate": 0.01
+    },
+    "North America": {
+        "soilrate": 0.01
+    },
+    "South America": {
+        "soilrate": 0.188
+    }
+}
