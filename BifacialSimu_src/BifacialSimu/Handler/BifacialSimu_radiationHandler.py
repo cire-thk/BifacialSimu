@@ -130,6 +130,8 @@ class RayTrace:
         hours = dtEnd - dtStart 
         hours = int(hours.total_seconds() / 3600) #+1
         
+
+        
         #################
         #%% Cumulativ Sky
         
@@ -206,6 +208,21 @@ class RayTrace:
             solpos = metdata.solpos
             solpos.reset_index(drop=True, inplace=True)
             
+            if simulationDict['variableAlbedo']:
+                a0 = 0.22       # Measured Albedo under direct illumination with a solar zenith angle of approx. 60°
+                C = 0.4            # Solar angle dependency factor  
+                adiff = 0.19896735     # Measured Albedo under 100% diffuse illumination
+                
+                dataFrame['albedo'] = np.where(dataFrame['ghi'] == 0, 0, np.nan) #Avoid division by 0
+
+                # Calculate albedo for every hour
+                dataFrame['albedo'] = np.where(dataFrame['ghi'] > 0,
+                            (1 - dataFrame['dhi'] / dataFrame['ghi']) * a0 * ((1 + C) / (1 + 2 * C * np.cos(np.radians(dataFrame['zenith'])))) + (dataFrame['dhi'] / dataFrame['ghi'] * adiff),
+                            0)
+
+                dataFrame['albedo'] = np.where(dataFrame['albedo'] < 0, 0, dataFrame['albedo']) #change values below 0 for yield calculation
+                dataFrame.to_csv(resultsPath+'Dataframe_df.csv')
+                
             #demo.makeModule(name=simulationDict['module_type'],x=simulationDict['modulex'], y=moduley)    
             def raytrace_hour(args):
                 """ Ray multiprocessing function; simulates one hour with bifacial radiance"""
@@ -227,8 +244,9 @@ class RayTrace:
                 
                 if simulationDict['fixAlbedo'] ==True:
                     # Measured Albedo average fix value
-                    demo.setGround(simulationDict['albedo'])
-                    
+                    demo.setGround(simulationDict['albedo']) 
+                elif simulationDict['variableAlbedo']:                    
+                    demo.setGround(dataFrame.iat[time, dataFrame.columns.get_loc('albedo')]) 
                 else:
                     # hourly spectral albedo or hourly measured albedo
                     demo.setGround(material = None)
