@@ -1330,9 +1330,9 @@ class Window(tk.Tk):
                 SimulationDict["hourlySpectralAlbedo"]=False
                 SimulationDict["fixAlbedo"]=False
                 SimulationDict["variableAlbedo"]=True
-                Label_albedo.config(state="disabled")
-                Entry_albedo.config(state="disabled")
-                Combo_Albedo.config(state="disabled")
+                Label_albedo.config(state="normal")
+                Entry_albedo.config(state="normal")
+                Combo_Albedo.config(state="normal")
                 Entry_reflectivityfile.config(state="disabled")
                 Button_reflectivityfile.config(state="disabled")
                 Lab_reflectivityfile.config(state="disabled")
