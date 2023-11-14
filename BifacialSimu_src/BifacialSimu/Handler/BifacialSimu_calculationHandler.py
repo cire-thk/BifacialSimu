@@ -229,8 +229,8 @@ class Electrical_simulation:
                     row_qabs_back = df_report.loc[index,key_back]
                        
                 # estimate module temperture with ambient temperature and NOCT temp
-                T_Current = df.loc[index,'temperature'] + ((row_qabs_front/800)*(moduleDict['T_NOCT'] - 20))
-                
+                T_Current = df.loc[index,'temperature'] + ((row_qabs_front/800)*(moduleDict['T_NOCT'] - 20)) - 0.19*df.loc[index,'wspd']
+                #T_Current = df.loc[index,'temperature']
                 if np.isnan(T_Current):
                     T_Current = df.loc[index,'temperature']
                 
@@ -269,7 +269,7 @@ class Electrical_simulation:
                 else:
                     P_bi=0
 
-                P_bi_hourly.append(P_bi/(simulationDict['moduley'] *simulationDict['modulex']))  #Bifacial Power Output per Module Area  [W/m2]
+                P_bi_hourly.append(P_bi / (simulationDict['moduley'] *simulationDict['modulex']))  #Bifacial Power Output per Module Area  [W/m2]
                 
             # Append P_bi_hourly array to arrays
             P_bi_hourly_arrays.append(P_bi_hourly)
@@ -335,11 +335,14 @@ class Electrical_simulation:
         sum_energy_m = 0
         sum_power_m = 0
         
+        
+        
         # Loop to calculate the Monofacial Output power for every row in every hour
         for i in tqdm(range(0, simulationDict['nRows'])):
             
             key_front_mono = "row_" + str(i) + "_qabs_front"
             P_m_hourly = []
+            T_mod_hourly = []
             
             for index, row in df_report.iterrows():
                 
@@ -350,7 +353,7 @@ class Electrical_simulation:
                     row_qabs_front = df_report.loc[index,key_front_mono]
                 
                 # estimate module temperture with ambient temperature and NOCT temp
-                T_Current = df.loc[index,'temperature'] + ((row_qabs_front/800)*(moduleDict['T_NOCT'] - 20))
+                T_Current = df.loc[index,'temperature'] + ((row_qabs_front/800)*(moduleDict['T_NOCT'] - 20)) - 0.19*df.loc[index,'wspd']
                 if np.isnan(T_Current):
                     T_Current = df.loc[index,'temperature']
 
@@ -370,11 +373,10 @@ class Electrical_simulation:
                     P_m = 0
                     
                 P_m_hourly.append(P_m/(simulationDict['moduley'] *simulationDict['modulex'])) # monofacial power output per module area [W/m2]
-            
+                
             # Append P_m_hourly array to arrays
             P_m_hourly_arrays.append(P_m_hourly)
-        
-        
+
         P_m_hourly_average = []
         
         for i in tqdm(range(0, len(P_m_hourly_arrays[0]))):
@@ -581,7 +583,7 @@ class Electrical_simulation:
                 row_qabs_combined = row_qabs_front + (row_qabs_back*bi_factor)
                 
                 # estimate module temperture with ambient temperature and NOCT temp
-                T_Current = df.loc[index,'temperature'] + ((row_qabs_front/800)*(moduleDict['T_NOCT'] - 20))
+                T_Current = df.loc[index,'temperature'] + ((row_qabs_front/800)*(moduleDict['T_NOCT'] - 20)) - 0.19*df.loc[index,'wspd']
                 if np.isnan(T_Current):
                     T_Current = df.loc[index,'temperature']
                 
@@ -682,7 +684,7 @@ class Electrical_simulation:
                     row_qabs_front = df_report.loc[index,key_front_mono]
                 
                 # estimate module temperture with ambient temperature and NOCT temp
-                T_Current = df.loc[index,'temperature'] + ((row_qabs_front/800)*(moduleDict['T_NOCT'] - 20))
+                T_Current = df.loc[index,'temperature'] + ((row_qabs_front/800)*(moduleDict['T_NOCT'] - 20)) - 0.19*df.loc[index,'wspd']
                 if np.isnan(T_Current):
                     T_Current = df.loc[index,'temperature']
 
@@ -1072,7 +1074,7 @@ class Electrical_simulation:
                     row_qabs_back = df_report.loc[index,key_back]
                 
                 # estimate module temperture with ambient temperature and NOCT temp
-                T_Current = df.loc[index,'temperature'] + ((row_qabs_front/800)*(moduleDict['T_NOCT'] - 20))
+                T_Current = df.loc[index,'temperature'] + ((row_qabs_front/800)*(moduleDict['T_NOCT'] - 20)) - 0.19*df.loc[index,'wspd']
                 if np.isnan(T_Current):
                     T_Current = df.loc[index,'temperature']
                 
@@ -1615,7 +1617,7 @@ class Electrical_simulation:
                     T_Current = df.loc[index,'temperature'] + ((df_report.loc[index,key_back]/800)*(moduleDict['T_NOCT'] - 20))
                 else:
                     row_qabs_front = df_report.loc[index,key_front]
-                    T_Current = df.loc[index,'temperature'] + ((row_qabs_front/800)*(moduleDict['T_NOCT'] - 20))
+                    T_Current = df.loc[index,'temperature'] + ((row_qabs_front/800)*(moduleDict['T_NOCT'] - 20)) - 0.19*df.loc[index,'wspd']
                 if simulationDict['simulationMode'] == 4:
                     row_qabs_back = 0
                 else:
@@ -2056,7 +2058,7 @@ class Electrical_simulation:
                         row_qabs_back = df_report.loc[index,key_back]
                     
                     # estimate module temperture with ambient temperature and NOCT temp
-                    T_Current = df.loc[index,'temperature'] + ((row_qabs_front/800)*(moduleDict['T_NOCT'] - 20))
+                    T_Current = df.loc[index,'temperature'] + ((row_qabs_front/800)*(moduleDict['T_NOCT'] - 20)) - 0.19*df.loc[index,'wspd']
                     if np.isnan(T_Current):
                         T_Current = df.loc[index,'temperature']
                     
@@ -2169,7 +2171,7 @@ class Electrical_simulation:
                         row_qabs_front = df_report.loc[index,key_front_mono]
                     
                     # estimate module temperture with ambient temperature and NOCT temp
-                    T_Current = df.loc[index,'temperature'] + ((row_qabs_front/800)*(moduleDict['T_NOCT'] - 20))
+                    T_Current = df.loc[index,'temperature'] + ((row_qabs_front/800)*(moduleDict['T_NOCT'] - 20)) - 0.19*df.loc[index,'wspd']
                     if np.isnan(T_Current):
                         T_Current = df.loc[index,'temperature']
 

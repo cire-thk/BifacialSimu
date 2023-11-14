@@ -208,19 +208,27 @@ class RayTrace:
             solpos = metdata.solpos
             solpos.reset_index(drop=True, inplace=True)
             
+            #Variable Albedo for Raytracing
             if simulationDict['variableAlbedo']:
-                a0 = 0.22       # Measured Albedo under direct illumination with a solar zenith angle of approx. 60°
+                
+                a0 = simulationDict['albedo'] #0.22       # Measured Albedo under direct illumination with a solar zenith angle of approx. 60°
                 C = 0.4            # Solar angle dependency factor  
-                adiff = 0.19896735     # Measured Albedo under 100% diffuse illumination
+                adiff = simulationDict['albedo'] * 0.9 #0.19896735     # Measured Albedo under 100% diffuse illumination
                 
                 dataFrame['albedo'] = np.where(dataFrame['ghi'] == 0, 0, np.nan) #Avoid division by 0
 
                 # Calculate albedo for every hour
-                dataFrame['albedo'] = np.where(dataFrame['ghi'] > 0,
+                dataFrame['albedo'] = np.where((dataFrame['ghi'] > 0),
                             (1 - dataFrame['dhi'] / dataFrame['ghi']) * a0 * ((1 + C) / (1 + 2 * C * np.cos(np.radians(dataFrame['zenith'])))) + (dataFrame['dhi'] / dataFrame['ghi'] * adiff),
-                            0)
+                            dataFrame['albedo'])
+                
+                #Albedo calcualtion with snowdepth; a0 = 0.75, C = 0.1
+                dataFrame['albedo'] = np.where((dataFrame['ghi'] > 0) & (dataFrame['snow'] > 0),
+                            (1 - dataFrame['dhi'] / dataFrame['ghi']) * 0.7 * ((1 + 0.1) / (1 + 2 * 0.1 * np.cos(np.radians(dataFrame['zenith'])))) + (dataFrame['dhi'] / dataFrame['ghi'] * 0.63),
+                            dataFrame['albedo'])
 
                 dataFrame['albedo'] = np.where(dataFrame['albedo'] < 0, 0, dataFrame['albedo']) #change values below 0 for yield calculation
+                dataFrame['albedo'] = np.where(dataFrame['albedo'] > 1, 1, dataFrame['albedo'])
                 dataFrame.to_csv(resultsPath+'Dataframe_df.csv')
                 
             #demo.makeModule(name=simulationDict['module_type'],x=simulationDict['modulex'], y=moduley)    
@@ -565,22 +573,27 @@ class ViewFactors:
         def variableAlbedo(df, resultspath):
             
             # Set model parameters
-            a0 = 0.22       # Measured Albedo under direct illumination with a solar zenith angle of approx. 60°
+            a0 = simulationDict['albedo'] #0.22       # Measured Albedo under direct illumination with a solar zenith angle of approx. 60°
             C = 0.4            # Solar angle dependency factor  
-            adiff = 0.19896735     # Measured Albedo under 100% diffuse illumination
+            adiff = simulationDict['albedo'] * 0.9 #0.19896735     # Measured Albedo under 100% diffuse illumination
             
             df['albedo'] = np.where(df['ghi'] == 0, 0, np.nan) #Avoid division by 0
 
             # Calculate albedo for every hour
-            df['albedo'] = np.where(df['ghi'] > 0,
+            df['albedo'] = np.where((df['ghi'] > 0),
                         (1 - df['dhi'] / df['ghi']) * a0 * ((1 + C) / (1 + 2 * C * np.cos(np.radians(df['zenith'])))) + (df['dhi'] / df['ghi'] * adiff),
-                        0)
+                        df['albedo'])
+            #Albedo calcualtion with snowdepth
+            df['albedo'] = np.where((df['ghi'] > 0) & (df['snow'] > 0),
+                        (1 - df['dhi'] / df['ghi']) * 0.7 * ((1 + 0.1) / (1 + 2 * 0.1 * np.cos(np.radians(df['zenith'])))) + (df['dhi'] / df['ghi'] * 0.63),
+                        df['albedo'])
 
             df['albedo'] = np.where(df['albedo'] < 0, 0, df['albedo']) #change values below 0 for yield calculation
+            df['albedo'] = np.where(df['albedo'] > 1, 1, df['albedo'])
             
             #save variable Albedo as csv
             variableAlbedo = pd.DataFrame({'datetime':df.index, 'variable_Albedo': df['albedo']})
-            variableAlbedo.to_csv(Path(resultspath + '/variable_Albedo.csv'), sep=';', index=False)
+            variableAlbedo.to_csv(Path(resultspath + '/variable_Albedo.csv'), index=False)
 
         
         ####################################################

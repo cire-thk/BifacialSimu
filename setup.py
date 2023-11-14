@@ -68,7 +68,8 @@ setup(
         'ruamel.yaml==0.17.21',
         'timezonefinder==6.2.0',
         'black==22.3.0',
-        'ray==2.5.1'
+        'ray==2.5.1',
+        'meteostat==1.6.7'
     ],
 
     # Here are the keywords of my library.

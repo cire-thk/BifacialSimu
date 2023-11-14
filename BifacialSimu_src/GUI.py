@@ -2064,6 +2064,6 @@ if __name__ == '__main__':
     gui()  
 
 # Showing parameter after closing the GUI
-print (SimulationDict)
-print (ModuleDict)
+#print (SimulationDict)
+#print (ModuleDict)
 
